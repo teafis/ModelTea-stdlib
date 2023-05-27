@@ -24,7 +24,7 @@ struct arith_block_dynamic
 {
     struct input_t
     {
-        const T** vals;
+        T* vals;
         int size;
     };
 
@@ -39,11 +39,11 @@ struct arith_block_dynamic
 
     void step()
     {
-        T val = *s_in.vals[0];
+        T val = s_in.vals[0];
 
         for (int i = 1; i < s_in.size; ++i)
         {
-            const auto& v = *s_in.vals[i];
+            const auto& v = s_in.vals[i];
 
             if constexpr (AT == ArithType::ADD)
             {
@@ -87,7 +87,7 @@ struct arith_block : public arith_block_dynamic<T, AT>
     arith_block& operator=(const arith_block&) = delete;
 
 private:
-    std::array<const T*, SIZE> _input_array;
+    std::array<T, SIZE> _input_array;
 };
 
 struct clock_block
@@ -117,7 +117,7 @@ struct const_block
 {
     struct output_t
     {
-        const T val;
+        T val;
     };
 
     const_block(const T val) : s_out{ .val = val }
@@ -136,9 +136,9 @@ struct delay_block
 {
     struct input_t
     {
-        const T* input_value;
-        const T* reset_value;
-        const bool* reset_flag;
+        T input_value;
+        T reset_value;
+        bool reset_flag;
     };
 
     struct output_t
@@ -157,18 +157,18 @@ struct delay_block
 
     void step()
     {
-        if (*s_in.reset_flag)
+        if (s_in.reset_flag)
         {
             reset();
         }
 
         s_out.output_value = next_value;
-        next_value = *s_in.input_value;
+        next_value = s_in.input_value;
     }
 
     void reset()
     {
-        next_value = *s_in.reset_value;
+        next_value = s_in.reset_value;
     }
 
     input_t s_in;
@@ -182,8 +182,8 @@ struct derivative_block
 {
     struct input_t
     {
-        const T* input_value;
-        const bool* reset_flag;
+        T input_value;
+        bool reset_flag;
     };
 
     struct output_t
@@ -206,18 +206,18 @@ struct derivative_block
 
     void step()
     {
-        if (*s_in.reset_flag)
+        if (s_in.reset_flag)
         {
             reset();
         }
 
-        s_out.output_value = (*s_in.input_value - last_value) / dt;
-        last_value = *s_in.input_value;
+        s_out.output_value = (s_in.input_value - last_value) / dt;
+        last_value = s_in.input_value;
     }
 
     void reset()
     {
-        last_value = *s_in.input_value;
+        last_value = s_in.input_value;
     }
 
     input_t s_in;
@@ -232,9 +232,9 @@ struct integrator_block
 {
     struct input_t
     {
-        const T* input_value;
-        const T* reset_value;
-        const bool* reset_flag;
+        T input_value;
+        T reset_value;
+        bool reset_flag;
     };
 
     struct output_t
@@ -257,19 +257,19 @@ struct integrator_block
 
     void step()
     {
-        if (*s_in.reset_flag)
+        if (s_in.reset_flag)
         {
             reset();
         }
         else
         {
-            s_out.output_value += *s_in.input_value * dt;
+            s_out.output_value += s_in.input_value * dt;
         }
     }
 
     void reset()
     {
-        s_out.output_value = *s_in.reset_value;
+        s_out.output_value = s_in.reset_value;
     }
 
     input_t s_in;
@@ -283,9 +283,9 @@ struct limiter_block
 {
     struct input_t
     {
-        const T* input_value;
-        const T* limit_upper;
-        const T* limit_lower;
+        T input_value;
+        T limit_upper;
+        T limit_lower;
     };
 
     struct output_t
@@ -299,9 +299,9 @@ struct limiter_block
 
     void step()
     {
-        T x = *s_in.input_value;
-        const T lu = *s_in.limit_upper;
-        const T ll = *s_in.limit_lower;
+        T x = s_in.input_value;
+        const T lu = s_in.limit_upper;
+        const T ll = s_in.limit_lower;
 
         if (x < ll)
         {
@@ -324,7 +324,7 @@ struct limiter_block_const
 {
     struct input_t
     {
-        const T* input_value;
+        T input_value;
     };
 
     struct output_t
@@ -344,7 +344,7 @@ struct limiter_block_const
 
     void step()
     {
-        T x = *s_in.input_value;
+        T x = s_in.input_value;
 
         if (x < _lower)
         {
@@ -383,8 +383,8 @@ struct relational_block
 {
     struct input_t
     {
-        const T* val_a;
-        const T* val_b;
+        T val_a;
+        T val_b;
     };
 
     struct output_t
@@ -399,8 +399,8 @@ struct relational_block
     void step()
     {
         bool v = false;
-        const T a = *s_in.val_a;
-        const T b = *s_in.val_b;
+        const T a = s_in.val_a;
+        const T b = s_in.val_b;
 
         if constexpr (OP == RelationalOperator::EQUAL)
         {
@@ -447,7 +447,7 @@ struct trig_block
 {
     struct input_t
     {
-        const T* value;
+        T value;
     };
 
     struct output_t
@@ -462,7 +462,7 @@ struct trig_block
     void step()
     {
         T y{};
-        const T x = *s_in.value;
+        const T x = s_in.value;
 
         if constexpr (FCN == TrigFunction::SIN)
         {
