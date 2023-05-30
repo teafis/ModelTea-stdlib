@@ -37,6 +37,11 @@ struct arith_block_dynamic
     arith_block_dynamic(const arith_block_dynamic&) = delete;
     arith_block_dynamic& operator=(const arith_block_dynamic&) = delete;
 
+    void init()
+    {
+        step();
+    }
+
     void step()
     {
         T val = s_in.vals[0];
@@ -297,6 +302,11 @@ struct limiter_block
     limiter_block(const limiter_block&) = delete;
     limiter_block& operator=(const limiter_block&) = delete;
 
+    void init()
+    {
+        step();
+    }
+
     void step()
     {
         T x = s_in.input_value;
@@ -341,6 +351,11 @@ struct limiter_block_const
 
     limiter_block_const(const limiter_block_const&) = delete;
     limiter_block_const& operator=(const limiter_block_const&) = delete;
+
+    void init()
+    {
+        step();
+    }
 
     void step()
     {
@@ -395,6 +410,11 @@ struct relational_block
     relational_block() = default;
     relational_block(const relational_block&) = delete;
     relational_block& operator=(const relational_block&) = delete;
+
+    void init()
+    {
+        step();
+    }
 
     void step()
     {
@@ -458,6 +478,11 @@ struct trig_block
     trig_block() = default;
     trig_block(const trig_block&) = delete;
     trig_block& operator=(const trig_block&) = delete;
+
+    void init()
+    {
+        step();
+    }
 
     void step()
     {
