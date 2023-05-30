@@ -4,10 +4,10 @@
 
 tmdl::stdlib::clock_block::clock_block(const double dt) : dt{ dt }
 {
-    reset();
+    init();
 }
 
-void tmdl::stdlib::clock_block::reset()
+void tmdl::stdlib::clock_block::init()
 {
     s_out.val = 0.0;
 }

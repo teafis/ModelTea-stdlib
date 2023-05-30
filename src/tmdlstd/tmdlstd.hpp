@@ -102,7 +102,7 @@ struct clock_block
     clock_block(const clock_block&) = delete;
     clock_block& operator=(const clock_block&) = delete;
 
-    void reset();
+    void init();
 
     void step();
 
