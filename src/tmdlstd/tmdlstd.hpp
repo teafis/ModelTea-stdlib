@@ -284,6 +284,46 @@ struct integrator_block
 };
 
 template <typename T>
+struct switch_block
+{
+    struct input_t
+    {
+        bool switch_value;
+        T value_a;
+        T value_b;
+    };
+
+    struct output_t
+    {
+        T value;
+    };
+
+    switch_block() = default;
+    switch_block(const switch_block&) = delete;
+    switch_block& operator=(const switch_block&) = delete;
+
+    void init()
+    {
+        step();
+    }
+
+    void step()
+    {
+        if (s_in.switch_value)
+        {
+            s_out.value = s_in.value_a;
+        }
+        else
+        {
+            s_out.value = s_in.value_b;
+        }
+    }
+
+    input_t s_in;
+    output_t s_out;
+};
+
+template <typename T>
 struct limiter_block
 {
     struct input_t
