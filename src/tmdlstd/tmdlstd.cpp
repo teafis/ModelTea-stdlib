@@ -2,7 +2,7 @@
 
 #include "tmdlstd.hpp"
 
-tmdl::stdlib::clock_block::clock_block(const double dt) : dt{ dt }
+tmdl::stdlib::clock_block::clock_block(const double dt) : time_step{ dt }
 {
     init();
 }
@@ -14,20 +14,21 @@ void tmdl::stdlib::clock_block::init()
 
 void tmdl::stdlib::clock_block::step()
 {
-    s_out.val += dt;
+    s_out.val += time_step;
 }
 
 const char* tmdl::stdlib::arith_to_string(const ArithType t)
 {
     switch (t)
     {
-    case ArithType::ADD:
+    using enum ArithType;
+    case ADD:
         return "tmdl::stdlib::ArithType::ADD";
-    case ArithType::SUB:
+    case SUB:
         return "tmdl::stdlib::ArithType::SUB";
-    case ArithType::MUL:
+    case MUL:
         return "tmdl::stdlib::ArithType::MUL";
-    case ArithType::DIV:
+    case DIV:
         return "tmdl::stdlib::ArithType::DIV";
     default:
         return "";
@@ -38,17 +39,18 @@ const char* tmdl::stdlib::relational_to_string(const RelationalOperator op)
 {
     switch (op)
     {
-    case RelationalOperator::EQUAL:
+    using enum RelationalOperator;
+    case EQUAL:
         return "tmdl::stdlib::RelationalOperator::EQUAL";
-    case RelationalOperator::NOT_EQUAL:
+    case NOT_EQUAL:
         return "tmdl::stdlib::RelationalOperator::NOT_EQUAL";
-    case RelationalOperator::GREATER_THAN:
+    case GREATER_THAN:
         return "tmdl::stdlib::RelationalOperator::GREATER_THAN";
-    case RelationalOperator::GREATER_THAN_EQUAL:
+    case GREATER_THAN_EQUAL:
         return "tmdl::stdlib::RelationalOperator::GREATER_THAN_EQUAL";
-    case RelationalOperator::LESS_THAN:
+    case LESS_THAN:
         return "tmdl::stdlib::RelationalOperator::LESS_THAN";
-    case RelationalOperator::LESS_THAN_EQUAL:
+    case LESS_THAN_EQUAL:
         return "tmdl::stdlib::RelationalOperator::LESS_THAN_EQUAL";
     default:
         return "";
@@ -59,9 +61,10 @@ const char* tmdl::stdlib::trig_func_to_string(const TrigFunction fcn)
 {
     switch (fcn)
     {
-    case TrigFunction::SIN:
+    using enum TrigFunction;
+    case SIN:
         return "tmdl::stdlib::TrigFunction::SIN";
-    case TrigFunction::COS:
+    case COS:
         return "tmdl::stdlib::TrigFunction::COS";
     default:
         return "";

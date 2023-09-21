@@ -48,27 +48,28 @@ struct arith_block_dynamic
 
         for (int i = 1; i < s_in.size; ++i)
         {
+            using enum ArithType;
             const auto& v = s_in.vals[i];
 
-            if constexpr (AT == ArithType::ADD)
+            if constexpr (AT == ADD)
             {
                 val += v;
             }
-            else if constexpr (AT == ArithType::SUB)
+            else if constexpr (AT == SUB)
             {
                 val -= v;
             }
-            else if constexpr (AT == ArithType::MUL)
+            else if constexpr (AT == MUL)
             {
                 val *= v;
             }
-            else if constexpr (AT == ArithType::DIV)
+            else if constexpr (AT == DIV)
             {
                 val /= v;
             }
             else
             {
-                // Error...
+                static_assert("unsuppored arithmetic type provided");
             }
         }
 
@@ -102,7 +103,7 @@ struct clock_block
         double val;
     };
 
-    clock_block(const double dt);
+    explicit clock_block(double dt);
 
     clock_block(const clock_block&) = delete;
     clock_block& operator=(const clock_block&) = delete;
@@ -113,8 +114,7 @@ struct clock_block
 
     output_t s_out;
 
-private:
-    const double dt;
+    const double time_step;
 };
 
 template <typename T>
@@ -125,7 +125,7 @@ struct const_block
         T val;
     };
 
-    const_block(const T val) : s_out{ .val = val }
+    explicit const_block(const T val) : s_out{ .val = val }
     {
         // Empty Constructor
     }
@@ -196,7 +196,7 @@ struct derivative_block
         T output_value;
     };
 
-    derivative_block(const double dt) : dt(dt)
+    explicit derivative_block(const double dt) : time_step(dt)
     {
         // Empty Constructor
     }
@@ -216,7 +216,7 @@ struct derivative_block
             reset();
         }
 
-        s_out.output_value = (s_in.input_value - last_value) / dt;
+        s_out.output_value = (s_in.input_value - last_value) / time_step;
         last_value = s_in.input_value;
     }
 
@@ -229,7 +229,7 @@ struct derivative_block
     output_t s_out;
 
     T last_value;
-    const double dt;
+    const double time_step;
 };
 
 template <typename T>
@@ -247,7 +247,7 @@ struct integrator_block
         T output_value;
     };
 
-    integrator_block(const double dt) : dt(dt)
+    explicit integrator_block(const double dt) : time_step(dt)
     {
         // Empty Constructor
     }
@@ -268,7 +268,7 @@ struct integrator_block
         }
         else
         {
-            s_out.output_value += s_in.input_value * dt;
+            s_out.output_value += s_in.input_value * time_step;
         }
     }
 
@@ -280,7 +280,7 @@ struct integrator_block
     input_t s_in;
     output_t s_out;
 
-    const double dt;
+    const double time_step;
 };
 
 template <typename T>
@@ -350,16 +350,14 @@ struct limiter_block
     void step()
     {
         T x = s_in.input_value;
-        const T lu = s_in.limit_upper;
-        const T ll = s_in.limit_lower;
 
-        if (x < ll)
+        if (x < s_in.limit_lower)
         {
-            x = ll;
+            x = s_in.limit_lower;
         }
-        else if (x > lu)
+        else if (x > s_in.limit_upper)
         {
-            x = lu;
+            x = s_in.limit_upper;
         }
 
         s_out.output_value = x;
@@ -383,8 +381,8 @@ struct limiter_block_const
     };
 
     limiter_block_const(const T upper, const T lower) :
-        _upper{ upper },
-        _lower{ lower }
+        bound_upper{ upper },
+        bound_lower{ lower }
     {
         // Empty Constructor
     }
@@ -401,13 +399,13 @@ struct limiter_block_const
     {
         T x = s_in.input_value;
 
-        if (x < _lower)
+        if (x < bound_lower)
         {
-            x = _lower;
+            x = bound_lower;
         }
-        else if (x > _upper)
+        else if (x > bound_upper)
         {
-            x = _upper;
+            x = bound_upper;
         }
 
         s_out.output_value = x;
@@ -416,9 +414,8 @@ struct limiter_block_const
     input_t s_in;
     output_t s_out;
 
-private:
-    const T _upper;
-    const T _lower;
+    const T bound_upper;
+    const T bound_lower;
 };
 
 enum class RelationalOperator
@@ -444,7 +441,7 @@ struct relational_block
 
     struct output_t
     {
-        T output_value;
+        bool output_value;
     };
 
     relational_block() = default;
