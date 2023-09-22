@@ -455,31 +455,33 @@ struct relational_block
 
     void step()
     {
+        using enum RelationalOperator;
+
         bool v = false;
         const T a = s_in.val_a;
         const T b = s_in.val_b;
 
-        if constexpr (OP == RelationalOperator::EQUAL)
+        if constexpr (OP == EQUAL)
         {
             v = a == b;
         }
-        else if constexpr (OP == RelationalOperator::NOT_EQUAL)
+        else if constexpr (OP == NOT_EQUAL)
         {
             v = a != b;
         }
-        else if constexpr (OP == RelationalOperator::GREATER_THAN)
+        else if constexpr (OP == GREATER_THAN)
         {
             v = a > b;
         }
-        else if constexpr (OP == RelationalOperator::GREATER_THAN_EQUAL)
+        else if constexpr (OP == GREATER_THAN_EQUAL)
         {
             v = a >= b;
         }
-        else if constexpr (OP == RelationalOperator::LESS_THAN)
+        else if constexpr (OP == LESS_THAN)
         {
             v = a < b;
         }
-        else if constexpr (OP == RelationalOperator::LESS_THAN_EQUAL)
+        else if constexpr (OP == LESS_THAN_EQUAL)
         {
             v = a <= b;
         }
