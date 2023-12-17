@@ -30,3 +30,16 @@ set_property(TARGET tmdlstd PROPERTY CXX_STANDARD_REQUIRED ON)
 # Include Directories
 target_include_directories(tmdlstd PUBLIC src)
 
+# Set appropriate catch libraries
+
+add_executable(tmdlstd_test tests/arith_block.cpp)
+
+set_property(TARGET tmdlstd_test PROPERTY CXX_STANDARD 20)
+set_property(TARGET tmdlstd_test PROPERTY CXX_STANDARD_REQUIRED ON)
+
+target_link_libraries(tmdlstd_test PRIVATE tmdlstd)
+
+find_package(Catch2 CONFIG REQUIRED)
+target_link_libraries(tmdlstd_test PRIVATE Catch2::Catch2 Catch2::Catch2WithMain)
+
+add_test(NAME tmdlstd_test COMMAND tmdlstd_test)
