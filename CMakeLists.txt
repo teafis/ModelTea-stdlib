@@ -32,7 +32,10 @@ target_include_directories(tmdlstd PUBLIC src)
 
 # Set appropriate catch libraries
 
-add_executable(tmdlstd_test tests/arith_block.cpp)
+add_executable(
+    tmdlstd_test
+    tests/arith_block.cpp
+    tests/clock_block.cpp)
 
 set_property(TARGET tmdlstd_test PROPERTY CXX_STANDARD 20)
 set_property(TARGET tmdlstd_test PROPERTY CXX_STANDARD_REQUIRED ON)
