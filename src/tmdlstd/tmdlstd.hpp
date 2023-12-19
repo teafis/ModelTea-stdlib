@@ -4,8 +4,9 @@
 #define TMDL_STDLIB_H
 
 #include <array>
-#include <cmath>
 #include <stdexcept>
+
+#include "tmdlstd_ext.hpp"
 
 namespace tmdl::stdlib {
 
@@ -398,9 +399,9 @@ template <typename T, TrigFunction FCN> struct trig_block {
         const T x = s_in.value;
 
         if constexpr (FCN == TrigFunction::SIN) {
-            y = std::sin(x);
+            y = t_sin(x);
         } else if constexpr (FCN == TrigFunction::COS) {
-            y = std::cos(x);
+            y = t_cos(x);
         }
 
         s_out.value = y;

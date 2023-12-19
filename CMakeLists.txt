@@ -15,6 +15,8 @@ set(
     TEAFIS_STD_MODEL_SOURCES
     src/tmdlstd/tmdlstd.hpp
     src/tmdlstd/tmdlstd.cpp
+    src/tmdlstd/tmdlstd_ext.hpp
+    src/tmdlstd/tmdlstd_ext.cpp
 )
 
 # Define the library
