@@ -13,6 +13,8 @@ const char* relational_to_string(RelationalOperator op);
 
 const char* trig_func_to_string(TrigFunction fcn);
 
+const char* trig_func_to_string(TrigFunction2 fcn);
+
 }
 
 #endif // TMDL_STDLIB_STRING_H

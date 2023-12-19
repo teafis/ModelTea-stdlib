@@ -16,7 +16,13 @@ public:
     block_error(const std::string& msg) : std::runtime_error(msg) {}
 };
 
-enum class ArithType { ADD = 0, SUB, MUL, DIV };
+enum class ArithType {
+    ADD = 0,
+    SUB,
+    MUL,
+    DIV,
+    MOD,
+};
 
 template <typename T, ArithType AT> struct arith_block_dynamic {
     struct input_t {
@@ -49,8 +55,10 @@ template <typename T, ArithType AT> struct arith_block_dynamic {
                 val *= v;
             } else if constexpr (AT == DIV) {
                 val /= v;
+            } else if constexpr (AT == MOD) {
+                val = t_mod(val, v);
             } else {
-                static_assert("unsuppored arithmetic type provided");
+                static_assert(false, "unsuppored arithmetic type provided");
             }
         }
 
@@ -371,7 +379,18 @@ template <typename T, RelationalOperator OP> struct relational_block {
     output_t s_out;
 };
 
-enum class TrigFunction { SIN = 0, COS };
+enum class TrigFunction {
+    SIN = 0,
+    COS,
+    TAN,
+    ASIN,
+    ACOS,
+    ATAN,
+};
+
+enum class TrigFunction2 {
+    ATAN2 = 0,
+};
 
 template <typename T, TrigFunction FCN> struct trig_block {
     struct input_t {
@@ -396,9 +415,53 @@ template <typename T, TrigFunction FCN> struct trig_block {
             y = t_sin(x);
         } else if constexpr (FCN == TrigFunction::COS) {
             y = t_cos(x);
+        } else if constexpr (FCN == TrigFunction::TAN) {
+            y = t_tan(x);
+        } else if constexpr (FCN == TrigFunction::ASIN) {
+            y = t_asin(x);
+        } else if constexpr (FCN == TrigFunction::ACOS) {
+            y = t_acos(x);
+        } else if constexpr (FCN == TrigFunction::ATAN) {
+            y = t_atan(x);
+        } else {
+            static_assert(false, "unsupported trig function");
         }
 
         s_out.value = y;
+    }
+
+    input_t s_in;
+    output_t s_out;
+};
+
+template <typename T, TrigFunction2 FCN> struct trig_block_2 {
+    struct input_t {
+        T y;
+        T x;
+    };
+
+    struct output_t {
+        T value;
+    };
+
+    trig_block_2() = default;
+    trig_block_2(const trig_block_2&) = delete;
+    trig_block_2& operator=(const trig_block_2&) = delete;
+
+    void init() { step(); }
+
+    void step() {
+        T outval{};
+        const T x = s_in.x;
+        const T y = s_in.y;
+
+        if constexpr (FCN == TrigFunction2::ATAN2) {
+            outval = t_atan2(y, x);
+        } else {
+            static_assert(false, "unsupported trig function");
+        }
+
+        s_out.value = outval;
     }
 
     input_t s_in;

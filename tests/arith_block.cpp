@@ -25,8 +25,10 @@ static double compute_expected(std::span<const double> vals) {
         reduce_fn = [](double a, double b) { return a * b; };
     } else if constexpr (OP == tmdl::stdlib::ArithType::DIV) {
         reduce_fn = [](double a, double b) { return a / b; };
+    } else if constexpr (OP == tmdl::stdlib::ArithType::MOD) {
+        reduce_fn = [](double a, double b) { return std::fmod(a, b); };
     } else {
-        static_assert("Unsupported Operation");
+        static_assert(false, "unsupported operation");
     }
 
     REQUIRE(vals.size() > 0);
@@ -88,7 +90,7 @@ static void test_dynamic_block(std::span<const size_t> test_sizes,
 
         block_test.init();
 
-        if constexpr (OP != tmdl::stdlib::ArithType::DIV) {
+        if constexpr (OP != tmdl::stdlib::ArithType::DIV && OP != tmdl::stdlib::ArithType::MOD) {
             REQUIRE_THAT(block_test.s_out.val, Catch::Matchers::WithinRel(0.0));
         }
 
@@ -168,5 +170,14 @@ TEST_CASE("Block Arithmetic Div", "[arith]") {
 
 TEST_CASE("Block Arithmetic Div Dynamic", "[arith]") {
     test_dynamic_block<tmdl::stdlib::ArithType::DIV>(TEST_SIZES,
+                                                     TEST_NUMBERS_NON_ZERO);
+}
+
+TEST_CASE("Block Arithmetic Mod", "[arith]") {
+    test_static_block<tmdl::stdlib::ArithType::MOD>(TEST_NUMBERS_NON_ZERO);
+}
+
+TEST_CASE("Block Arithmetic Mod Dynamic", "[arith]") {
+    test_dynamic_block<tmdl::stdlib::ArithType::MOD>(TEST_SIZES,
                                                      TEST_NUMBERS_NON_ZERO);
 }
