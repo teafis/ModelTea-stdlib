@@ -24,7 +24,8 @@ enum class ArithType {
     MOD,
 };
 
-template <typename T, ArithType AT> struct arith_block_dynamic {
+template <typename T, ArithType AT>
+struct arith_block_dynamic {
     struct input_t {
         T* values;
         int size;
@@ -97,12 +98,15 @@ struct clock_block {
 
     void step();
 
+    void reset();
+
     output_t s_out;
 
     const double time_step;
 };
 
-template <typename T> struct const_block {
+template <typename T>
+struct const_block {
     struct output_t {
         T value;
     };
@@ -117,7 +121,8 @@ template <typename T> struct const_block {
     const output_t s_out;
 };
 
-template <typename T> struct delay_block {
+template <typename T>
+struct delay_block {
     struct input_t {
         T value;
         T reset;
@@ -151,7 +156,8 @@ template <typename T> struct delay_block {
     T next_value;
 };
 
-template <typename T> struct derivative_block {
+template <typename T>
+struct derivative_block {
     struct input_t {
         T value;
         bool reset_flag;
@@ -188,7 +194,8 @@ template <typename T> struct derivative_block {
     const double time_step;
 };
 
-template <typename T> struct integrator_block {
+template <typename T>
+struct integrator_block {
     struct input_t {
         T value;
         T reset;
@@ -224,7 +231,8 @@ template <typename T> struct integrator_block {
     const double time_step;
 };
 
-template <typename T> struct switch_block {
+template <typename T>
+struct switch_block {
     struct input_t {
         bool value_flag;
         T value_a;
@@ -253,7 +261,8 @@ template <typename T> struct switch_block {
     output_t s_out;
 };
 
-template <typename T> struct limiter_block {
+template <typename T>
+struct limiter_block {
     struct input_t {
         T value;
         T limit_upper;
@@ -286,7 +295,8 @@ template <typename T> struct limiter_block {
     output_t s_out;
 };
 
-template <typename T> struct limiter_block_const {
+template <typename T>
+struct limiter_block_const {
     struct input_t {
         T value;
     };
@@ -335,7 +345,8 @@ enum class RelationalOperator {
     LESS_THAN_EQUAL,
 };
 
-template <typename T, RelationalOperator OP> struct relational_block {
+template <typename T, RelationalOperator OP>
+struct relational_block {
     struct input_t {
         T value_a;
         T value_b;
@@ -392,7 +403,8 @@ enum class TrigFunction2 {
     ATAN2 = 0,
 };
 
-template <typename T, TrigFunction FCN> struct trig_block {
+template <typename T, TrigFunction FCN>
+struct trig_block {
     struct input_t {
         T value;
     };
@@ -434,7 +446,8 @@ template <typename T, TrigFunction FCN> struct trig_block {
     output_t s_out;
 };
 
-template <typename T, TrigFunction2 FCN> struct trig_block_2 {
+template <typename T, TrigFunction2 FCN>
+struct trig_block_2 {
     struct input_t {
         T value_a;
         T value_b;
