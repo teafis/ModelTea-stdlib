@@ -5,15 +5,31 @@
 
 #include "tmdlstd.hpp"
 
+#include <string>
+
 namespace tmdl::stdlib {
 
-const char* arith_to_string(ArithType t);
+enum class SpecificationType {
+    NONE,
+    TYPE,
+    FULL,
+};
 
-const char* relational_to_string(RelationalOperator op);
+std::string
+arith_to_string(ArithType t,
+                SpecificationType specification = SpecificationType::FULL);
 
-const char* trig_func_to_string(TrigFunction fcn);
+std::string relational_to_string(
+    RelationalOperator op,
+    SpecificationType specification = SpecificationType::FULL);
 
-const char* trig_func_to_string(TrigFunction2 fcn);
+std::string trig_func_to_string(
+    TrigFunction fcn,
+    SpecificationType specification = SpecificationType::FULL);
+
+std::string trig_func_to_string(
+    TrigFunction2 fcn,
+    SpecificationType specification = SpecificationType::FULL);
 
 }
 

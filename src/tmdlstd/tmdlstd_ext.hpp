@@ -28,6 +28,7 @@ double t_atan(double x);
 float t_atan2(float y, float x);
 double t_atan2(double y, double x);
 
+uint32_t t_mod(uint32_t x, uint32_t y);
 int32_t t_mod(int32_t x, int32_t y);
 float t_mod(float x, float y);
 double t_mod(double x, double y);

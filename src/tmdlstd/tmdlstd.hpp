@@ -436,8 +436,8 @@ template <typename T, TrigFunction FCN> struct trig_block {
 
 template <typename T, TrigFunction2 FCN> struct trig_block_2 {
     struct input_t {
-        T y;
-        T x;
+        T value_1;
+        T value_2;
     };
 
     struct output_t {
@@ -452,11 +452,11 @@ template <typename T, TrigFunction2 FCN> struct trig_block_2 {
 
     void step() {
         T outval{};
-        const T x = s_in.x;
-        const T y = s_in.y;
+        const T in1 = s_in.value_1;
+        const T in2 = s_in.value_2;
 
         if constexpr (FCN == TrigFunction2::ATAN2) {
-            outval = t_atan2(y, x);
+            outval = t_atan2(in1, in2);
         } else {
             static_assert(false, "unsupported trig function");
         }

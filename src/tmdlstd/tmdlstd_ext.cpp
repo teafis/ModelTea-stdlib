@@ -29,6 +29,7 @@ double tmdl::stdlib::t_atan2(const double y, const double x) {
     return std::atan2(y, x);
 }
 
+uint32_t tmdl::stdlib::t_mod(uint32_t x, uint32_t y) { return x % y; }
 int32_t tmdl::stdlib::t_mod(const int32_t x, const int32_t y) { return x % y; }
 float tmdl::stdlib::t_mod(const float x, const float y) {
     return std::fmod(x, y);

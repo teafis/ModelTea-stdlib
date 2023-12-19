@@ -3,70 +3,119 @@
 #include "tmdlstd_string.hpp"
 #include "tmdlstd/tmdlstd.hpp"
 
-const char* tmdl::stdlib::arith_to_string(const ArithType t) {
+#include <fmt/format.h>
+
+const static std::string BASE_NAMESPACE = "tmdl::stdlib";
+
+static std::string spec_to_name(tmdl::stdlib::SpecificationType spec,
+                                const std::string& type,
+                                const std::string& name) {
+    switch (spec) {
+        using enum tmdl::stdlib::SpecificationType;
+    case FULL:
+        return fmt::format("{}::{}::{}", BASE_NAMESPACE, type, name);
+    case TYPE:
+        return fmt::format("{}::{}", type, name);
+    case NONE:
+        return name;
+    default:
+        throw tmdl::stdlib::block_error("unknown specification type provided");
+    }
+}
+
+std::string tmdl::stdlib::arith_to_string(const ArithType t,
+                                          SpecificationType specification) {
+    static const std::string TYPE_NAME = "ArithType";
+    std::string name;
+
     switch (t) {
         using enum ArithType;
     case ADD:
-        return "tmdl::stdlib::ArithType::ADD";
+        name = "ADD";
     case SUB:
-        return "tmdl::stdlib::ArithType::SUB";
+        name = "SUB";
     case MUL:
-        return "tmdl::stdlib::ArithType::MUL";
+        name = "MUL";
     case DIV:
-        return "tmdl::stdlib::ArithType::DIV";
+        name = "DIV";
     case MOD:
-        return "tmdl::stdlib::ArithType::MOD";
+        name = "MOD";
     default:
-        throw block_error("unsupported arithmetic function provided for string conversion");
+        throw block_error(
+            "unsupported arithmetic function provided for string conversion");
     }
+
+    return spec_to_name(specification, TYPE_NAME, name);
 }
 
-const char* tmdl::stdlib::relational_to_string(const RelationalOperator op) {
+std::string
+tmdl::stdlib::relational_to_string(const RelationalOperator op,
+                                   SpecificationType specification) {
+    static const std::string TYPE_NAME = "RelationalOperator";
+    std::string name;
+
     switch (op) {
         using enum RelationalOperator;
     case EQUAL:
-        return "tmdl::stdlib::RelationalOperator::EQUAL";
+        name = "EQUAL";
     case NOT_EQUAL:
-        return "tmdl::stdlib::RelationalOperator::NOT_EQUAL";
+        name = "NOT_EQUAL";
     case GREATER_THAN:
-        return "tmdl::stdlib::RelationalOperator::GREATER_THAN";
+        name = "GREATER_THAN";
     case GREATER_THAN_EQUAL:
-        return "tmdl::stdlib::RelationalOperator::GREATER_THAN_EQUAL";
+        name = "GREATER_THAN_EQUAL";
     case LESS_THAN:
-        return "tmdl::stdlib::RelationalOperator::LESS_THAN";
+        name = "LESS_THAN";
     case LESS_THAN_EQUAL:
-        return "tmdl::stdlib::RelationalOperator::LESS_THAN_EQUAL";
+        name = "LESS_THAN_EQUAL";
     default:
-        throw block_error("unsupported relational function provided for string conversion");
+        throw block_error(
+            "unsupported relational function provided for string conversion");
     }
+
+    return spec_to_name(specification, TYPE_NAME, name);
 }
 
-const char* tmdl::stdlib::trig_func_to_string(const TrigFunction fcn) {
+std::string tmdl::stdlib::trig_func_to_string(const TrigFunction fcn,
+                                              SpecificationType specification) {
+    const static std::string TYPE_NAME = "TrigFunction";
+    std::string name;
+
     switch (fcn) {
         using enum TrigFunction;
     case SIN:
-        return "tmdl::stdlib::TrigFunction::SIN";
+        name = "SIN";
     case COS:
-        return "tmdl::stdlib::TrigFunction::COS";
+        name = "COS";
     case TAN:
-        return "tmdl::stdlib::TrigFunction::TAN";
+        name = "TAN";
     case ASIN:
-        return "tmdl::stdlib::TrigFunction::ASIN";
+        name = "ASIN";
     case ACOS:
-        return "tmdl::stdlib::TrigFunction::ACOS";
+        name = "ACOS";
     case ATAN:
-        return "tmdl::stdlib::TrigFunction::ATAN";
+        name = "ATAN";
     default:
-        throw block_error("unsupported trig function provided for string conversion");
+        throw block_error(
+            "unsupported trig function provided for string conversion");
     }
+
+    return spec_to_name(specification, TYPE_NAME, name);
 }
 
-const char* tmdl::stdlib::trig_func_to_string(const TrigFunction2 fcn) {
+std::string tmdl::stdlib::trig_func_to_string(const TrigFunction2 fcn,
+                                              SpecificationType specification) {
+    const static std::string TYPE_NAME = "TrigFunction2";
+    std::string name;
+
     switch (fcn) {
         using enum TrigFunction2;
     case ATAN2:
-        return "tmdl::stdlib::TrigFunction2::ATAN2";
+        name = "ATAN2";
     default:
-        throw block_error("unsupported trig function provided for string conversion");
+        throw block_error(
+            "unsupported trig function provided for string conversion");
     }
+
+    return spec_to_name(specification, TYPE_NAME, name);
 }
