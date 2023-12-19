@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.18)
 set(VCPKG_FEATURE_FLAGS "versions")
 
 option(TMDLSTD_USE_DEFAULT_MATH_FUNCS "Compile in default functions for special mathematical operations like trig and arithmetic operators" ON)
-option(TMDLSTD_USE_STRING_FUNCS "Compile in string functions for conversion from enums to strings" ON)
+option(TMDLSTD_USE_STRING_FUNCS "Compile in string functions for conversion from enums to strings" OFF)
 
 # Define the project information
 project (
@@ -19,8 +19,6 @@ set(
     src/tmdlstd/tmdlstd.hpp
     src/tmdlstd/tmdlstd.cpp
     src/tmdlstd/tmdlstd_ext.hpp
-    src/tmdlstd/tmdlstd_string.hpp
-    src/tmdlstd/tmdlstd_string.cpp
 )
 
 if(TMDLSTD_USE_DEFAULT_MATH_FUNCS)
@@ -55,17 +53,19 @@ target_include_directories(tmdlstd PUBLIC src)
 
 # Set appropriate catch libraries
 
-add_executable(
-    tmdlstd_test
-    tests/arith_block.cpp
-    tests/clock_block.cpp)
+if(CMAKE_TESTING_ENABLED)
+    add_executable(
+        tmdlstd_test
+        tests/arith_block.cpp
+        tests/clock_block.cpp)
 
-set_property(TARGET tmdlstd_test PROPERTY CXX_STANDARD 20)
-set_property(TARGET tmdlstd_test PROPERTY CXX_STANDARD_REQUIRED ON)
+    set_property(TARGET tmdlstd_test PROPERTY CXX_STANDARD 20)
+    set_property(TARGET tmdlstd_test PROPERTY CXX_STANDARD_REQUIRED ON)
 
-target_link_libraries(tmdlstd_test PRIVATE tmdlstd)
+    target_link_libraries(tmdlstd_test PRIVATE tmdlstd)
 
-find_package(Catch2 CONFIG REQUIRED)
-target_link_libraries(tmdlstd_test PRIVATE Catch2::Catch2 Catch2::Catch2WithMain)
+    find_package(Catch2 CONFIG REQUIRED)
+    target_link_libraries(tmdlstd_test PRIVATE Catch2::Catch2 Catch2::Catch2WithMain)
 
-add_test(NAME tmdlstd_test COMMAND tmdlstd_test)
+    add_test(NAME tmdlstd_test COMMAND tmdlstd_test)
+endif()

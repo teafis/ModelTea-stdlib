@@ -32,7 +32,7 @@ struct arith_block_dynamic {
     };
 
     struct output_t {
-        T val;
+        T value;
     };
 
     arith_block_dynamic() = default;
@@ -63,7 +63,7 @@ struct arith_block_dynamic {
             }
         }
 
-        s_out.val = val;
+        s_out.value = val;
     }
 
     input_t s_in;
@@ -316,7 +316,7 @@ struct limiter_block_const {
     void reset() { step(); }
 
     void step() {
-        T x = s_in.input_value;
+        T x = s_in.value;
 
         if (x < bound_lower) {
             x = bound_lower;
@@ -324,7 +324,7 @@ struct limiter_block_const {
             x = bound_upper;
         }
 
-        s_out.output_value = x;
+        s_out.value = x;
     }
 
     input_t s_in;
@@ -351,7 +351,7 @@ struct relational_block {
     };
 
     struct output_t {
-        bool output_value;
+        bool value;
     };
 
     relational_block() = default;
@@ -381,7 +381,7 @@ struct relational_block {
             v = a <= b;
         }
 
-        s_out.output_value = v;
+        s_out.value = v;
     }
 
     input_t s_in;
