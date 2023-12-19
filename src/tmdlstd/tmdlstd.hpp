@@ -395,16 +395,23 @@ enum class TrigFunction {
     ASIN,
     ACOS,
     ATAN,
+    ATAN2,
 };
 
-enum class TrigFunction2 {
-    ATAN2 = 0,
+template <TrigFunction FCN>
+struct TrigInfo {
+    static const size_t input_count = 1;
+};
+
+template <>
+struct TrigInfo<TrigFunction::ATAN2> {
+    static const size_t input_count = 2;
 };
 
 template <typename T, TrigFunction FCN>
 struct trig_block {
     struct input_t {
-        T value;
+        T values[TrigInfo<FCN>::input_count];
     };
 
     struct output_t {
@@ -418,8 +425,10 @@ struct trig_block {
     void reset() { step(); }
 
     void step() {
+        static_assert(TrigInfo<FCN>::input_count > 0);
+
         T y{};
-        const T x = s_in.value;
+        const T x = s_in.values[0];
 
         if constexpr (FCN == TrigFunction::SIN) {
             y = t_sin(x);
@@ -433,46 +442,13 @@ struct trig_block {
             y = t_acos(x);
         } else if constexpr (FCN == TrigFunction::ATAN) {
             y = t_atan(x);
+        } else if constexpr (FCN == TrigFunction::ATAN2) {
+            y = t_atan2(x, s_in.values[1]);
         } else {
             static_assert(false, "unsupported trig function");
         }
 
         s_out.value = y;
-    }
-
-    input_t s_in;
-    output_t s_out;
-};
-
-template <typename T, TrigFunction2 FCN>
-struct trig_block_2 {
-    struct input_t {
-        T value_a;
-        T value_b;
-    };
-
-    struct output_t {
-        T value;
-    };
-
-    trig_block_2() = default;
-    trig_block_2(const trig_block_2&) = delete;
-    trig_block_2& operator=(const trig_block_2&) = delete;
-
-    void reset() { step(); }
-
-    void step() {
-        T outval{};
-        const T in1 = s_in.value_a;
-        const T in2 = s_in.value_b;
-
-        if constexpr (FCN == TrigFunction2::ATAN2) {
-            outval = t_atan2(in1, in2);
-        } else {
-            static_assert(false, "unsupported trig function");
-        }
-
-        s_out.value = outval;
     }
 
     input_t s_in;

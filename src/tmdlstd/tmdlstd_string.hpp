@@ -27,10 +27,6 @@ std::string trig_func_to_string(
     TrigFunction fcn,
     SpecificationType specification = SpecificationType::FULL);
 
-std::string trig_func_to_string(
-    TrigFunction2 fcn,
-    SpecificationType specification = SpecificationType::FULL);
-
 }
 
 #endif // TMDL_STDLIB_STRING_H
