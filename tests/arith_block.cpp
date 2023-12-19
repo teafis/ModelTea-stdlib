@@ -54,7 +54,7 @@ static void test_static_block(std::span<const double> test_values) {
     std::vector<double> init_values(
         block_test.s_in.values, block_test.s_in.values + block_test.s_in.size);
 
-    REQUIRE_THAT(block_test.s_out.val,
+    REQUIRE_THAT(block_test.s_out.value,
                  Catch::Matchers::WithinRel(compute_expected<OP>(init_values)));
 
     for (const auto& a : test_values) {
@@ -70,7 +70,7 @@ static void test_static_block(std::span<const double> test_values) {
 
                 const auto expected =
                     compute_expected<OP>(std::to_array({a, b, c}));
-                REQUIRE_THAT(block_test.s_out.val,
+                REQUIRE_THAT(block_test.s_out.value,
                              Catch::Matchers::WithinRel(expected));
             }
         }
@@ -91,7 +91,7 @@ static void test_dynamic_block(std::span<const size_t> test_sizes,
         block_test.reset();
 
         if constexpr (OP != tmdl::stdlib::ArithType::DIV && OP != tmdl::stdlib::ArithType::MOD) {
-            REQUIRE_THAT(block_test.s_out.val, Catch::Matchers::WithinRel(0.0));
+            REQUIRE_THAT(block_test.s_out.value, Catch::Matchers::WithinRel(0.0));
         }
 
         bool finished = false;
@@ -108,7 +108,7 @@ static void test_dynamic_block(std::span<const size_t> test_sizes,
 
             // Step the model and check results
             block_test.step();
-            REQUIRE_THAT(block_test.s_out.val,
+            REQUIRE_THAT(block_test.s_out.value,
                          Catch::Matchers::WithinRel(expected));
 
             // Add the permutation values
