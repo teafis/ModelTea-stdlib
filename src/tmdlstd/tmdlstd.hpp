@@ -18,8 +18,6 @@ public:
 
 enum class ArithType { ADD = 0, SUB, MUL, DIV };
 
-const char* arith_to_string(ArithType t);
-
 template <typename T, ArithType AT> struct arith_block_dynamic {
     struct input_t {
         T* vals;
@@ -329,8 +327,6 @@ enum class RelationalOperator {
     LESS_THAN_EQUAL,
 };
 
-const char* relational_to_string(RelationalOperator op);
-
 template <typename T, RelationalOperator OP> struct relational_block {
     struct input_t {
         T val_a;
@@ -377,8 +373,6 @@ template <typename T, RelationalOperator OP> struct relational_block {
 
 enum class TrigFunction { SIN = 0, COS };
 
-const char* trig_func_to_string(TrigFunction fcn);
-
 template <typename T, TrigFunction FCN> struct trig_block {
     struct input_t {
         T value;
@@ -411,6 +405,6 @@ template <typename T, TrigFunction FCN> struct trig_block {
     output_t s_out;
 };
 
-} // namespace tmdl::stdlib
+}
 
 #endif // TMDL_STDLIB_H

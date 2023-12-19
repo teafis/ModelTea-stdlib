@@ -17,6 +17,8 @@ set(
     src/tmdlstd/tmdlstd.cpp
     src/tmdlstd/tmdlstd_ext.hpp
     src/tmdlstd/tmdlstd_ext.cpp
+    src/tmdlstd/tmdlstd_string.hpp
+    src/tmdlstd/tmdlstd_string.cpp
 )
 
 # Define the library

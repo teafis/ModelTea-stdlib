@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include "tmdlstd_ext.hpp"
 
 #include <cmath>
