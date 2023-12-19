@@ -45,26 +45,26 @@ template <tmdl::stdlib::ArithType OP>
 static void test_static_block(std::span<const double> test_values) {
     tmdl::stdlib::arith_block<double, OP, 3> block_test;
 
-    block_test.s_in.vals[0] = 1.0;
-    block_test.s_in.vals[1] = 2.0;
-    block_test.s_in.vals[2] = 3.0;
+    block_test.s_in.values[0] = 1.0;
+    block_test.s_in.values[1] = 2.0;
+    block_test.s_in.values[2] = 3.0;
 
     block_test.init();
 
     std::vector<double> init_values(
-        block_test.s_in.vals, block_test.s_in.vals + block_test.s_in.size);
+        block_test.s_in.values, block_test.s_in.values + block_test.s_in.size);
 
     REQUIRE_THAT(block_test.s_out.val,
                  Catch::Matchers::WithinRel(compute_expected<OP>(init_values)));
 
     for (const auto& a : test_values) {
-        block_test.s_in.vals[0] = a;
+        block_test.s_in.values[0] = a;
 
         for (const auto& b : test_values) {
-            block_test.s_in.vals[1] = b;
+            block_test.s_in.values[1] = b;
 
             for (const auto& c : test_values) {
-                block_test.s_in.vals[2] = c;
+                block_test.s_in.values[2] = c;
 
                 block_test.step();
 
@@ -86,7 +86,7 @@ static void test_dynamic_block(std::span<const size_t> test_sizes,
         std::vector<double> numbers(s, 0.0);
 
         block_test.s_in.size = s;
-        block_test.s_in.vals = numbers.data();
+        block_test.s_in.values = numbers.data();
 
         block_test.init();
 
@@ -101,7 +101,7 @@ static void test_dynamic_block(std::span<const size_t> test_sizes,
             // Set Values
             std::vector<double> used_values(s, 0.0);
             for (size_t i = 0; i < s; ++i) {
-                block_test.s_in.vals[i] = test_values[indices[i]];
+                block_test.s_in.values[i] = test_values[indices[i]];
                 used_values[i] = test_values[indices[i]];
             }
             const double expected = compute_expected<OP>(used_values);

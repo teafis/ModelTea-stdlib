@@ -26,7 +26,7 @@ enum class ArithType {
 
 template <typename T, ArithType AT> struct arith_block_dynamic {
     struct input_t {
-        T* vals;
+        T* values;
         int size;
     };
 
@@ -41,11 +41,11 @@ template <typename T, ArithType AT> struct arith_block_dynamic {
     void init() { step(); }
 
     void step() {
-        T val = s_in.vals[0];
+        T val = s_in.values[0];
 
         for (int i = 1; i < s_in.size; ++i) {
             using enum ArithType;
-            const auto& v = s_in.vals[i];
+            const auto& v = s_in.values[i];
 
             if constexpr (AT == ADD) {
                 val += v;
@@ -73,7 +73,7 @@ template <typename T, ArithType AT, int SIZE>
 struct arith_block : public arith_block_dynamic<T, AT> {
     arith_block() {
         this->s_in.size = SIZE;
-        this->s_in.vals = _input_array.data();
+        this->s_in.values = _input_array.data();
     }
 
     arith_block(const arith_block&) = delete;
@@ -104,10 +104,10 @@ struct clock_block {
 
 template <typename T> struct const_block {
     struct output_t {
-        T val;
+        T value;
     };
 
-    explicit const_block(const T val) : s_out{.val = val} {
+    explicit const_block(const T val) : s_out{.value = val} {
         // Empty Constructor
     }
 
@@ -119,13 +119,13 @@ template <typename T> struct const_block {
 
 template <typename T> struct delay_block {
     struct input_t {
-        T input_value;
-        T reset_value;
+        T value;
+        T reset;
         bool reset_flag;
     };
 
     struct output_t {
-        T output_value;
+        T value;
     };
 
     delay_block() = default;
@@ -139,11 +139,11 @@ template <typename T> struct delay_block {
             reset();
         }
 
-        s_out.output_value = next_value;
-        next_value = s_in.input_value;
+        s_out.value = next_value;
+        next_value = s_in.value;
     }
 
-    void reset() { next_value = s_in.reset_value; }
+    void reset() { next_value = s_in.reset; }
 
     input_t s_in;
     output_t s_out;
@@ -153,12 +153,12 @@ template <typename T> struct delay_block {
 
 template <typename T> struct derivative_block {
     struct input_t {
-        T input_value;
+        T value;
         bool reset_flag;
     };
 
     struct output_t {
-        T output_value;
+        T value;
     };
 
     explicit derivative_block(const double dt) : time_step(dt) {
@@ -175,11 +175,11 @@ template <typename T> struct derivative_block {
             reset();
         }
 
-        s_out.output_value = (s_in.input_value - last_value) / time_step;
-        last_value = s_in.input_value;
+        s_out.value = (s_in.value - last_value) / time_step;
+        last_value = s_in.value;
     }
 
-    void reset() { last_value = s_in.input_value; }
+    void reset() { last_value = s_in.value; }
 
     input_t s_in;
     output_t s_out;
@@ -190,13 +190,13 @@ template <typename T> struct derivative_block {
 
 template <typename T> struct integrator_block {
     struct input_t {
-        T input_value;
-        T reset_value;
+        T value;
+        T reset;
         bool reset_flag;
     };
 
     struct output_t {
-        T output_value;
+        T value;
     };
 
     explicit integrator_block(const double dt) : time_step(dt) {
@@ -212,11 +212,11 @@ template <typename T> struct integrator_block {
         if (s_in.reset_flag) {
             reset();
         } else {
-            s_out.output_value += s_in.input_value * time_step;
+            s_out.value += s_in.value * time_step;
         }
     }
 
-    void reset() { s_out.output_value = s_in.reset_value; }
+    void reset() { s_out.value = s_in.reset; }
 
     input_t s_in;
     output_t s_out;
@@ -226,7 +226,7 @@ template <typename T> struct integrator_block {
 
 template <typename T> struct switch_block {
     struct input_t {
-        bool switch_value;
+        bool value_flag;
         T value_a;
         T value_b;
     };
@@ -242,7 +242,7 @@ template <typename T> struct switch_block {
     void init() { step(); }
 
     void step() {
-        if (s_in.switch_value) {
+        if (s_in.value_flag) {
             s_out.value = s_in.value_a;
         } else {
             s_out.value = s_in.value_b;
@@ -255,13 +255,13 @@ template <typename T> struct switch_block {
 
 template <typename T> struct limiter_block {
     struct input_t {
-        T input_value;
+        T value;
         T limit_upper;
         T limit_lower;
     };
 
     struct output_t {
-        T output_value;
+        T value;
     };
 
     limiter_block() = default;
@@ -271,7 +271,7 @@ template <typename T> struct limiter_block {
     void init() { step(); }
 
     void step() {
-        T x = s_in.input_value;
+        T x = s_in.value;
 
         if (x < s_in.limit_lower) {
             x = s_in.limit_lower;
@@ -279,7 +279,7 @@ template <typename T> struct limiter_block {
             x = s_in.limit_upper;
         }
 
-        s_out.output_value = x;
+        s_out.value = x;
     }
 
     input_t s_in;
@@ -288,11 +288,11 @@ template <typename T> struct limiter_block {
 
 template <typename T> struct limiter_block_const {
     struct input_t {
-        T input_value;
+        T value;
     };
 
     struct output_t {
-        T output_value;
+        T value;
     };
 
     limiter_block_const(const T upper, const T lower)
@@ -337,8 +337,8 @@ enum class RelationalOperator {
 
 template <typename T, RelationalOperator OP> struct relational_block {
     struct input_t {
-        T val_a;
-        T val_b;
+        T value_a;
+        T value_b;
     };
 
     struct output_t {
@@ -355,8 +355,8 @@ template <typename T, RelationalOperator OP> struct relational_block {
         using enum RelationalOperator;
 
         bool v = false;
-        const T a = s_in.val_a;
-        const T b = s_in.val_b;
+        const T a = s_in.value_a;
+        const T b = s_in.value_b;
 
         if constexpr (OP == EQUAL) {
             v = a == b;
@@ -436,8 +436,8 @@ template <typename T, TrigFunction FCN> struct trig_block {
 
 template <typename T, TrigFunction2 FCN> struct trig_block_2 {
     struct input_t {
-        T value_1;
-        T value_2;
+        T value_a;
+        T value_b;
     };
 
     struct output_t {
@@ -452,8 +452,8 @@ template <typename T, TrigFunction2 FCN> struct trig_block_2 {
 
     void step() {
         T outval{};
-        const T in1 = s_in.value_1;
-        const T in2 = s_in.value_2;
+        const T in1 = s_in.value_a;
+        const T in2 = s_in.value_b;
 
         if constexpr (FCN == TrigFunction2::ATAN2) {
             outval = t_atan2(in1, in2);
