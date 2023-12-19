@@ -49,7 +49,7 @@ static void test_static_block(std::span<const double> test_values) {
     block_test.s_in.values[1] = 2.0;
     block_test.s_in.values[2] = 3.0;
 
-    block_test.init();
+    block_test.reset();
 
     std::vector<double> init_values(
         block_test.s_in.values, block_test.s_in.values + block_test.s_in.size);
@@ -88,7 +88,7 @@ static void test_dynamic_block(std::span<const size_t> test_sizes,
         block_test.s_in.size = s;
         block_test.s_in.values = numbers.data();
 
-        block_test.init();
+        block_test.reset();
 
         if constexpr (OP != tmdl::stdlib::ArithType::DIV && OP != tmdl::stdlib::ArithType::MOD) {
             REQUIRE_THAT(block_test.s_out.val, Catch::Matchers::WithinRel(0.0));

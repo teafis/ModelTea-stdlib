@@ -39,7 +39,7 @@ struct arith_block_dynamic {
     arith_block_dynamic(const arith_block_dynamic&) = delete;
     arith_block_dynamic& operator=(const arith_block_dynamic&) = delete;
 
-    void init() { step(); }
+    void reset() { step(); }
 
     void step() {
         T val = s_in.values[0];
@@ -94,11 +94,9 @@ struct clock_block {
     clock_block(const clock_block&) = delete;
     clock_block& operator=(const clock_block&) = delete;
 
-    void init();
+    void reset();
 
     void step();
-
-    void reset();
 
     output_t s_out;
 
@@ -137,7 +135,10 @@ struct delay_block {
     delay_block(const delay_block&) = delete;
     delay_block& operator=(const delay_block&) = delete;
 
-    void init() { reset(); }
+    void reset() {
+        next_value = s_in.reset;
+        s_out.value = s_in.reset;
+    }
 
     void step() {
         if (s_in.reset_flag) {
@@ -147,8 +148,6 @@ struct delay_block {
         s_out.value = next_value;
         next_value = s_in.value;
     }
-
-    void reset() { next_value = s_in.reset; }
 
     input_t s_in;
     output_t s_out;
@@ -174,7 +173,10 @@ struct derivative_block {
     derivative_block(const derivative_block&) = delete;
     derivative_block& operator=(const derivative_block&) = delete;
 
-    void init() { reset(); }
+    void reset() {
+        last_value = {};
+        s_out.value = {};
+    }
 
     void step() {
         if (s_in.reset_flag) {
@@ -184,8 +186,6 @@ struct derivative_block {
         s_out.value = (s_in.value - last_value) / time_step;
         last_value = s_in.value;
     }
-
-    void reset() { last_value = s_in.value; }
 
     input_t s_in;
     output_t s_out;
@@ -213,7 +213,7 @@ struct integrator_block {
     integrator_block(const integrator_block&) = delete;
     integrator_block& operator=(const integrator_block&) = delete;
 
-    void init() { reset(); }
+    void reset() { s_out.value = s_in.reset; }
 
     void step() {
         if (s_in.reset_flag) {
@@ -222,8 +222,6 @@ struct integrator_block {
             s_out.value += s_in.value * time_step;
         }
     }
-
-    void reset() { s_out.value = s_in.reset; }
 
     input_t s_in;
     output_t s_out;
@@ -247,7 +245,7 @@ struct switch_block {
     switch_block(const switch_block&) = delete;
     switch_block& operator=(const switch_block&) = delete;
 
-    void init() { step(); }
+    void reset() { step(); }
 
     void step() {
         if (s_in.value_flag) {
@@ -277,7 +275,7 @@ struct limiter_block {
     limiter_block(const limiter_block&) = delete;
     limiter_block& operator=(const limiter_block&) = delete;
 
-    void init() { step(); }
+    void reset() { step(); }
 
     void step() {
         T x = s_in.value;
@@ -315,7 +313,7 @@ struct limiter_block_const {
     limiter_block_const(const limiter_block_const&) = delete;
     limiter_block_const& operator=(const limiter_block_const&) = delete;
 
-    void init() { step(); }
+    void reset() { step(); }
 
     void step() {
         T x = s_in.input_value;
@@ -360,7 +358,7 @@ struct relational_block {
     relational_block(const relational_block&) = delete;
     relational_block& operator=(const relational_block&) = delete;
 
-    void init() { step(); }
+    void reset() { step(); }
 
     void step() {
         using enum RelationalOperator;
@@ -417,7 +415,7 @@ struct trig_block {
     trig_block(const trig_block&) = delete;
     trig_block& operator=(const trig_block&) = delete;
 
-    void init() { step(); }
+    void reset() { step(); }
 
     void step() {
         T y{};
@@ -461,7 +459,7 @@ struct trig_block_2 {
     trig_block_2(const trig_block_2&) = delete;
     trig_block_2& operator=(const trig_block_2&) = delete;
 
-    void init() { step(); }
+    void reset() { step(); }
 
     void step() {
         T outval{};

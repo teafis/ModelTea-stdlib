@@ -10,7 +10,7 @@ static void test_with_timestamp(const double dt) {
     double check_val = 0.0;
 
     tmdl::stdlib::clock_block clock(dt);
-    clock.init();
+    clock.reset();
 
     REQUIRE_THAT(clock.time_step, Catch::Matchers::WithinRel(dt));
     REQUIRE_THAT(clock.s_out.val, Catch::Matchers::WithinRel(0.0));
