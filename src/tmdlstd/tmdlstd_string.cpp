@@ -11,12 +11,11 @@ static std::string spec_to_name(tmdl::stdlib::SpecificationType spec,
                                 const std::string& type,
                                 const std::string& name) {
     switch (spec) {
-        using enum tmdl::stdlib::SpecificationType;
-    case FULL:
+    case tmdl::stdlib::SpecificationType::FULL:
         return fmt::format("{}::{}::{}", BASE_NAMESPACE, type, name);
-    case TYPE:
+    case tmdl::stdlib::SpecificationType::TYPE:
         return fmt::format("{}::{}", type, name);
-    case NONE:
+    case tmdl::stdlib::SpecificationType::NONE:
         return name;
     default:
         throw tmdl::stdlib::block_error("unknown specification type provided");
@@ -29,20 +28,19 @@ std::string tmdl::stdlib::arith_to_string(const ArithType t,
     std::string name;
 
     switch (t) {
-        using enum ArithType;
-    case ADD:
+    case tmdl::stdlib::ArithType::ADD:
         name = "ADD";
         break;
-    case SUB:
+    case tmdl::stdlib::ArithType::SUB:
         name = "SUB";
         break;
-    case MUL:
+    case tmdl::stdlib::ArithType::MUL:
         name = "MUL";
         break;
-    case DIV:
+    case tmdl::stdlib::ArithType::DIV:
         name = "DIV";
         break;
-    case MOD:
+    case tmdl::stdlib::ArithType::MOD:
         name = "MOD";
         break;
     default:
@@ -60,23 +58,22 @@ tmdl::stdlib::relational_to_string(const RelationalOperator op,
     std::string name;
 
     switch (op) {
-        using enum RelationalOperator;
-    case EQUAL:
+    case tmdl::stdlib::RelationalOperator::EQUAL:
         name = "EQUAL";
         break;
-    case NOT_EQUAL:
+    case tmdl::stdlib::RelationalOperator::NOT_EQUAL:
         name = "NOT_EQUAL";
         break;
-    case GREATER_THAN:
+    case tmdl::stdlib::RelationalOperator::GREATER_THAN:
         name = "GREATER_THAN";
         break;
-    case GREATER_THAN_EQUAL:
+    case tmdl::stdlib::RelationalOperator::GREATER_THAN_EQUAL:
         name = "GREATER_THAN_EQUAL";
         break;
-    case LESS_THAN:
+    case tmdl::stdlib::RelationalOperator::LESS_THAN:
         name = "LESS_THAN";
         break;
-    case LESS_THAN_EQUAL:
+    case tmdl::stdlib::RelationalOperator::LESS_THAN_EQUAL:
         name = "LESS_THAN_EQUAL";
         break;
     default:
@@ -93,26 +90,25 @@ std::string tmdl::stdlib::trig_func_to_string(const TrigFunction fcn,
     std::string name;
 
     switch (fcn) {
-        using enum TrigFunction;
-    case SIN:
+    case tmdl::stdlib::TrigFunction::SIN:
         name = "SIN";
         break;
-    case COS:
+    case tmdl::stdlib::TrigFunction::COS:
         name = "COS";
         break;
-    case TAN:
+    case tmdl::stdlib::TrigFunction::TAN:
         name = "TAN";
         break;
-    case ASIN:
+    case tmdl::stdlib::TrigFunction::ASIN:
         name = "ASIN";
         break;
-    case ACOS:
+    case tmdl::stdlib::TrigFunction::ACOS:
         name = "ACOS";
         break;
-    case ATAN:
+    case tmdl::stdlib::TrigFunction::ATAN:
         name = "ATAN";
         break;
-    case ATAN2:
+    case tmdl::stdlib::TrigFunction::ATAN2:
         name = "ATAN2";
         break;
     default:

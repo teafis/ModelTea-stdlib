@@ -5,7 +5,8 @@
 
 #include <cstdint>
 
-namespace tmdl::stdlib {
+namespace tmdl {
+namespace stdlib {
 
 float t_sin(float x);
 double t_sin(double x);
@@ -33,6 +34,7 @@ int32_t t_mod(int32_t x, int32_t y);
 float t_mod(float x, float y);
 double t_mod(double x, double y);
 
+}
 }
 
 #endif // TMDL_STDLIB_EXT_H

@@ -23,7 +23,7 @@ static void test_with_timestamp(const double dt) {
     }
 }
 
-TEST_CASE("Block Clock", "[arith]") {
+TEST_CASE("Block Clock", "[clock]") {
     test_with_timestamp(10.0);
     test_with_timestamp(1.0);
     test_with_timestamp(0.1);

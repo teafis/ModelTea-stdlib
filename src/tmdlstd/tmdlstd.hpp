@@ -8,7 +8,8 @@
 
 #include "tmdlstd_ext.hpp"
 
-namespace tmdl::stdlib {
+namespace tmdl {
+namespace stdlib {
 
 class block_error : public std::runtime_error {
 public:
@@ -22,6 +23,44 @@ enum class ArithType {
     MUL,
     DIV,
     MOD,
+};
+
+template <typename T, ArithType AT>
+struct ArithOperation {};
+
+template <typename T>
+struct ArithOperation<T, ArithType::ADD> {
+    static T operation(const T a, const T b) {
+        return a + b;
+    }
+};
+
+template <typename T>
+struct ArithOperation<T, ArithType::SUB> {
+    static T operation(const T a, const T b) {
+        return a - b;
+    }
+};
+
+template <typename T>
+struct ArithOperation<T, ArithType::MUL> {
+    static T operation(const T a, const T b) {
+        return a * b;
+    }
+};
+
+template <typename T>
+struct ArithOperation<T, ArithType::DIV> {
+    static T operation(const T a, const T b) {
+        return a / b;
+    }
+};
+
+template <typename T>
+struct ArithOperation<T, ArithType::MOD> {
+    static T operation(const T a, const T b) {
+        return t_mod(a, b);
+    }
 };
 
 template <typename T, ArithType AT>
@@ -45,22 +84,7 @@ struct arith_block_dynamic {
         T val = s_in.values[0];
 
         for (int i = 1; i < s_in.size; ++i) {
-            using enum ArithType;
-            const auto& v = s_in.values[i];
-
-            if constexpr (AT == ADD) {
-                val += v;
-            } else if constexpr (AT == SUB) {
-                val -= v;
-            } else if constexpr (AT == MUL) {
-                val *= v;
-            } else if constexpr (AT == DIV) {
-                val /= v;
-            } else if constexpr (AT == MOD) {
-                val = t_mod(val, v);
-            } else {
-                static_assert(false, "unsuppored arithmetic type provided");
-            }
+            val = ArithOperation<T, AT>::operation(val, s_in.values[i]);
         }
 
         s_out.value = val;
@@ -344,6 +368,51 @@ enum class RelationalOperator {
 };
 
 template <typename T, RelationalOperator OP>
+struct RelationalOperation {};
+
+template <typename T>
+struct RelationalOperation<T, RelationalOperator::EQUAL> {
+    static bool operation(const T a, const T b) {
+        return a == b;
+    }
+};
+
+template <typename T>
+struct RelationalOperation<T, RelationalOperator::NOT_EQUAL> {
+    static bool operation(const T a, const T b) {
+        return a != b;
+    }
+};
+
+template <typename T>
+struct RelationalOperation<T, RelationalOperator::GREATER_THAN> {
+    static bool operation(const T a, const T b) {
+        return a > b;
+    }
+};
+
+template <typename T>
+struct RelationalOperation<T, RelationalOperator::GREATER_THAN_EQUAL> {
+    static bool operation(const T a, const T b) {
+        return a >= b;
+    }
+};
+
+template <typename T>
+struct RelationalOperation<T, RelationalOperator::LESS_THAN> {
+    static bool operation(const T a, const T b) {
+        return a < b;
+    }
+};
+
+template <typename T>
+struct RelationalOperation<T, RelationalOperator::LESS_THAN_EQUAL> {
+    static bool operation(const T a, const T b) {
+        return a <= b;
+    }
+};
+
+template <typename T, RelationalOperator OP>
 struct relational_block {
     struct input_t {
         T value_a;
@@ -361,27 +430,7 @@ struct relational_block {
     void reset() { step(); }
 
     void step() {
-        using enum RelationalOperator;
-
-        bool v = false;
-        const T a = s_in.value_a;
-        const T b = s_in.value_b;
-
-        if constexpr (OP == EQUAL) {
-            v = a == b;
-        } else if constexpr (OP == NOT_EQUAL) {
-            v = a != b;
-        } else if constexpr (OP == GREATER_THAN) {
-            v = a > b;
-        } else if constexpr (OP == GREATER_THAN_EQUAL) {
-            v = a >= b;
-        } else if constexpr (OP == LESS_THAN) {
-            v = a < b;
-        } else if constexpr (OP == LESS_THAN_EQUAL) {
-            v = a <= b;
-        }
-
-        s_out.value = v;
+        s_out.value = RelationalOperation<T, OP>::operation(s_in.value_a, s_in.value_b);
     }
 
     input_t s_in;
@@ -408,6 +457,65 @@ struct TrigInfo<TrigFunction::ATAN2> {
     static const size_t input_count = 2;
 };
 
+template <typename T, size_t N, TrigFunction FCN>
+struct TrigOperation {};
+
+template <typename T, size_t N>
+struct TrigOperation<T, N, TrigFunction::SIN> {
+    static T operation(const T values[N]) {
+        static_assert(N == 1, "sin requires a single argument");
+        return t_sin(values[0]);
+    }
+};
+
+template <typename T, size_t N>
+struct TrigOperation<T, N, TrigFunction::COS> {
+    static T operation(const T values[N]) {
+        static_assert(N == 1, "cos requires a single argument");
+        return t_cos(values[0]);
+    }
+};
+
+template <typename T, size_t N>
+struct TrigOperation<T, N, TrigFunction::TAN> {
+    static T operation(const T values[N]) {
+        static_assert(N == 1, "tan requires a single argument");
+        return t_tan(values[0]);
+    }
+};
+
+template <typename T, size_t N>
+struct TrigOperation<T, N, TrigFunction::ASIN> {
+    static T operation(const T values[N]) {
+        static_assert(N == 1, "arcsin requires a single argument");
+        return t_asin(values[0]);
+    }
+};
+
+template <typename T, size_t N>
+struct TrigOperation<T, N, TrigFunction::ACOS> {
+    static T operation(const T values[N]) {
+        static_assert(N == 1, "arccos requires a single argument");
+        return t_acos(values[0]);
+    }
+};
+
+template <typename T, size_t N>
+struct TrigOperation<T, N, TrigFunction::ATAN> {
+    static T operation(const T values[N]) {
+        static_assert(N == 1, "arctan requires a single argument");
+        return t_atan(values[0]);
+    }
+};
+
+template <typename T, size_t N>
+struct TrigOperation<T, N, TrigFunction::ATAN2> {
+    static T operation(const T values[N]) {
+        static_assert(N == 2, "arctan2 requires a single argument");
+        return t_atan2(values[0], values[1]);
+    }
+};
+
 template <typename T, TrigFunction FCN>
 struct trig_block {
     struct input_t {
@@ -425,36 +533,14 @@ struct trig_block {
     void reset() { step(); }
 
     void step() {
-        static_assert(TrigInfo<FCN>::input_count > 0);
-
-        T y{};
-        const T x = s_in.values[0];
-
-        if constexpr (FCN == TrigFunction::SIN) {
-            y = t_sin(x);
-        } else if constexpr (FCN == TrigFunction::COS) {
-            y = t_cos(x);
-        } else if constexpr (FCN == TrigFunction::TAN) {
-            y = t_tan(x);
-        } else if constexpr (FCN == TrigFunction::ASIN) {
-            y = t_asin(x);
-        } else if constexpr (FCN == TrigFunction::ACOS) {
-            y = t_acos(x);
-        } else if constexpr (FCN == TrigFunction::ATAN) {
-            y = t_atan(x);
-        } else if constexpr (FCN == TrigFunction::ATAN2) {
-            y = t_atan2(x, s_in.values[1]);
-        } else {
-            static_assert(false, "unsupported trig function");
-        }
-
-        s_out.value = y;
+        s_out.value = TrigOperation<T, TrigInfo<FCN>::input_count, FCN>::operation(s_in.values);
     }
 
     input_t s_in;
     output_t s_out;
 };
 
+}
 }
 
 #endif // TMDL_STDLIB_H

@@ -7,7 +7,8 @@
 
 #include <string>
 
-namespace tmdl::stdlib {
+namespace tmdl {
+namespace stdlib {
 
 enum class SpecificationType {
     NONE,
@@ -27,6 +28,7 @@ std::string trig_func_to_string(
     TrigFunction fcn,
     SpecificationType specification = SpecificationType::FULL);
 
+}
 }
 
 #endif // TMDL_STDLIB_STRING_H

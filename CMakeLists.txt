@@ -45,7 +45,7 @@ if(TMDLSTD_USE_STRING_FUNCS)
 endif()
 
 # Define the C++ Standard Required
-set_property(TARGET tmdlstd PROPERTY CXX_STANDARD 20)
+set_property(TARGET tmdlstd PROPERTY CXX_STANDARD 11)
 set_property(TARGET tmdlstd PROPERTY CXX_STANDARD_REQUIRED ON)
 
 # Include Directories
@@ -57,7 +57,8 @@ if(CMAKE_TESTING_ENABLED)
     add_executable(
         tmdlstd_test
         tests/arith_block.cpp
-        tests/clock_block.cpp)
+        tests/clock_block.cpp
+        tests/const_block.cpp)
 
     set_property(TARGET tmdlstd_test PROPERTY CXX_STANDARD 20)
     set_property(TARGET tmdlstd_test PROPERTY CXX_STANDARD_REQUIRED ON)
