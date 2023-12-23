@@ -30,6 +30,7 @@ endif()
 if(TMDLSTD_USE_STRING_FUNCS)
     list(APPEND
         TEAFIS_STD_MODEL_SOURCES
+        src/tmdlstd/tmdlstd_except.hpp
         src/tmdlstd/tmdlstd_string.hpp
         src/tmdlstd/tmdlstd_string.cpp)
 endif()

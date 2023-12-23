@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 
+#include "tmdlstd.hpp"
+#include "tmdlstd_except.hpp"
 #include "tmdlstd_string.hpp"
-#include "tmdlstd/tmdlstd.hpp"
 
 #include <fmt/format.h>
 

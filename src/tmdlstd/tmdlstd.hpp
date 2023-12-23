@@ -4,18 +4,12 @@
 #define TMDL_STDLIB_H
 
 #include <array>
-#include <stdexcept>
+#include <cstddef>
 
 #include "tmdlstd_ext.hpp"
 
 namespace tmdl {
 namespace stdlib {
-
-class block_error : public std::runtime_error {
-public:
-    block_error(const char* msg) : std::runtime_error(msg) {}
-    block_error(const std::string& msg) : std::runtime_error(msg) {}
-};
 
 enum class ArithType {
     ADD = 0,
@@ -328,11 +322,7 @@ struct limiter_block_const {
     };
 
     limiter_block_const(const T upper, const T lower)
-        : bound_upper{upper}, bound_lower{lower} {
-        if (upper < lower) {
-            throw block_error("upper bound must be >= lower bound");
-        }
-    }
+        : bound_upper{upper}, bound_lower{lower} {}
 
     limiter_block_const(const limiter_block_const&) = delete;
     limiter_block_const& operator=(const limiter_block_const&) = delete;
