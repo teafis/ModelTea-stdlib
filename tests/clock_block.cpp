@@ -4,12 +4,12 @@
 
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
-#include <tmdlstd/tmdlstd.hpp>
+#include <mtstd.hpp>
 
 static void test_with_timestamp(const double dt) {
     double check_val = 0.0;
 
-    tmdl::stdlib::clock_block clock(dt);
+    mt::stdlib::clock_block clock(dt);
     clock.reset();
 
     REQUIRE_THAT(clock.time_step, Catch::Matchers::WithinRel(dt));

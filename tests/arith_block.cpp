@@ -3,7 +3,7 @@
 #include <catch2/catch_all.hpp>
 
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
-#include <tmdlstd/tmdlstd.hpp>
+#include <mtstd.hpp>
 
 #include <ranges>
 
@@ -13,19 +13,19 @@ const auto TEST_NUMBERS =
 const auto TEST_NUMBERS_NON_ZERO =
     std::to_array({2.0, 3.0, 4.0, 5.0, 6.1, 7.9, -10.2, -3845.5, -0.5, 2093.4});
 
-template <tmdl::stdlib::ArithType OP>
+template <mt::stdlib::ArithType OP>
 static double compute_expected(std::span<const double> vals) {
     double (*reduce_fn)(double, double) = nullptr;
 
-    if constexpr (OP == tmdl::stdlib::ArithType::ADD) {
+    if constexpr (OP == mt::stdlib::ArithType::ADD) {
         reduce_fn = [](double a, double b) { return a + b; };
-    } else if constexpr (OP == tmdl::stdlib::ArithType::SUB) {
+    } else if constexpr (OP == mt::stdlib::ArithType::SUB) {
         reduce_fn = [](double a, double b) { return a - b; };
-    } else if constexpr (OP == tmdl::stdlib::ArithType::MUL) {
+    } else if constexpr (OP == mt::stdlib::ArithType::MUL) {
         reduce_fn = [](double a, double b) { return a * b; };
-    } else if constexpr (OP == tmdl::stdlib::ArithType::DIV) {
+    } else if constexpr (OP == mt::stdlib::ArithType::DIV) {
         reduce_fn = [](double a, double b) { return a / b; };
-    } else if constexpr (OP == tmdl::stdlib::ArithType::MOD) {
+    } else if constexpr (OP == mt::stdlib::ArithType::MOD) {
         reduce_fn = [](double a, double b) { return std::fmod(a, b); };
     } else {
         static_assert(false, "unsupported operation");
@@ -41,9 +41,9 @@ static double compute_expected(std::span<const double> vals) {
     return result;
 }
 
-template <tmdl::stdlib::ArithType OP>
+template <mt::stdlib::ArithType OP>
 static void test_static_block(std::span<const double> test_values) {
-    tmdl::stdlib::arith_block<double, OP, 3> block_test;
+    mt::stdlib::arith_block<double, OP, 3> block_test;
 
     block_test.s_in.values[0] = 1.0;
     block_test.s_in.values[1] = 2.0;
@@ -77,10 +77,10 @@ static void test_static_block(std::span<const double> test_values) {
     }
 }
 
-template <tmdl::stdlib::ArithType OP>
+template <mt::stdlib::ArithType OP>
 static void test_dynamic_block(std::span<const size_t> test_sizes,
                                std::span<const double> test_values) {
-    tmdl::stdlib::arith_block_dynamic<double, OP> block_test;
+    mt::stdlib::arith_block_dynamic<double, OP> block_test;
 
     for (const auto s : test_sizes) {
         std::vector<double> numbers(s, 0.0);
@@ -90,7 +90,7 @@ static void test_dynamic_block(std::span<const size_t> test_sizes,
 
         block_test.reset();
 
-        if constexpr (OP != tmdl::stdlib::ArithType::DIV && OP != tmdl::stdlib::ArithType::MOD) {
+        if constexpr (OP != mt::stdlib::ArithType::DIV && OP != mt::stdlib::ArithType::MOD) {
             REQUIRE_THAT(block_test.s_out.value, Catch::Matchers::WithinRel(0.0));
         }
 
@@ -132,52 +132,52 @@ static void test_dynamic_block(std::span<const size_t> test_sizes,
 }
 
 TEST_CASE("Block Arithmetic Add", "[arith]") {
-    test_static_block<tmdl::stdlib::ArithType::ADD>(TEST_NUMBERS);
-    test_static_block<tmdl::stdlib::ArithType::ADD>(TEST_NUMBERS_NON_ZERO);
+    test_static_block<mt::stdlib::ArithType::ADD>(TEST_NUMBERS);
+    test_static_block<mt::stdlib::ArithType::ADD>(TEST_NUMBERS_NON_ZERO);
 }
 
 TEST_CASE("Block Arithmetic Add Dynamic", "[arith]") {
-    test_dynamic_block<tmdl::stdlib::ArithType::ADD>(TEST_SIZES, TEST_NUMBERS);
-    test_dynamic_block<tmdl::stdlib::ArithType::ADD>(TEST_SIZES,
+    test_dynamic_block<mt::stdlib::ArithType::ADD>(TEST_SIZES, TEST_NUMBERS);
+    test_dynamic_block<mt::stdlib::ArithType::ADD>(TEST_SIZES,
                                                      TEST_NUMBERS_NON_ZERO);
 }
 
 TEST_CASE("Block Arithmetic Sub", "[arith]") {
-    test_static_block<tmdl::stdlib::ArithType::SUB>(TEST_NUMBERS);
-    test_static_block<tmdl::stdlib::ArithType::SUB>(TEST_NUMBERS_NON_ZERO);
+    test_static_block<mt::stdlib::ArithType::SUB>(TEST_NUMBERS);
+    test_static_block<mt::stdlib::ArithType::SUB>(TEST_NUMBERS_NON_ZERO);
 }
 
 TEST_CASE("Block Arithmetic Sub Dynamic", "[arith]") {
-    test_dynamic_block<tmdl::stdlib::ArithType::SUB>(TEST_SIZES, TEST_NUMBERS);
-    test_dynamic_block<tmdl::stdlib::ArithType::SUB>(TEST_SIZES,
+    test_dynamic_block<mt::stdlib::ArithType::SUB>(TEST_SIZES, TEST_NUMBERS);
+    test_dynamic_block<mt::stdlib::ArithType::SUB>(TEST_SIZES,
                                                      TEST_NUMBERS_NON_ZERO);
 }
 
 TEST_CASE("Block Arithmetic Mul", "[arith]") {
-    test_static_block<tmdl::stdlib::ArithType::MUL>(TEST_NUMBERS);
-    test_static_block<tmdl::stdlib::ArithType::MUL>(TEST_NUMBERS_NON_ZERO);
+    test_static_block<mt::stdlib::ArithType::MUL>(TEST_NUMBERS);
+    test_static_block<mt::stdlib::ArithType::MUL>(TEST_NUMBERS_NON_ZERO);
 }
 
 TEST_CASE("Block Arithmetic Mul Dynamic", "[arith]") {
-    test_dynamic_block<tmdl::stdlib::ArithType::MUL>(TEST_SIZES, TEST_NUMBERS);
-    test_dynamic_block<tmdl::stdlib::ArithType::MUL>(TEST_SIZES,
+    test_dynamic_block<mt::stdlib::ArithType::MUL>(TEST_SIZES, TEST_NUMBERS);
+    test_dynamic_block<mt::stdlib::ArithType::MUL>(TEST_SIZES,
                                                      TEST_NUMBERS_NON_ZERO);
 }
 
 TEST_CASE("Block Arithmetic Div", "[arith]") {
-    test_static_block<tmdl::stdlib::ArithType::DIV>(TEST_NUMBERS_NON_ZERO);
+    test_static_block<mt::stdlib::ArithType::DIV>(TEST_NUMBERS_NON_ZERO);
 }
 
 TEST_CASE("Block Arithmetic Div Dynamic", "[arith]") {
-    test_dynamic_block<tmdl::stdlib::ArithType::DIV>(TEST_SIZES,
+    test_dynamic_block<mt::stdlib::ArithType::DIV>(TEST_SIZES,
                                                      TEST_NUMBERS_NON_ZERO);
 }
 
 TEST_CASE("Block Arithmetic Mod", "[arith]") {
-    test_static_block<tmdl::stdlib::ArithType::MOD>(TEST_NUMBERS_NON_ZERO);
+    test_static_block<mt::stdlib::ArithType::MOD>(TEST_NUMBERS_NON_ZERO);
 }
 
 TEST_CASE("Block Arithmetic Mod Dynamic", "[arith]") {
-    test_dynamic_block<tmdl::stdlib::ArithType::MOD>(TEST_SIZES,
+    test_dynamic_block<mt::stdlib::ArithType::MOD>(TEST_SIZES,
                                                      TEST_NUMBERS_NON_ZERO);
 }

@@ -1,52 +1,52 @@
 // SPDX-License-Identifier: MIT
 
-#include "tmdlstd_string.hpp"
-#include "tmdlstd.hpp"
-#include "tmdlstd_except.hpp"
+#include "mtstd_string.hpp"
+#include "mtstd.hpp"
+#include "mtstd_except.hpp"
 
 #include <sstream>
 
-const static std::string BASE_NAMESPACE = "tmdl::stdlib";
+const static std::string BASE_NAMESPACE = "mt::stdlib";
 
-static std::string spec_to_name(tmdl::stdlib::SpecificationType spec,
+static std::string spec_to_name(mt::stdlib::SpecificationType spec,
                                 const std::string& type,
                                 const std::string& name) {
     std::ostringstream oss;
 
     switch (spec) {
-    case tmdl::stdlib::SpecificationType::FULL:
+    case mt::stdlib::SpecificationType::FULL:
         oss << BASE_NAMESPACE << "::";
-    case tmdl::stdlib::SpecificationType::TYPE:
+    case mt::stdlib::SpecificationType::TYPE:
         oss << type << "::";
-    case tmdl::stdlib::SpecificationType::NONE:
+    case mt::stdlib::SpecificationType::NONE:
         oss << name;
         break;
     default:
-        throw tmdl::stdlib::block_error("unknown specification type provided");
+        throw mt::stdlib::block_error("unknown specification type provided");
     }
 
     return oss.str();
 }
 
-std::string tmdl::stdlib::arith_to_string(const ArithType t,
+std::string mt::stdlib::arith_to_string(const ArithType t,
                                           SpecificationType specification) {
     static const std::string TYPE_NAME = "ArithType";
     std::string name;
 
     switch (t) {
-    case tmdl::stdlib::ArithType::ADD:
+    case mt::stdlib::ArithType::ADD:
         name = "ADD";
         break;
-    case tmdl::stdlib::ArithType::SUB:
+    case mt::stdlib::ArithType::SUB:
         name = "SUB";
         break;
-    case tmdl::stdlib::ArithType::MUL:
+    case mt::stdlib::ArithType::MUL:
         name = "MUL";
         break;
-    case tmdl::stdlib::ArithType::DIV:
+    case mt::stdlib::ArithType::DIV:
         name = "DIV";
         break;
-    case tmdl::stdlib::ArithType::MOD:
+    case mt::stdlib::ArithType::MOD:
         name = "MOD";
         break;
     default:
@@ -58,28 +58,28 @@ std::string tmdl::stdlib::arith_to_string(const ArithType t,
 }
 
 std::string
-tmdl::stdlib::relational_to_string(const RelationalOperator op,
+mt::stdlib::relational_to_string(const RelationalOperator op,
                                    SpecificationType specification) {
     static const std::string TYPE_NAME = "RelationalOperator";
     std::string name;
 
     switch (op) {
-    case tmdl::stdlib::RelationalOperator::EQUAL:
+    case mt::stdlib::RelationalOperator::EQUAL:
         name = "EQUAL";
         break;
-    case tmdl::stdlib::RelationalOperator::NOT_EQUAL:
+    case mt::stdlib::RelationalOperator::NOT_EQUAL:
         name = "NOT_EQUAL";
         break;
-    case tmdl::stdlib::RelationalOperator::GREATER_THAN:
+    case mt::stdlib::RelationalOperator::GREATER_THAN:
         name = "GREATER_THAN";
         break;
-    case tmdl::stdlib::RelationalOperator::GREATER_THAN_EQUAL:
+    case mt::stdlib::RelationalOperator::GREATER_THAN_EQUAL:
         name = "GREATER_THAN_EQUAL";
         break;
-    case tmdl::stdlib::RelationalOperator::LESS_THAN:
+    case mt::stdlib::RelationalOperator::LESS_THAN:
         name = "LESS_THAN";
         break;
-    case tmdl::stdlib::RelationalOperator::LESS_THAN_EQUAL:
+    case mt::stdlib::RelationalOperator::LESS_THAN_EQUAL:
         name = "LESS_THAN_EQUAL";
         break;
     default:
@@ -90,31 +90,31 @@ tmdl::stdlib::relational_to_string(const RelationalOperator op,
     return spec_to_name(specification, TYPE_NAME, name);
 }
 
-std::string tmdl::stdlib::trig_func_to_string(const TrigFunction fcn,
+std::string mt::stdlib::trig_func_to_string(const TrigFunction fcn,
                                               SpecificationType specification) {
     const static std::string TYPE_NAME = "TrigFunction";
     std::string name;
 
     switch (fcn) {
-    case tmdl::stdlib::TrigFunction::SIN:
+    case mt::stdlib::TrigFunction::SIN:
         name = "SIN";
         break;
-    case tmdl::stdlib::TrigFunction::COS:
+    case mt::stdlib::TrigFunction::COS:
         name = "COS";
         break;
-    case tmdl::stdlib::TrigFunction::TAN:
+    case mt::stdlib::TrigFunction::TAN:
         name = "TAN";
         break;
-    case tmdl::stdlib::TrigFunction::ASIN:
+    case mt::stdlib::TrigFunction::ASIN:
         name = "ASIN";
         break;
-    case tmdl::stdlib::TrigFunction::ACOS:
+    case mt::stdlib::TrigFunction::ACOS:
         name = "ACOS";
         break;
-    case tmdl::stdlib::TrigFunction::ATAN:
+    case mt::stdlib::TrigFunction::ATAN:
         name = "ATAN";
         break;
-    case tmdl::stdlib::TrigFunction::ATAN2:
+    case mt::stdlib::TrigFunction::ATAN2:
         name = "ATAN2";
         break;
     default:

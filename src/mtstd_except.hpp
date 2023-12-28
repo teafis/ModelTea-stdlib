@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace tmdl {
+namespace mt {
 namespace stdlib {
 
 class block_error : public std::runtime_error {

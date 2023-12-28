@@ -3,11 +3,11 @@
 #ifndef TMDL_STDLIB_STRING_H
 #define TMDL_STDLIB_STRING_H
 
-#include "tmdlstd.hpp"
+#include "mtstd.hpp"
 
 #include <string>
 
-namespace tmdl {
+namespace mt {
 namespace stdlib {
 
 enum class SpecificationType {

@@ -6,9 +6,11 @@
 #include <array>
 #include <cstddef>
 
-#include "tmdlstd_ext.hpp"
+#include "mtstd_ext.hpp"
 
-namespace tmdl {
+// TODO - Add string nameof-type function?
+
+namespace mt {
 namespace stdlib {
 
 enum class ArithType {

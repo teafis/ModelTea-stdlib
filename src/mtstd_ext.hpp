@@ -5,7 +5,7 @@
 
 #include <cstdint>
 
-namespace tmdl {
+namespace mt {
 namespace stdlib {
 
 float t_sin(float x);
