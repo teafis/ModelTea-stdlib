@@ -21,6 +21,7 @@ set(
     include/mtstd_ext.hpp
     src/mtstd_ext.cpp
     include/mtstd_types.hpp
+    src/mtstd_types.cpp
 )
 
 if(MTSTD_USE_STRING_FUNCS)

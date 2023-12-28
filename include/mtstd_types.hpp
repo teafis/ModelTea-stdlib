@@ -4,7 +4,6 @@
 #define MT_STDLIB_TYPES_H
 
 #include <cstdint>
-#include <sstream>
 
 #ifdef MT_STDLIB_USE_STRING_FUNCS
 #include <string>
@@ -133,20 +132,12 @@ enum class TrigFunction {
 
 #ifdef MT_USE_C_COMPAT
 struct block_interface {
-    virtual void reset() {}
+    virtual void reset();
 
-    virtual void step() {}
+    virtual void step();
 
 #ifdef MT_STDLIB_USE_STRING_FUNCS
-    std::string get_type_name(bool include_namespace) {
-        if (include_namespace) {
-            std::ostringstream oss;
-            oss << BASE_NAMESPACE << "::" << get_inner_type_name();
-            return oss.str();
-        } else {
-            return get_inner_type_name();
-        }
-    }
+    std::string get_type_name(bool include_namespace = true);
 #endif
 
 protected:
