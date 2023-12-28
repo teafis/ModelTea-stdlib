@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 
+#include "mtstd_types.hpp"
 #include <catch2/catch_all.hpp>
 
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
@@ -43,7 +44,7 @@ static double compute_expected(std::span<const double> vals) {
 
 template <mt::stdlib::ArithType OP>
 static void test_static_block(std::span<const double> test_values) {
-    mt::stdlib::arith_block<double, OP, 3> block_test;
+    mt::stdlib::arith_block<mt::stdlib::DataType::F64, OP, 3> block_test;
 
     block_test.s_in.values[0] = 1.0;
     block_test.s_in.values[1] = 2.0;
@@ -80,7 +81,7 @@ static void test_static_block(std::span<const double> test_values) {
 template <mt::stdlib::ArithType OP>
 static void test_dynamic_block(std::span<const size_t> test_sizes,
                                std::span<const double> test_values) {
-    mt::stdlib::arith_block_dynamic<double, OP> block_test;
+    mt::stdlib::arith_block_dynamic<mt::stdlib::DataType::F64, OP> block_test;
 
     for (const auto s : test_sizes) {
         std::vector<double> numbers(s, 0.0);

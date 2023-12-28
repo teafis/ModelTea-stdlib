@@ -33,53 +33,60 @@ extern const std::string BASE_NAMESPACE;
 #define MT_COMPAT_OVERRIDE
 #endif
 
-template <typename T, ArithType AT>
+template <DataType DT, ArithType AT>
 struct ArithOperation {};
 
-template <typename T>
-struct ArithOperation<T, ArithType::ADD> {
-    static T operation(const T a, const T b) {
+template <DataType DT>
+struct ArithOperation<DT, ArithType::ADD> {
+    using data_t = typename type_info<DT>::type_t;
+    static data_t operation(const data_t a, const data_t b) {
         return a + b;
     }
 };
 
-template <typename T>
-struct ArithOperation<T, ArithType::SUB> {
-    static T operation(const T a, const T b) {
+template <DataType DT>
+struct ArithOperation<DT, ArithType::SUB> {
+    using data_t = typename type_info<DT>::type_t;
+    static data_t operation(const data_t a, const data_t b) {
         return a - b;
     }
 };
 
-template <typename T>
-struct ArithOperation<T, ArithType::MUL> {
-    static T operation(const T a, const T b) {
+template <DataType DT>
+struct ArithOperation<DT, ArithType::MUL> {
+    using data_t = typename type_info<DT>::type_t;
+    static data_t operation(const data_t a, const data_t b) {
         return a * b;
     }
 };
 
-template <typename T>
-struct ArithOperation<T, ArithType::DIV> {
-    static T operation(const T a, const T b) {
+template <DataType DT>
+struct ArithOperation<DT, ArithType::DIV> {
+    using data_t = typename type_info<DT>::type_t;
+    static data_t operation(const data_t a, const data_t b) {
         return a / b;
     }
 };
 
-template <typename T>
-struct ArithOperation<T, ArithType::MOD> {
-    static T operation(const T a, const T b) {
+template <DataType DT>
+struct ArithOperation<DT, ArithType::MOD> {
+    using data_t = typename type_info<DT>::type_t;
+    static data_t operation(const data_t a, const data_t b) {
         return t_mod(a, b);
     }
 };
 
-template <typename T, ArithType AT>
+template <DataType DT, ArithType AT>
 struct arith_block_dynamic MT_COMPAT_SUBCLASS {
+    using data_t = typename type_info<DT>::type_t;
+
     struct input_t {
-        T* values;
+        data_t* values;
         int size;
     };
 
     struct output_t {
-        T value;
+        data_t value;
     };
 
     arith_block_dynamic() = default;
@@ -89,10 +96,10 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
     void reset() MT_COMPAT_OVERRIDE { step(); }
 
     void step() MT_COMPAT_OVERRIDE {
-        T val = s_in.values[0];
+        data_t val = s_in.values[0];
 
         for (int i = 1; i < s_in.size; ++i) {
-            val = ArithOperation<T, AT>::operation(val, s_in.values[i]);
+            val = ArithOperation<DT, AT>::operation(val, s_in.values[i]);
         }
 
         s_out.value = val;
@@ -101,7 +108,7 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
 #ifdef MT_STDLIB_USE_STRING_FUNCS
     std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
-        oss << "arith_block_dynamic<" << type_info<T>::name << ", " << arith_to_string(AT) << ">";
+        oss << "arith_block_dynamic<" << type_info<DT>::name << ", " << arith_to_string(AT) << ">";
         return oss.str();
     }
 #endif
@@ -110,8 +117,10 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
     output_t s_out;
 };
 
-template <typename T, ArithType AT, int SIZE>
-struct arith_block : public arith_block_dynamic<T, AT> {
+template <DataType DT, ArithType AT, int SIZE>
+struct arith_block : public arith_block_dynamic<DT, AT> {
+    using data_t = typename type_info<DT>::type_t;
+
     arith_block() {
         this->s_in.size = SIZE;
         this->s_in.values = _input_array.data();
@@ -123,13 +132,13 @@ struct arith_block : public arith_block_dynamic<T, AT> {
 #ifdef MT_STDLIB_USE_STRING_FUNCS
     std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
-        oss << "arith_block<" << type_info<T>::name << ", " << arith_to_string(AT) << ", " << SIZE << ">";
+        oss << "arith_block<" << type_info<DT>::name << ", " << arith_to_string(AT) << ", " << SIZE << ">";
         return oss.str();
     }
 #endif
 
 private:
-    std::array<T, SIZE> _input_array;
+    std::array<data_t, SIZE> _input_array;
 };
 
 struct clock_block MT_COMPAT_SUBCLASS {
@@ -157,13 +166,15 @@ struct clock_block MT_COMPAT_SUBCLASS {
 #endif
 };
 
-template <typename T>
+template <DataType DT>
 struct const_block MT_COMPAT_SUBCLASS {
+    using data_t = typename type_info<DT>::type_t;
+
     struct output_t {
-        T value;
+        data_t value;
     };
 
-    explicit const_block(const T val) : s_out{.value = val} {
+    explicit const_block(const data_t val) : s_out{.value = val} {
         // Empty Constructor
     }
 
@@ -175,22 +186,24 @@ struct const_block MT_COMPAT_SUBCLASS {
 #ifdef MT_STDLIB_USE_STRING_FUNCS
     std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
-        oss << "const_block<" << type_info<T>::name << '>';
+        oss << "const_block<" << type_info<DT>::name << '>';
         return oss.str();
     }
 #endif
 };
 
-template <typename T>
+template <DataType DT>
 struct delay_block MT_COMPAT_SUBCLASS {
+    using data_t = typename type_info<DT>::type_t;
+
     struct input_t {
-        T value;
-        T reset;
+        data_t value;
+        data_t reset;
         bool reset_flag;
     };
 
     struct output_t {
-        T value;
+        data_t value;
     };
 
     delay_block() = default;
@@ -214,7 +227,7 @@ struct delay_block MT_COMPAT_SUBCLASS {
 #ifdef MT_STDLIB_USE_STRING_FUNCS
     std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
-        oss << "delay_block<" << type_info<T>::name << '>';
+        oss << "delay_block<" << type_info<DT>::name << '>';
         return oss.str();
     }
 #endif
@@ -222,18 +235,20 @@ struct delay_block MT_COMPAT_SUBCLASS {
     input_t s_in;
     output_t s_out;
 
-    T next_value;
+    data_t next_value;
 };
 
-template <typename T>
+template <DataType DT>
 struct derivative_block MT_COMPAT_SUBCLASS {
+    using data_t = typename type_info<DT>::type_t;
+
     struct input_t {
-        T value;
+        data_t value;
         bool reset_flag;
     };
 
     struct output_t {
-        T value;
+        data_t value;
     };
 
     explicit derivative_block(const double dt) : time_step(dt) {
@@ -260,28 +275,30 @@ struct derivative_block MT_COMPAT_SUBCLASS {
     input_t s_in;
     output_t s_out;
 
-    T last_value;
+    data_t last_value;
     const double time_step;
 
 #ifdef MT_STDLIB_USE_STRING_FUNCS
     std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
-        oss << "derivative_block<" << type_info<T>::name << '>';
+        oss << "derivative_block<" << type_info<DT>::name << '>';
         return oss.str();
     }
 #endif
 };
 
-template <typename T>
+template <DataType DT>
 struct integrator_block MT_COMPAT_SUBCLASS {
+    using data_t = typename type_info<DT>::type_t;
+
     struct input_t {
-        T value;
-        T reset;
+        data_t value;
+        data_t reset;
         bool reset_flag;
     };
 
     struct output_t {
-        T value;
+        data_t value;
     };
 
     explicit integrator_block(const double dt) : time_step(dt) {
@@ -304,7 +321,7 @@ struct integrator_block MT_COMPAT_SUBCLASS {
 #ifdef MT_STDLIB_USE_STRING_FUNCS
     std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
-        oss << "integrator_block<" << type_info<T>::name << '>';
+        oss << "integrator_block<" << type_info<DT>::name << '>';
         return oss.str();
     }
 #endif
@@ -315,16 +332,18 @@ struct integrator_block MT_COMPAT_SUBCLASS {
     const double time_step;
 };
 
-template <typename T>
+template <DataType DT>
 struct switch_block MT_COMPAT_SUBCLASS {
+    using data_t = typename type_info<DT>::type_t;
+
     struct input_t {
         bool value_flag;
-        T value_a;
-        T value_b;
+        data_t value_a;
+        data_t value_b;
     };
 
     struct output_t {
-        T value;
+        data_t value;
     };
 
     switch_block() = default;
@@ -344,7 +363,7 @@ struct switch_block MT_COMPAT_SUBCLASS {
 #ifdef MT_STDLIB_USE_STRING_FUNCS
     std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
-        oss << "switch_block<" << type_info<T>::name << '>';
+        oss << "switch_block<" << type_info<DT>::name << '>';
         return oss.str();
     }
 #endif
@@ -353,16 +372,18 @@ struct switch_block MT_COMPAT_SUBCLASS {
     output_t s_out;
 };
 
-template <typename T>
+template <DataType DT>
 struct limiter_block MT_COMPAT_SUBCLASS {
+    using data_t = typename type_info<DT>::type_t;
+
     struct input_t {
-        T value;
-        T limit_upper;
-        T limit_lower;
+        data_t value;
+        data_t limit_upper;
+        data_t limit_lower;
     };
 
     struct output_t {
-        T value;
+        data_t value;
     };
 
     limiter_block() = default;
@@ -372,7 +393,7 @@ struct limiter_block MT_COMPAT_SUBCLASS {
     void reset() MT_COMPAT_OVERRIDE { step(); }
 
     void step() MT_COMPAT_OVERRIDE {
-        T x = s_in.value;
+        data_t x = s_in.value;
 
         if (x < s_in.limit_lower) {
             x = s_in.limit_lower;
@@ -386,7 +407,7 @@ struct limiter_block MT_COMPAT_SUBCLASS {
 #ifdef MT_STDLIB_USE_STRING_FUNCS
     std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
-        oss << "limiter_block<" << type_info<T>::name << '>';
+        oss << "limiter_block<" << type_info<DT>::name << '>';
         return oss.str();
     }
 #endif
@@ -395,17 +416,19 @@ struct limiter_block MT_COMPAT_SUBCLASS {
     output_t s_out;
 };
 
-template <typename T>
+template <DataType DT>
 struct limiter_block_const MT_COMPAT_SUBCLASS {
+    using data_t = typename type_info<DT>::type_t;
+
     struct input_t {
-        T value;
+        data_t value;
     };
 
     struct output_t {
-        T value;
+        data_t value;
     };
 
-    limiter_block_const(const T upper, const T lower)
+    limiter_block_const(const data_t upper, const data_t lower)
         : bound_upper{upper}, bound_lower{lower} {}
 
     limiter_block_const(const limiter_block_const&) = delete;
@@ -414,7 +437,7 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
     void reset() MT_COMPAT_OVERRIDE { step(); }
 
     void step() MT_COMPAT_OVERRIDE {
-        T x = s_in.value;
+        data_t x = s_in.value;
 
         if (x < bound_lower) {
             x = bound_lower;
@@ -428,7 +451,7 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
 #ifdef MT_STDLIB_USE_STRING_FUNCS
     std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
-        oss << "limiter_block_const<" << type_info<T>::name << '>';
+        oss << "limiter_block_const<" << type_info<DT>::name << '>';
         return oss.str();
     }
 #endif
@@ -436,60 +459,68 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
     input_t s_in;
     output_t s_out;
 
-    const T bound_upper;
-    const T bound_lower;
+    const data_t bound_upper;
+    const data_t bound_lower;
 };
 
-template <typename T, RelationalOperator OP>
+template <DataType DT, RelationalOperator OP>
 struct RelationalOperation {};
 
-template <typename T>
-struct RelationalOperation<T, RelationalOperator::EQUAL> {
-    static bool operation(const T a, const T b) {
+template <DataType DT>
+struct RelationalOperation<DT, RelationalOperator::EQUAL> {
+    using data_t = typename type_info<DT>::type_t;
+    static bool operation(const data_t a, const data_t b) {
         return a == b;
     }
 };
 
-template <typename T>
-struct RelationalOperation<T, RelationalOperator::NOT_EQUAL> {
-    static bool operation(const T a, const T b) {
+template <DataType DT>
+struct RelationalOperation<DT, RelationalOperator::NOT_EQUAL> {
+    using data_t = typename type_info<DT>::type_t;
+    static bool operation(const data_t a, const data_t b) {
         return a != b;
     }
 };
 
-template <typename T>
-struct RelationalOperation<T, RelationalOperator::GREATER_THAN> {
-    static bool operation(const T a, const T b) {
+template <DataType DT>
+struct RelationalOperation<DT, RelationalOperator::GREATER_THAN> {
+    using data_t = typename type_info<DT>::type_t;
+    static bool operation(const data_t a, const data_t b) {
         return a > b;
     }
 };
 
-template <typename T>
-struct RelationalOperation<T, RelationalOperator::GREATER_THAN_EQUAL> {
-    static bool operation(const T a, const T b) {
+template <DataType DT>
+struct RelationalOperation<DT, RelationalOperator::GREATER_THAN_EQUAL> {
+    using data_t = typename type_info<DT>::type_t;
+    static bool operation(const data_t a, const data_t b) {
         return a >= b;
     }
 };
 
-template <typename T>
-struct RelationalOperation<T, RelationalOperator::LESS_THAN> {
-    static bool operation(const T a, const T b) {
+template <DataType DT>
+struct RelationalOperation<DT, RelationalOperator::LESS_THAN> {
+    using data_t = typename type_info<DT>::type_t;
+    static bool operation(const data_t a, const data_t b) {
         return a < b;
     }
 };
 
-template <typename T>
-struct RelationalOperation<T, RelationalOperator::LESS_THAN_EQUAL> {
-    static bool operation(const T a, const T b) {
+template <DataType DT>
+struct RelationalOperation<DT, RelationalOperator::LESS_THAN_EQUAL> {
+    using data_t = typename type_info<DT>::type_t;
+    static bool operation(const data_t a, const data_t b) {
         return a <= b;
     }
 };
 
-template <typename T, RelationalOperator OP>
+template <DataType DT, RelationalOperator OP>
 struct relational_block MT_COMPAT_SUBCLASS {
+    using data_t = typename type_info<DT>::type_t;
+
     struct input_t {
-        T value_a;
-        T value_b;
+        data_t value_a;
+        data_t value_b;
     };
 
     struct output_t {
@@ -503,13 +534,13 @@ struct relational_block MT_COMPAT_SUBCLASS {
     void reset() MT_COMPAT_OVERRIDE { step(); }
 
     void step() MT_COMPAT_OVERRIDE {
-        s_out.value = RelationalOperation<T, OP>::operation(s_in.value_a, s_in.value_b);
+        s_out.value = RelationalOperation<DT, OP>::operation(s_in.value_a, s_in.value_b);
     }
 
 #ifdef MT_STDLIB_USE_STRING_FUNCS
     std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
-        oss << "relational_block<" << type_info<T>::name << ", " << relational_to_string(OP) << '>';
+        oss << "relational_block<" << type_info<DT>::name << ", " << relational_to_string(OP) << '>';
         return oss.str();
     }
 #endif
@@ -528,73 +559,82 @@ struct TrigInfo<TrigFunction::ATAN2> {
     static const size_t input_count = 2;
 };
 
-template <typename T, size_t N, TrigFunction FCN>
+template <DataType DT, size_t N, TrigFunction FCN>
 struct TrigOperation {};
 
-template <typename T, size_t N>
-struct TrigOperation<T, N, TrigFunction::SIN> {
-    static T operation(const T values[N]) {
+template <DataType DT, size_t N>
+struct TrigOperation<DT, N, TrigFunction::SIN> {
+    using data_t = typename type_info<DT>::type_t;
+    static data_t operation(const data_t values[N]) {
         static_assert(N == 1, "sin requires a single argument");
         return t_sin(values[0]);
     }
 };
 
-template <typename T, size_t N>
-struct TrigOperation<T, N, TrigFunction::COS> {
-    static T operation(const T values[N]) {
+template <DataType DT, size_t N>
+struct TrigOperation<DT, N, TrigFunction::COS> {
+    using data_t = typename type_info<DT>::type_t;
+    static data_t operation(const data_t values[N]) {
         static_assert(N == 1, "cos requires a single argument");
         return t_cos(values[0]);
     }
 };
 
-template <typename T, size_t N>
-struct TrigOperation<T, N, TrigFunction::TAN> {
-    static T operation(const T values[N]) {
+template <DataType DT, size_t N>
+struct TrigOperation<DT, N, TrigFunction::TAN> {
+    using data_t = typename type_info<DT>::type_t;
+    static data_t operation(const data_t values[N]) {
         static_assert(N == 1, "tan requires a single argument");
         return t_tan(values[0]);
     }
 };
 
-template <typename T, size_t N>
-struct TrigOperation<T, N, TrigFunction::ASIN> {
-    static T operation(const T values[N]) {
+template <DataType DT, size_t N>
+struct TrigOperation<DT, N, TrigFunction::ASIN> {
+    using data_t = typename type_info<DT>::type_t;
+    static data_t operation(const data_t values[N]) {
         static_assert(N == 1, "arcsin requires a single argument");
         return t_asin(values[0]);
     }
 };
 
-template <typename T, size_t N>
-struct TrigOperation<T, N, TrigFunction::ACOS> {
-    static T operation(const T values[N]) {
+template <DataType DT, size_t N>
+struct TrigOperation<DT, N, TrigFunction::ACOS> {
+    using data_t = typename type_info<DT>::type_t;
+    static data_t operation(const data_t values[N]) {
         static_assert(N == 1, "arccos requires a single argument");
         return t_acos(values[0]);
     }
 };
 
-template <typename T, size_t N>
-struct TrigOperation<T, N, TrigFunction::ATAN> {
-    static T operation(const T values[N]) {
+template <DataType DT, size_t N>
+struct TrigOperation<DT, N, TrigFunction::ATAN> {
+    using data_t = typename type_info<DT>::type_t;
+    static data_t operation(const data_t values[N]) {
         static_assert(N == 1, "arctan requires a single argument");
         return t_atan(values[0]);
     }
 };
 
-template <typename T, size_t N>
-struct TrigOperation<T, N, TrigFunction::ATAN2> {
-    static T operation(const T values[N]) {
+template <DataType DT, size_t N>
+struct TrigOperation<DT, N, TrigFunction::ATAN2> {
+    using data_t = typename type_info<DT>::type_t;
+    static data_t operation(const data_t values[N]) {
         static_assert(N == 2, "arctan2 requires a single argument");
         return t_atan2(values[0], values[1]);
     }
 };
 
-template <typename T, TrigFunction FCN>
+template <DataType DT, TrigFunction FCN>
 struct trig_block MT_COMPAT_SUBCLASS {
+    using data_t = typename type_info<DT>::type_t;
+
     struct input_t {
-        T values[TrigInfo<FCN>::input_count];
+        data_t values[TrigInfo<FCN>::input_count];
     };
 
     struct output_t {
-        T value;
+        data_t value;
     };
 
     trig_block() = default;
@@ -604,13 +644,13 @@ struct trig_block MT_COMPAT_SUBCLASS {
     void reset() MT_COMPAT_OVERRIDE { step(); }
 
     void step() MT_COMPAT_OVERRIDE {
-        s_out.value = TrigOperation<T, TrigInfo<FCN>::input_count, FCN>::operation(s_in.values);
+        s_out.value = TrigOperation<DT, TrigInfo<FCN>::input_count, FCN>::operation(s_in.values);
     }
 
 #ifdef MT_STDLIB_USE_STRING_FUNCS
     std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
-        oss << "trig_block<" << type_info<T>::name << ", " << trig_func_to_string(FCN) << '>';
+        oss << "trig_block<" << type_info<DT>::name << ", " << trig_func_to_string(FCN) << '>';
         return oss.str();
     }
 #endif

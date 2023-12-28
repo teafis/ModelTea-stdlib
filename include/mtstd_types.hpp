@@ -28,11 +28,11 @@ enum class DataType {
     F64,
 };
 
-template <typename>
+template <DataType>
 struct type_info {};
 
 template <>
-struct type_info<uint8_t> {
+struct type_info<DataType::U8> {
     using type_t = uint8_t;
 #if MT_STDLIB_USE_STRING_FUNCS
     static constexpr const char* name = "uint8_t";
@@ -40,7 +40,7 @@ struct type_info<uint8_t> {
 };
 
 template <>
-struct type_info<int8_t> {
+struct type_info<DataType::I8> {
     using type_t = int8_t;
 #if MT_STDLIB_USE_STRING_FUNCS
     static constexpr const char* name = "int8_t";
@@ -48,7 +48,7 @@ struct type_info<int8_t> {
 };
 
 template <>
-struct type_info<uint16_t> {
+struct type_info<DataType::U16> {
     using type_t = uint16_t;
 #if MT_STDLIB_USE_STRING_FUNCS
     static constexpr const char* name = "uint16_t";
@@ -56,7 +56,7 @@ struct type_info<uint16_t> {
 };
 
 template <>
-struct type_info<int16_t> {
+struct type_info<DataType::I16> {
     using type_t = int16_t;
 #if MT_STDLIB_USE_STRING_FUNCS
     static constexpr const char* name = "int16_t";
@@ -64,7 +64,7 @@ struct type_info<int16_t> {
 };
 
 template <>
-struct type_info<uint32_t> {
+struct type_info<DataType::U32> {
     using type_t = uint32_t;
 #if MT_STDLIB_USE_STRING_FUNCS
     static constexpr const char* name = "uint32_t";
@@ -72,7 +72,7 @@ struct type_info<uint32_t> {
 };
 
 template <>
-struct type_info<int32_t> {
+struct type_info<DataType::I32> {
     using type_t = int32_t;
 #if MT_STDLIB_USE_STRING_FUNCS
     static constexpr const char* name = "int32_t";
@@ -80,7 +80,7 @@ struct type_info<int32_t> {
 };
 
 template <>
-struct type_info<float> {
+struct type_info<DataType::F32> {
     using type_t = float;
 #if MT_STDLIB_USE_STRING_FUNCS
     static constexpr const char* name = "float";
@@ -88,7 +88,7 @@ struct type_info<float> {
 };
 
 template <>
-struct type_info<double> {
+struct type_info<DataType::F64> {
     using type_t = double;
 #if MT_STDLIB_USE_STRING_FUNCS
     static constexpr const char* name = "double";
@@ -96,7 +96,7 @@ struct type_info<double> {
 };
 
 template <>
-struct type_info<bool> {
+struct type_info<DataType::BOOL> {
     using type_t = bool;
 #if MT_STDLIB_USE_STRING_FUNCS
     static constexpr const char* name = "bool";

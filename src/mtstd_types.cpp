@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include "mtstd_types.hpp"
 
 #include <sstream>
