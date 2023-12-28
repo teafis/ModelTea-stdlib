@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-#ifndef TMDL_STDLIB_STRING_H
-#define TMDL_STDLIB_STRING_H
+#ifndef MT_STDLIB_STRING_H
+#define MT_STDLIB_STRING_H
 
 #include "mtstd.hpp"
 
@@ -31,4 +31,4 @@ std::string trig_func_to_string(
 }
 }
 
-#endif // TMDL_STDLIB_STRING_H
+#endif // MT_STDLIB_STRING_H

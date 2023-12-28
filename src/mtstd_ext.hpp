@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-#ifndef TMDL_STDLIB_EXT_H
-#define TMDL_STDLIB_EXT_H
+#ifndef MT_STDLIB_EXT_H
+#define MT_STDLIB_EXT_H
 
 #include <cstdint>
 
@@ -37,4 +37,4 @@ double t_mod(double x, double y);
 }
 }
 
-#endif // TMDL_STDLIB_EXT_H
+#endif // MT_STDLIB_EXT_H

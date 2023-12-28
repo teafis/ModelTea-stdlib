@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-#ifndef TMDL_STDLIB_H
-#define TMDL_STDLIB_H
+#ifndef MT_STDLIB_H
+#define MT_STDLIB_H
 
 #include <array>
 #include <cstddef>
@@ -535,4 +535,4 @@ struct trig_block {
 }
 }
 
-#endif // TMDL_STDLIB_H
+#endif // MT_STDLIB_H

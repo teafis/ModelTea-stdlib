@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-#ifndef TMDL_STDLIB_EXCEPT_H
-#define TMDL_STDLIB_EXCEPT_H
+#ifndef MT_STDLIB_EXCEPT_H
+#define MT_STDLIB_EXCEPT_H
 
 #include <stdexcept>
 #include <string>
@@ -18,4 +18,4 @@ public:
 }
 }
 
-#endif // TMDL_STDLIB_EXCEPT_H
+#endif // MT_STDLIB_EXCEPT_H
