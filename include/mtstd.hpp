@@ -5,21 +5,33 @@
 
 #include <array>
 #include <cstddef>
+#include <sstream>
 
 #include "mtstd_ext.hpp"
+#include "mtstd_types.hpp"
+
+#ifdef MT_STDLIB_USE_STRING_FUNCS
+#include "mtstd_string.hpp"
+#include <sstream>
+#include <string>
+#endif
 
 // TODO - Add string nameof-type function?
 
 namespace mt {
 namespace stdlib {
 
-enum class ArithType {
-    ADD = 0,
-    SUB,
-    MUL,
-    DIV,
-    MOD,
-};
+#if MT_STDLIB_USE_STRING_FUNCS
+extern const std::string BASE_NAMESPACE;
+#endif
+
+#ifdef MT_USE_C_COMPAT
+#define MT_COMPAT_SUBCLASS : public block_interface
+#define MT_COMPAT_OVERRIDE override
+#else
+#define MT_COMPAT_SUBCLASS
+#define MT_COMPAT_OVERRIDE
+#endif
 
 template <typename T, ArithType AT>
 struct ArithOperation {};
@@ -60,7 +72,7 @@ struct ArithOperation<T, ArithType::MOD> {
 };
 
 template <typename T, ArithType AT>
-struct arith_block_dynamic {
+struct arith_block_dynamic MT_COMPAT_SUBCLASS {
     struct input_t {
         T* values;
         int size;
@@ -74,9 +86,9 @@ struct arith_block_dynamic {
     arith_block_dynamic(const arith_block_dynamic&) = delete;
     arith_block_dynamic& operator=(const arith_block_dynamic&) = delete;
 
-    void reset() { step(); }
+    void reset() MT_COMPAT_OVERRIDE { step(); }
 
-    void step() {
+    void step() MT_COMPAT_OVERRIDE {
         T val = s_in.values[0];
 
         for (int i = 1; i < s_in.size; ++i) {
@@ -85,6 +97,14 @@ struct arith_block_dynamic {
 
         s_out.value = val;
     }
+
+#ifdef MT_STDLIB_USE_STRING_FUNCS
+    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+        std::ostringstream oss;
+        oss << "arith_block_dynamic<" << type_info<T>::name << ", " << arith_to_string(AT) << ">";
+        return oss.str();
+    }
+#endif
 
     input_t s_in;
     output_t s_out;
@@ -100,11 +120,19 @@ struct arith_block : public arith_block_dynamic<T, AT> {
     arith_block(const arith_block&) = delete;
     arith_block& operator=(const arith_block&) = delete;
 
+#ifdef MT_STDLIB_USE_STRING_FUNCS
+    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+        std::ostringstream oss;
+        oss << "arith_block<" << type_info<T>::name << ", " << arith_to_string(AT) << ", " << SIZE << ">";
+        return oss.str();
+    }
+#endif
+
 private:
     std::array<T, SIZE> _input_array;
 };
 
-struct clock_block {
+struct clock_block MT_COMPAT_SUBCLASS {
     struct output_t {
         double val;
     };
@@ -114,17 +142,23 @@ struct clock_block {
     clock_block(const clock_block&) = delete;
     clock_block& operator=(const clock_block&) = delete;
 
-    void reset();
+    void reset() MT_COMPAT_OVERRIDE;
 
-    void step();
+    void step() MT_COMPAT_OVERRIDE;
 
     output_t s_out;
 
     const double time_step;
+
+#ifdef MT_STDLIB_USE_STRING_FUNCS
+    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+        return "clock_block";
+    }
+#endif
 };
 
 template <typename T>
-struct const_block {
+struct const_block MT_COMPAT_SUBCLASS {
     struct output_t {
         T value;
     };
@@ -137,10 +171,18 @@ struct const_block {
     const_block& operator=(const const_block&) = delete;
 
     const output_t s_out;
+
+#ifdef MT_STDLIB_USE_STRING_FUNCS
+    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+        std::ostringstream oss;
+        oss << "const_block<" << type_info<T>::name << '>';
+        return oss.str();
+    }
+#endif
 };
 
 template <typename T>
-struct delay_block {
+struct delay_block MT_COMPAT_SUBCLASS {
     struct input_t {
         T value;
         T reset;
@@ -155,12 +197,12 @@ struct delay_block {
     delay_block(const delay_block&) = delete;
     delay_block& operator=(const delay_block&) = delete;
 
-    void reset() {
+    void reset() MT_COMPAT_OVERRIDE {
         next_value = s_in.reset;
         s_out.value = s_in.reset;
     }
 
-    void step() {
+    void step() MT_COMPAT_OVERRIDE {
         if (s_in.reset_flag) {
             reset();
         }
@@ -169,6 +211,14 @@ struct delay_block {
         next_value = s_in.value;
     }
 
+#ifdef MT_STDLIB_USE_STRING_FUNCS
+    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+        std::ostringstream oss;
+        oss << "delay_block<" << type_info<T>::name << '>';
+        return oss.str();
+    }
+#endif
+
     input_t s_in;
     output_t s_out;
 
@@ -176,7 +226,7 @@ struct delay_block {
 };
 
 template <typename T>
-struct derivative_block {
+struct derivative_block MT_COMPAT_SUBCLASS {
     struct input_t {
         T value;
         bool reset_flag;
@@ -193,12 +243,12 @@ struct derivative_block {
     derivative_block(const derivative_block&) = delete;
     derivative_block& operator=(const derivative_block&) = delete;
 
-    void reset() {
+    void reset() MT_COMPAT_OVERRIDE {
         last_value = {};
         s_out.value = {};
     }
 
-    void step() {
+    void step() MT_COMPAT_OVERRIDE {
         if (s_in.reset_flag) {
             reset();
         }
@@ -212,10 +262,18 @@ struct derivative_block {
 
     T last_value;
     const double time_step;
+
+#ifdef MT_STDLIB_USE_STRING_FUNCS
+    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+        std::ostringstream oss;
+        oss << "derivative_block<" << type_info<T>::name << '>';
+        return oss.str();
+    }
+#endif
 };
 
 template <typename T>
-struct integrator_block {
+struct integrator_block MT_COMPAT_SUBCLASS {
     struct input_t {
         T value;
         T reset;
@@ -233,15 +291,23 @@ struct integrator_block {
     integrator_block(const integrator_block&) = delete;
     integrator_block& operator=(const integrator_block&) = delete;
 
-    void reset() { s_out.value = s_in.reset; }
+    void reset() MT_COMPAT_OVERRIDE { s_out.value = s_in.reset; }
 
-    void step() {
+    void step() MT_COMPAT_OVERRIDE {
         if (s_in.reset_flag) {
             reset();
         } else {
             s_out.value += s_in.value * time_step;
         }
     }
+
+#ifdef MT_STDLIB_USE_STRING_FUNCS
+    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+        std::ostringstream oss;
+        oss << "integrator_block<" << type_info<T>::name << '>';
+        return oss.str();
+    }
+#endif
 
     input_t s_in;
     output_t s_out;
@@ -250,7 +316,7 @@ struct integrator_block {
 };
 
 template <typename T>
-struct switch_block {
+struct switch_block MT_COMPAT_SUBCLASS {
     struct input_t {
         bool value_flag;
         T value_a;
@@ -265,9 +331,9 @@ struct switch_block {
     switch_block(const switch_block&) = delete;
     switch_block& operator=(const switch_block&) = delete;
 
-    void reset() { step(); }
+    void reset() MT_COMPAT_OVERRIDE { step(); }
 
-    void step() {
+    void step() MT_COMPAT_OVERRIDE {
         if (s_in.value_flag) {
             s_out.value = s_in.value_a;
         } else {
@@ -275,12 +341,20 @@ struct switch_block {
         }
     }
 
+#ifdef MT_STDLIB_USE_STRING_FUNCS
+    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+        std::ostringstream oss;
+        oss << "switch_block<" << type_info<T>::name << '>';
+        return oss.str();
+    }
+#endif
+
     input_t s_in;
     output_t s_out;
 };
 
 template <typename T>
-struct limiter_block {
+struct limiter_block MT_COMPAT_SUBCLASS {
     struct input_t {
         T value;
         T limit_upper;
@@ -295,9 +369,9 @@ struct limiter_block {
     limiter_block(const limiter_block&) = delete;
     limiter_block& operator=(const limiter_block&) = delete;
 
-    void reset() { step(); }
+    void reset() MT_COMPAT_OVERRIDE { step(); }
 
-    void step() {
+    void step() MT_COMPAT_OVERRIDE {
         T x = s_in.value;
 
         if (x < s_in.limit_lower) {
@@ -309,12 +383,20 @@ struct limiter_block {
         s_out.value = x;
     }
 
+#ifdef MT_STDLIB_USE_STRING_FUNCS
+    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+        std::ostringstream oss;
+        oss << "limiter_block<" << type_info<T>::name << '>';
+        return oss.str();
+    }
+#endif
+
     input_t s_in;
     output_t s_out;
 };
 
 template <typename T>
-struct limiter_block_const {
+struct limiter_block_const MT_COMPAT_SUBCLASS {
     struct input_t {
         T value;
     };
@@ -329,9 +411,9 @@ struct limiter_block_const {
     limiter_block_const(const limiter_block_const&) = delete;
     limiter_block_const& operator=(const limiter_block_const&) = delete;
 
-    void reset() { step(); }
+    void reset() MT_COMPAT_OVERRIDE { step(); }
 
-    void step() {
+    void step() MT_COMPAT_OVERRIDE {
         T x = s_in.value;
 
         if (x < bound_lower) {
@@ -343,20 +425,19 @@ struct limiter_block_const {
         s_out.value = x;
     }
 
+#ifdef MT_STDLIB_USE_STRING_FUNCS
+    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+        std::ostringstream oss;
+        oss << "limiter_block_const<" << type_info<T>::name << '>';
+        return oss.str();
+    }
+#endif
+
     input_t s_in;
     output_t s_out;
 
     const T bound_upper;
     const T bound_lower;
-};
-
-enum class RelationalOperator {
-    EQUAL = 0,
-    NOT_EQUAL,
-    GREATER_THAN,
-    GREATER_THAN_EQUAL,
-    LESS_THAN,
-    LESS_THAN_EQUAL,
 };
 
 template <typename T, RelationalOperator OP>
@@ -405,7 +486,7 @@ struct RelationalOperation<T, RelationalOperator::LESS_THAN_EQUAL> {
 };
 
 template <typename T, RelationalOperator OP>
-struct relational_block {
+struct relational_block MT_COMPAT_SUBCLASS {
     struct input_t {
         T value_a;
         T value_b;
@@ -419,24 +500,22 @@ struct relational_block {
     relational_block(const relational_block&) = delete;
     relational_block& operator=(const relational_block&) = delete;
 
-    void reset() { step(); }
+    void reset() MT_COMPAT_OVERRIDE { step(); }
 
-    void step() {
+    void step() MT_COMPAT_OVERRIDE {
         s_out.value = RelationalOperation<T, OP>::operation(s_in.value_a, s_in.value_b);
     }
 
+#ifdef MT_STDLIB_USE_STRING_FUNCS
+    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+        std::ostringstream oss;
+        oss << "relational_block<" << type_info<T>::name << ", " << relational_to_string(OP) << '>';
+        return oss.str();
+    }
+#endif
+
     input_t s_in;
     output_t s_out;
-};
-
-enum class TrigFunction {
-    SIN = 0,
-    COS,
-    TAN,
-    ASIN,
-    ACOS,
-    ATAN,
-    ATAN2,
 };
 
 template <TrigFunction FCN>
@@ -509,7 +588,7 @@ struct TrigOperation<T, N, TrigFunction::ATAN2> {
 };
 
 template <typename T, TrigFunction FCN>
-struct trig_block {
+struct trig_block MT_COMPAT_SUBCLASS {
     struct input_t {
         T values[TrigInfo<FCN>::input_count];
     };
@@ -522,11 +601,19 @@ struct trig_block {
     trig_block(const trig_block&) = delete;
     trig_block& operator=(const trig_block&) = delete;
 
-    void reset() { step(); }
+    void reset() MT_COMPAT_OVERRIDE { step(); }
 
-    void step() {
+    void step() MT_COMPAT_OVERRIDE {
         s_out.value = TrigOperation<T, TrigInfo<FCN>::input_count, FCN>::operation(s_in.values);
     }
+
+#ifdef MT_STDLIB_USE_STRING_FUNCS
+    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+        std::ostringstream oss;
+        oss << "trig_block<" << type_info<T>::name << ", " << trig_func_to_string(FCN) << '>';
+        return oss.str();
+    }
+#endif
 
     input_t s_in;
     output_t s_out;

@@ -6,16 +6,16 @@
 
 #include <sstream>
 
-const static std::string BASE_NAMESPACE = "mt::stdlib";
+const std::string mt::stdlib::BASE_NAMESPACE = "mt::stdlib";
 
-static std::string spec_to_name(mt::stdlib::SpecificationType spec,
+static std::string to_enum_name(mt::stdlib::SpecificationType spec,
                                 const std::string& type,
                                 const std::string& name) {
     std::ostringstream oss;
 
     switch (spec) {
     case mt::stdlib::SpecificationType::FULL:
-        oss << BASE_NAMESPACE << "::";
+        oss << mt::stdlib::BASE_NAMESPACE << "::";
     case mt::stdlib::SpecificationType::TYPE:
         oss << type << "::";
     case mt::stdlib::SpecificationType::NONE:
@@ -29,7 +29,7 @@ static std::string spec_to_name(mt::stdlib::SpecificationType spec,
 }
 
 std::string mt::stdlib::arith_to_string(const ArithType t,
-                                          SpecificationType specification) {
+                                        SpecificationType specification) {
     static const std::string TYPE_NAME = "ArithType";
     std::string name;
 
@@ -54,12 +54,12 @@ std::string mt::stdlib::arith_to_string(const ArithType t,
             "unsupported arithmetic function provided for string conversion");
     }
 
-    return spec_to_name(specification, TYPE_NAME, name);
+    return to_enum_name(specification, TYPE_NAME, name);
 }
 
 std::string
 mt::stdlib::relational_to_string(const RelationalOperator op,
-                                   SpecificationType specification) {
+                                 SpecificationType specification) {
     static const std::string TYPE_NAME = "RelationalOperator";
     std::string name;
 
@@ -87,11 +87,11 @@ mt::stdlib::relational_to_string(const RelationalOperator op,
             "unsupported relational function provided for string conversion");
     }
 
-    return spec_to_name(specification, TYPE_NAME, name);
+    return to_enum_name(specification, TYPE_NAME, name);
 }
 
 std::string mt::stdlib::trig_func_to_string(const TrigFunction fcn,
-                                              SpecificationType specification) {
+                                            SpecificationType specification) {
     const static std::string TYPE_NAME = "TrigFunction";
     std::string name;
 
@@ -122,5 +122,11 @@ std::string mt::stdlib::trig_func_to_string(const TrigFunction fcn,
             "unsupported trig function provided for string conversion");
     }
 
-    return spec_to_name(specification, TYPE_NAME, name);
+    return to_enum_name(specification, TYPE_NAME, name);
+}
+
+std::string mt::stdlib::with_namespace(const std::string& name) {
+    std::ostringstream oss;
+    oss << BASE_NAMESPACE << ":: " << name;
+    return oss.str();
 }

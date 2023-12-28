@@ -4,7 +4,8 @@ cmake_minimum_required(VERSION 3.18)
 
 set(VCPKG_FEATURE_FLAGS "versions")
 
-option(MTSTD_USE_STRING_FUNCS "Compile in string functions for conversion from enums to strings" OFF)
+option(MTSTD_USE_STRING_FUNCS "Compile in string functions for conversion from enums to strings" ON)
+option(MTSTD_USE_C_COMPAT "Compile in a C-level compatibility library" ON)
 
 # Define the project information
 project (
@@ -19,11 +20,12 @@ set(
     src/mtstd.cpp
     include/mtstd_ext.hpp
     src/mtstd_ext.cpp
+    include/mtstd_types.hpp
 )
 
-if(MODELTEA_STD_MODEL_SOURCES)
+if(MTSTD_USE_STRING_FUNCS)
     list(APPEND
-        TEAFIS_STD_MODEL_SOURCES
+        MODELTEA_STD_MODEL_SOURCES
         include/mtstd_except.hpp
         include/mtstd_string.hpp
         src/mtstd_string.cpp)
@@ -41,6 +43,15 @@ set_property(TARGET mtstdlib PROPERTY CXX_STANDARD_REQUIRED ON)
 
 # Include Directories
 target_include_directories(mtstdlib PUBLIC include)
+
+# Add include parameter if needed
+if(MTSTD_USE_STRING_FUNCS)
+    target_compile_definitions(mtstdlib PUBLIC MT_STDLIB_USE_STRING_FUNCS)
+endif()
+
+if(MTSTD_USE_C_COMPAT)
+    target_compile_definitions(mtstdlib PUBLIC MT_USE_C_COMPAT)
+endif()
 
 # Set appropriate catch libraries
 

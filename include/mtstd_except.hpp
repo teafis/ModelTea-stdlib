@@ -3,6 +3,8 @@
 #ifndef MT_STDLIB_EXCEPT_H
 #define MT_STDLIB_EXCEPT_H
 
+#ifdef MT_STDLIB_USE_STRING_FUNCS
+
 #include <stdexcept>
 #include <string>
 
@@ -17,5 +19,7 @@ public:
 
 }
 }
+
+#endif // MT_STDLIB_USE_STRING_FUNCS
 
 #endif // MT_STDLIB_EXCEPT_H
