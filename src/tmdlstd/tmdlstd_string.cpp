@@ -1,26 +1,31 @@
 // SPDX-License-Identifier: MIT
 
+#include "tmdlstd_string.hpp"
 #include "tmdlstd.hpp"
 #include "tmdlstd_except.hpp"
-#include "tmdlstd_string.hpp"
 
-#include <fmt/format.h>
+#include <sstream>
 
 const static std::string BASE_NAMESPACE = "tmdl::stdlib";
 
 static std::string spec_to_name(tmdl::stdlib::SpecificationType spec,
                                 const std::string& type,
                                 const std::string& name) {
+    std::ostringstream oss;
+
     switch (spec) {
     case tmdl::stdlib::SpecificationType::FULL:
-        return fmt::format("{}::{}::{}", BASE_NAMESPACE, type, name);
+        oss << BASE_NAMESPACE << "::";
     case tmdl::stdlib::SpecificationType::TYPE:
-        return fmt::format("{}::{}", type, name);
+        oss << type << "::";
     case tmdl::stdlib::SpecificationType::NONE:
-        return name;
+        oss << name;
+        break;
     default:
         throw tmdl::stdlib::block_error("unknown specification type provided");
     }
+
+    return oss.str();
 }
 
 std::string tmdl::stdlib::arith_to_string(const ArithType t,

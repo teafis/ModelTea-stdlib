@@ -4,7 +4,6 @@ cmake_minimum_required(VERSION 3.18)
 
 set(VCPKG_FEATURE_FLAGS "versions")
 
-option(TMDLSTD_USE_DEFAULT_MATH_FUNCS "Compile in default functions for special mathematical operations like trig and arithmetic operators" ON)
 option(TMDLSTD_USE_STRING_FUNCS "Compile in string functions for conversion from enums to strings" OFF)
 
 # Define the project information
@@ -19,13 +18,8 @@ set(
     src/tmdlstd/tmdlstd.hpp
     src/tmdlstd/tmdlstd.cpp
     src/tmdlstd/tmdlstd_ext.hpp
+    src/tmdlstd/tmdlstd_ext.cpp
 )
-
-if(TMDLSTD_USE_DEFAULT_MATH_FUNCS)
-    list(APPEND
-        TEAFIS_STD_MODEL_SOURCES
-        src/tmdlstd/tmdlstd_ext.cpp)
-endif()
 
 if(TMDLSTD_USE_STRING_FUNCS)
     list(APPEND
@@ -40,10 +34,6 @@ add_library(
     tmdlstd
     ${TEAFIS_STD_MODEL_SOURCES}
 )
-
-if(TMDLSTD_USE_STRING_FUNCS)
-    target_link_libraries(tmdlstd PUBLIC fmt::fmt)
-endif()
 
 # Define the C++ Standard Required
 set_property(TARGET tmdlstd PROPERTY CXX_STANDARD 11)
