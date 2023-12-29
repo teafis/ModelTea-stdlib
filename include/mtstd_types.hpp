@@ -18,7 +18,8 @@ extern const std::string BASE_NAMESPACE;
 #endif
 
 enum class DataType : uint32_t {
-    BOOL = 0,
+    NONE = 0,
+    BOOL,
     U8,
     I8,
     U16,
@@ -137,9 +138,17 @@ struct block_interface {
 
     virtual void step();
 
-    virtual bool set_input_type(int port_num, DataType dt, const void* input, int data_size) = 0;
+    virtual bool set_input_type(size_t port_num, DataType dt, const void* input, size_t data_size) = 0;
 
-    virtual bool get_output_type(int port_num, DataType dt, void* output, int data_size) = 0;
+    virtual bool get_output_type(size_t port_num, DataType dt, void* output, size_t data_size) = 0;
+
+    virtual size_t get_input_num() const = 0;
+
+    virtual size_t get_output_num() const = 0;
+
+    virtual DataType get_input_type(size_t port_num) const = 0;
+
+    virtual DataType get_output_type(size_t port_num) const = 0;
 
 protected:
     template <DataType DT>
