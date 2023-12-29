@@ -32,6 +32,13 @@ if(MTSTD_USE_STRING_FUNCS)
         src/mtstd_string.cpp)
 endif()
 
+if(MTSTD_USE_C_COMPAT)
+    list(APPEND
+        MODELTEA_STD_MODEL_SOURCES
+        include/mtstd_compat.h
+        src/mtstd_compat.cpp)
+endif()
+
 # Define the library
 add_library(
     mtstdlib

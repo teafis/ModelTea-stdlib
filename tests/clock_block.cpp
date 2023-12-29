@@ -13,13 +13,13 @@ static void test_with_timestamp(const double dt) {
     clock.reset();
 
     REQUIRE_THAT(clock.time_step, Catch::Matchers::WithinRel(dt));
-    REQUIRE_THAT(clock.s_out.val, Catch::Matchers::WithinRel(0.0));
+    REQUIRE_THAT(clock.s_out.value, Catch::Matchers::WithinRel(0.0));
 
     for (size_t i = 0; i < 1000000; ++i) {
         clock.step();
         check_val += dt;
 
-        REQUIRE_THAT(clock.s_out.val, Catch::Matchers::WithinRel(check_val));
+        REQUIRE_THAT(clock.s_out.value, Catch::Matchers::WithinRel(check_val));
     }
 }
 

@@ -14,10 +14,10 @@ void mt::stdlib::block_interface::step() {}
 std::string mt::stdlib::block_interface::get_type_name(bool include_namespace) {
     if (include_namespace) {
         std::ostringstream oss;
-        oss << BASE_NAMESPACE << "::" << get_inner_type_name();
+        oss << BASE_NAMESPACE << "::" << get_class_name();
         return oss.str();
     } else {
-        return get_inner_type_name();
+        return get_class_name();
     }
 }
 #endif

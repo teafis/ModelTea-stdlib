@@ -105,8 +105,26 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
         s_out.value = val;
     }
 
+#ifdef MT_USE_C_COMPAT
+    bool set_input_type(const int port_num, const DataType dt, const void* input, const int data_size) override {
+        if (dt != DT || s_in.values == nullptr || port_num < 0 || port_num >= s_in.size) {
+            return false;
+        } else {
+            return set_input_value<DT>(s_in.values[port_num], input, data_size);
+        }
+    }
+
+    bool get_output_type(int port_num, DataType dt, void* output, int data_size) {
+        if (dt != DT || port_num != 0) {
+            return false;
+        } else {
+            return get_output_value<DT>(s_out.value, output, data_size);
+        }
+    }
+#endif
+
 #ifdef MT_STDLIB_USE_STRING_FUNCS
-    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+    std::string get_class_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
         oss << "arith_block_dynamic<" << type_info<DT>::name << ", " << arith_to_string(AT) << ">";
         return oss.str();
@@ -130,7 +148,7 @@ struct arith_block : public arith_block_dynamic<DT, AT> {
     arith_block& operator=(const arith_block&) = delete;
 
 #ifdef MT_STDLIB_USE_STRING_FUNCS
-    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+    std::string get_class_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
         oss << "arith_block<" << type_info<DT>::name << ", " << arith_to_string(AT) << ", " << SIZE << ">";
         return oss.str();
@@ -143,7 +161,7 @@ private:
 
 struct clock_block MT_COMPAT_SUBCLASS {
     struct output_t {
-        double val;
+        double value;
     };
 
     explicit clock_block(double dt);
@@ -155,12 +173,18 @@ struct clock_block MT_COMPAT_SUBCLASS {
 
     void step() MT_COMPAT_OVERRIDE;
 
+#ifdef MT_USE_C_COMPAT
+    bool set_input_type(const int port_num, const DataType dt, const void* input, const int data_size) override;
+
+    bool get_output_type(int port_num, DataType dt, void* output, int data_size) override;
+#endif
+
     output_t s_out;
 
     const double time_step;
 
 #ifdef MT_STDLIB_USE_STRING_FUNCS
-    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+    std::string get_class_name() const MT_COMPAT_OVERRIDE {
         return "clock_block";
     }
 #endif
@@ -184,10 +208,24 @@ struct const_block MT_COMPAT_SUBCLASS {
     const output_t s_out;
 
 #ifdef MT_STDLIB_USE_STRING_FUNCS
-    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+    std::string get_class_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
         oss << "const_block<" << type_info<DT>::name << '>';
         return oss.str();
+    }
+#endif
+
+#ifdef MT_USE_C_COMPAT
+    bool set_input_type(const int port_num, const DataType dt, const void* input, const int data_size) override {
+        return false;
+    }
+
+    bool get_output_type(int port_num, DataType dt, void* output, int data_size) {
+        if (dt != DT || port_num != 0) {
+            return false;
+        } else {
+            return get_output_value<DT>(s_out.value, output, data_size);
+        }
     }
 #endif
 };
@@ -224,8 +262,30 @@ struct delay_block MT_COMPAT_SUBCLASS {
         next_value = s_in.value;
     }
 
+#ifdef MT_USE_C_COMPAT
+    bool set_input_type(const int port_num, const DataType dt, const void* input, const int data_size) override {
+        if (port_num == 0 && dt == DT) {
+            return set_input_value<DT>(s_in.value, input, data_size);
+        } else if (port_num == 1 && dt == DT) {
+            return set_input_value<DT>(s_in.reset, input, data_size);
+        } else if (port_num == 2 && dt == DataType::BOOL) {
+            return set_input_value<DataType::BOOL>(s_in.reset_flag, input, data_size);
+        } else {
+            return false;
+        }
+    }
+
+    bool get_output_type(int port_num, DataType dt, void* output, int data_size) {
+        if (dt == DT && port_num == 0) {
+            return get_output_value<DT>(s_out.value, output, data_size);
+        } else {
+            return false;
+        }
+    }
+#endif
+
 #ifdef MT_STDLIB_USE_STRING_FUNCS
-    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+    std::string get_class_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
         oss << "delay_block<" << type_info<DT>::name << '>';
         return oss.str();
@@ -244,6 +304,7 @@ struct derivative_block MT_COMPAT_SUBCLASS {
 
     struct input_t {
         data_t value;
+        data_t reset;
         bool reset_flag;
     };
 
@@ -251,7 +312,7 @@ struct derivative_block MT_COMPAT_SUBCLASS {
         data_t value;
     };
 
-    explicit derivative_block(const double dt) : time_step(dt) {
+    explicit derivative_block(const double dt) : s_in{}, s_out{}, time_step(dt) {
         // Empty Constructor
     }
 
@@ -259,7 +320,7 @@ struct derivative_block MT_COMPAT_SUBCLASS {
     derivative_block& operator=(const derivative_block&) = delete;
 
     void reset() MT_COMPAT_OVERRIDE {
-        last_value = {};
+        last_value = s_in.reset;
         s_out.value = {};
     }
 
@@ -272,19 +333,41 @@ struct derivative_block MT_COMPAT_SUBCLASS {
         last_value = s_in.value;
     }
 
-    input_t s_in;
-    output_t s_out;
+#ifdef MT_USE_C_COMPAT
+    bool set_input_type(const int port_num, const DataType dt, const void* input, const int data_size) override {
+        if (port_num == 0 && dt == DT) {
+            return set_input_value<DT>(s_in.value, input, data_size);
+        } else if (port_num == 1 && dt == DT) {
+            return set_input_value<DT>(s_in.reset, input, data_size);
+        } else if (port_num == 2 && dt == DataType::BOOL) {
+            return set_input_value<DataType::BOOL>(s_in.reset_flag, input, data_size);
+        } else {
+            return false;
+        }
+    }
 
-    data_t last_value;
-    const double time_step;
+    bool get_output_type(int port_num, DataType dt, void* output, int data_size) {
+        if (dt == DT && port_num == 0) {
+            return get_output_value<DT>(s_out.value, output, data_size);
+        } else {
+            return false;
+        }
+    }
+#endif
 
 #ifdef MT_STDLIB_USE_STRING_FUNCS
-    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+    std::string get_class_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
         oss << "derivative_block<" << type_info<DT>::name << '>';
         return oss.str();
     }
 #endif
+
+    input_t s_in;
+    output_t s_out;
+
+    data_t last_value;
+    const double time_step;
 };
 
 template <DataType DT>
@@ -319,10 +402,32 @@ struct integrator_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_STRING_FUNCS
-    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+    std::string get_class_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
         oss << "integrator_block<" << type_info<DT>::name << '>';
         return oss.str();
+    }
+#endif
+
+#ifdef MT_USE_C_COMPAT
+    bool set_input_type(const int port_num, const DataType dt, const void* input, const int data_size) override {
+        if (port_num == 0 && dt == DT) {
+            return set_input_value<DT>(s_in.value, input, data_size);
+        } else if (port_num == 1 && dt == DT) {
+            return set_input_value<DT>(s_in.reset, input, data_size);
+        } else if (port_num == 2 && dt == DataType::BOOL) {
+            return set_input_value<DataType::BOOL>(s_in.reset_flag, input, data_size);
+        } else {
+            return false;
+        }
+    }
+
+    bool get_output_type(int port_num, DataType dt, void* output, int data_size) {
+        if (dt == DT && port_num == 0) {
+            return get_output_value<DT>(s_out.value, output, data_size);
+        } else {
+            return false;
+        }
     }
 #endif
 
@@ -361,10 +466,32 @@ struct switch_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_STRING_FUNCS
-    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+    std::string get_class_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
         oss << "switch_block<" << type_info<DT>::name << '>';
         return oss.str();
+    }
+#endif
+
+#ifdef MT_USE_C_COMPAT
+    bool set_input_type(const int port_num, const DataType dt, const void* input, const int data_size) override {
+        if (port_num == 0 && dt == DataType::BOOL) {
+            return set_input_value<DataType::BOOL>(s_in.value_flag, input, data_size);
+        } else if (port_num == 1 && dt == DT) {
+            return set_input_value<DT>(s_in.value_a, input, data_size);
+        } else if (port_num == 2 && dt == DT) {
+            return set_input_value<DT>(s_in.value_b, input, data_size);
+        } else {
+            return false;
+        }
+    }
+
+    bool get_output_type(int port_num, DataType dt, void* output, int data_size) {
+        if (dt == DT && port_num == 0) {
+            return get_output_value<DT>(s_out.value, output, data_size);
+        } else {
+            return false;
+        }
     }
 #endif
 
@@ -404,8 +531,32 @@ struct limiter_block MT_COMPAT_SUBCLASS {
         s_out.value = x;
     }
 
+#ifdef MT_USE_C_COMPAT
+    bool set_input_type(const int port_num, const DataType dt, const void* input, const int data_size) override {
+        if (dt != DT) {
+            return false;
+        } else if (port_num == 0) {
+            return set_input_value<DT>(s_in.value, input, data_size);
+        } else if (port_num == 1 && dt == DT) {
+            return set_input_value<DT>(s_in.limit_lower, input, data_size);
+        } else if (port_num == 2 && dt == DT) {
+            return set_input_value<DT>(s_in.limit_upper, input, data_size);
+        } else {
+            return false;
+        }
+    }
+
+    bool get_output_type(int port_num, DataType dt, void* output, int data_size) {
+        if (dt == DT && port_num == 0) {
+            return get_output_value<DT>(s_out.value, output, data_size);
+        } else {
+            return false;
+        }
+    }
+#endif
+
 #ifdef MT_STDLIB_USE_STRING_FUNCS
-    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+    std::string get_class_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
         oss << "limiter_block<" << type_info<DT>::name << '>';
         return oss.str();
@@ -448,8 +599,28 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
         s_out.value = x;
     }
 
+#ifdef MT_USE_C_COMPAT
+    bool set_input_type(const int port_num, const DataType dt, const void* input, const int data_size) override {
+        if (dt != DT) {
+            return false;
+        } else if (port_num == 0) {
+            return set_input_value<DT>(s_in.value, input, data_size);
+        } else {
+            return false;
+        }
+    }
+
+    bool get_output_type(int port_num, DataType dt, void* output, int data_size) {
+        if (dt == DT && port_num == 0) {
+            return get_output_value<DT>(s_out.value, output, data_size);
+        } else {
+            return false;
+        }
+    }
+#endif
+
 #ifdef MT_STDLIB_USE_STRING_FUNCS
-    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+    std::string get_class_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
         oss << "limiter_block_const<" << type_info<DT>::name << '>';
         return oss.str();
@@ -538,10 +709,32 @@ struct relational_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_STRING_FUNCS
-    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+    std::string get_class_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
         oss << "relational_block<" << type_info<DT>::name << ", " << relational_to_string(OP) << '>';
         return oss.str();
+    }
+#endif
+
+#ifdef MT_USE_C_COMPAT
+    bool set_input_type(const int port_num, const DataType dt, const void* input, const int data_size) override {
+        if (dt != DT) {
+            return false;
+        } else if (port_num == 0) {
+            return set_input_value<DT>(s_in.value_a, input, data_size);
+        } else if (port_num == 1) {
+            return set_input_value<DT>(s_in.value_b, input, data_size);
+        } else {
+            return false;
+        }
+    }
+
+    bool get_output_type(int port_num, DataType dt, void* output, int data_size) {
+        if (dt == DT && port_num == 0) {
+            return get_output_value<DT>(s_out.value, output, data_size);
+        } else {
+            return false;
+        }
     }
 #endif
 
@@ -647,8 +840,26 @@ struct trig_block MT_COMPAT_SUBCLASS {
         s_out.value = TrigOperation<DT, TrigInfo<FCN>::input_count, FCN>::operation(s_in.values);
     }
 
+    #ifdef MT_USE_C_COMPAT
+    bool set_input_type(const int port_num, const DataType dt, const void* input, const int data_size) override {
+        if (dt != DT || port_num < 0 || port_num >= TrigInfo<FCN>::input_count) {
+            return false;
+        } else {
+            return set_input_value<DT>(s_in.values[port_num], input, data_size);
+        }
+    }
+
+    bool get_output_type(int port_num, DataType dt, void* output, int data_size) {
+        if (dt == DT && port_num == 0) {
+            return get_output_value<DT>(s_out.value, output, data_size);
+        } else {
+            return false;
+        }
+    }
+#endif
+
 #ifdef MT_STDLIB_USE_STRING_FUNCS
-    std::string get_inner_type_name() const MT_COMPAT_OVERRIDE {
+    std::string get_class_name() const MT_COMPAT_OVERRIDE {
         std::ostringstream oss;
         oss << "trig_block<" << type_info<DT>::name << ", " << trig_func_to_string(FCN) << '>';
         return oss.str();

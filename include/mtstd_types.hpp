@@ -4,6 +4,7 @@
 #define MT_STDLIB_TYPES_H
 
 #include <cstdint>
+#include <cstring>
 
 #ifdef MT_STDLIB_USE_STRING_FUNCS
 #include <string>
@@ -16,7 +17,7 @@ namespace stdlib {
 extern const std::string BASE_NAMESPACE;
 #endif
 
-enum class DataType {
+enum class DataType : uint32_t {
     BOOL = 0,
     U8,
     I8,
@@ -136,13 +137,47 @@ struct block_interface {
 
     virtual void step();
 
+    virtual bool set_input_type(int port_num, DataType dt, const void* input, int data_size) = 0;
+
+    virtual bool get_output_type(int port_num, DataType dt, void* output, int data_size) = 0;
+
+protected:
+    template <DataType DT>
+    static bool set_input_value(typename type_info<DT>::type_t& value, const void* input, const int data_size) {
+        using data_t = typename type_info<DT>::type_t;
+
+        if (data_size != sizeof(data_t)) {
+            return false;
+        } else if (input == nullptr) {
+            return false;
+        }
+
+        value = *static_cast<const data_t*>(input);
+        return true;
+    }
+
+    template <DataType DT>
+    static bool get_output_value(const typename type_info<DT>::type_t& value, void* output, const int data_size) {
+        using data_t = typename type_info<DT>::type_t;
+
+        if (data_size != sizeof(data_t)) {
+            return false;
+        } else if (output == nullptr) {
+            return false;
+        }
+
+        std::memcpy(static_cast<data_t*>(output), &value, sizeof(value));
+        return true;
+    }
+
+public:
 #ifdef MT_STDLIB_USE_STRING_FUNCS
     std::string get_type_name(bool include_namespace = true);
 #endif
 
 protected:
 #ifdef MT_STDLIB_USE_STRING_FUNCS
-    virtual std::string get_inner_type_name() const = 0;
+    virtual std::string get_class_name() const = 0;
 #endif
 };
 #endif
