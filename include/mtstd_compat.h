@@ -36,7 +36,7 @@ model_block* mt_stdlib_create_size(const char* name, uint32_t data_type, uint32_
 
 model_block* mt_stdlib_create_with_value(const char* name, const model_value* value);
 
-model_block* mt_stdlib_create_with_dt(const char* name, uint32_t data_type, double dt);
+model_block* mt_stdlib_create_with_time_step(const char* name, uint32_t data_type, double dt);
 
 void mt_stdlib_destroy(const model_block* blk);
 

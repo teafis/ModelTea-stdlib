@@ -290,7 +290,7 @@ model_block* mt_stdlib_create_with_value(const char* name, const model_value* va
     return create_block_with_type<ValueBlockFunctor>(value->type, name, value);
 }
 
-model_block* mt_stdlib_create_with_dt(const char* name, uint32_t data_type, double dt) {
+model_block* mt_stdlib_create_with_time_step(const char* name, uint32_t data_type, double dt) {
     return create_block_with_type<DeltaTimeBlockFunctor>(data_type, name, dt);
 }
 
