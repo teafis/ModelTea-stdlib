@@ -106,7 +106,7 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_USE_C_COMPAT
-    bool set_input_type(size_t port_num, DataType dt, const void* input, size_t data_size) override {
+    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
         if (dt == DT && s_in.values != nullptr && port_num < s_in.size) {
             return set_input_value<DT>(s_in.values[port_num], input, data_size);
         } else {
@@ -114,7 +114,7 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
         }
     }
 
-    bool get_output_type(size_t port_num, DataType dt, void* output, size_t data_size) override {
+    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
         if (dt == DT && port_num == 0) {
             return get_output_value<DT>(s_out.value, output, data_size);
         } else {
@@ -198,9 +198,9 @@ struct clock_block MT_COMPAT_SUBCLASS {
     void step() MT_COMPAT_OVERRIDE;
 
 #ifdef MT_USE_C_COMPAT
-    bool set_input_type(size_t port_num, DataType dt, const void* input, size_t data_size) override;
+    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override;
 
-    bool get_output_type(size_t port_num, DataType dt, void* output, size_t data_size) override;
+    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override;
 
     size_t get_input_num() const override;
 
@@ -248,11 +248,11 @@ struct const_block MT_COMPAT_SUBCLASS {
 #endif
 
 #ifdef MT_USE_C_COMPAT
-    bool set_input_type(size_t port_num, DataType dt, const void* input, size_t data_size) override {
+    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
         return false;
     }
 
-    bool get_output_type(size_t port_num, DataType dt, void* output, size_t data_size) override {
+    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
         if (dt != DT || port_num != 0) {
             return false;
         } else {
@@ -315,7 +315,7 @@ struct delay_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_USE_C_COMPAT
-    bool set_input_type(size_t port_num, DataType dt, const void* input, size_t data_size) override {
+    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
         if (port_num == 0 && dt == DT) {
             return set_input_value<DT>(s_in.value, input, data_size);
         } else if (port_num == 1 && dt == DT) {
@@ -327,7 +327,7 @@ struct delay_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    bool get_output_type(size_t port_num, DataType dt, void* output, size_t data_size) override {
+    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
         if (dt == DT && port_num == 0) {
             return get_output_value<DT>(s_out.value, output, data_size);
         } else {
@@ -411,7 +411,7 @@ struct derivative_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_USE_C_COMPAT
-    bool set_input_type(size_t port_num, DataType dt, const void* input, size_t data_size) override {
+    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
         if (port_num == 0 && dt == DT) {
             return set_input_value<DT>(s_in.value, input, data_size);
         } else if (port_num == 1 && dt == DataType::BOOL) {
@@ -421,7 +421,7 @@ struct derivative_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    bool get_output_type(size_t port_num, DataType dt, void* output, size_t data_size) override {
+    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
         if (dt == DT && port_num == 0) {
             return get_output_value<DT>(s_out.value, output, data_size);
         } else {
@@ -511,7 +511,7 @@ struct integrator_block MT_COMPAT_SUBCLASS {
 #endif
 
 #ifdef MT_USE_C_COMPAT
-    bool set_input_type(size_t port_num, DataType dt, const void* input, size_t data_size) override {
+    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
         if (port_num == 0 && dt == DT) {
             return set_input_value<DT>(s_in.value, input, data_size);
         } else if (port_num == 1 && dt == DT) {
@@ -523,7 +523,7 @@ struct integrator_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    bool get_output_type(size_t port_num, DataType dt, void* output, size_t data_size) override {
+    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
         if (dt == DT && port_num == 0) {
             return get_output_value<DT>(s_out.value, output, data_size);
         } else {
@@ -601,7 +601,7 @@ struct switch_block MT_COMPAT_SUBCLASS {
 #endif
 
 #ifdef MT_USE_C_COMPAT
-    bool set_input_type(size_t port_num, DataType dt, const void* input, size_t data_size) override {
+    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
         if (port_num == 0 && dt == DataType::BOOL) {
             return set_input_value<DataType::BOOL>(s_in.value_flag, input, data_size);
         } else if (port_num == 1 && dt == DT) {
@@ -613,7 +613,7 @@ struct switch_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    bool get_output_type(size_t port_num, DataType dt, void* output, size_t data_size) override {
+    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
         if (dt == DT && port_num == 0) {
             return get_output_value<DT>(s_out.value, output, data_size);
         } else {
@@ -685,7 +685,7 @@ struct limiter_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_USE_C_COMPAT
-    bool set_input_type(size_t port_num, DataType dt, const void* input, size_t data_size) override {
+    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
         if (dt != DT) {
             return false;
         } else if (port_num == 0) {
@@ -699,7 +699,7 @@ struct limiter_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    bool get_output_type(size_t port_num, DataType dt, void* output, size_t data_size) override {
+    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
         if (dt == DT && port_num == 0) {
             return get_output_value<DT>(s_out.value, output, data_size);
         } else {
@@ -777,7 +777,7 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_USE_C_COMPAT
-    bool set_input_type(size_t port_num, DataType dt, const void* input, size_t data_size) override {
+    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
         if (dt != DT) {
             return false;
         } else if (port_num == 0) {
@@ -787,7 +787,7 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
         }
     }
 
-    bool get_output_type(size_t port_num, DataType dt, void* output, size_t data_size) override {
+    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
         if (dt == DT && port_num == 0) {
             return get_output_value<DT>(s_out.value, output, data_size);
         } else {
@@ -918,7 +918,7 @@ struct relational_block MT_COMPAT_SUBCLASS {
 #endif
 
 #ifdef MT_USE_C_COMPAT
-    bool set_input_type(size_t port_num, DataType dt, const void* input, size_t data_size) override {
+    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
         if (dt != DT) {
             return false;
         } else if (port_num == 0) {
@@ -930,7 +930,7 @@ struct relational_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    bool get_output_type(size_t port_num, DataType dt, void* output, size_t data_size) override {
+    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
         if (dt == DataType::BOOL && port_num == 0) {
             return get_output_value<DataType::BOOL>(s_out.value, output, data_size);
         } else {
@@ -1066,7 +1066,7 @@ struct trig_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_USE_C_COMPAT
-    bool set_input_type(size_t port_num, DataType dt, const void* input, size_t data_size) override {
+    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
         if (dt == DT && port_num < get_input_num()) {
             return set_input_value<DT>(s_in.values[port_num], input, data_size);
         } else {
@@ -1074,7 +1074,7 @@ struct trig_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    bool get_output_type(size_t port_num, DataType dt, void* output, size_t data_size) override {
+    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
         if (dt == DT && port_num == 0) {
             return get_output_value<DT>(s_out.value, output, data_size);
         } else {

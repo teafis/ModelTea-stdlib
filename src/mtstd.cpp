@@ -12,11 +12,11 @@ void mt::stdlib::clock_block::reset() { s_out.value = 0.0; }
 void mt::stdlib::clock_block::step() { s_out.value += time_step; }
 
 #ifdef MT_USE_C_COMPAT
-bool mt::stdlib::clock_block::set_input_type(const size_t port_num, const DataType dt, const void* input, const size_t data_size) {
+bool mt::stdlib::clock_block::set_input(const size_t port_num, const DataType dt, const void* input, const size_t data_size) {
     return false;
 }
 
-bool mt::stdlib::clock_block::get_output_type(const size_t port_num, DataType dt, void* output, const size_t data_size) {
+bool mt::stdlib::clock_block::get_output(const size_t port_num, DataType dt, void* output, const size_t data_size) {
     if (dt != DataType::F64 || port_num != 0) {
         return false;
     } else {

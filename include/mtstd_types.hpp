@@ -138,9 +138,9 @@ struct block_interface {
 
     virtual void step();
 
-    virtual bool set_input_type(size_t port_num, DataType dt, const void* input, size_t data_size) = 0;
+    virtual bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) = 0;
 
-    virtual bool get_output_type(size_t port_num, DataType dt, void* output, size_t data_size) = 0;
+    virtual bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) = 0;
 
     virtual size_t get_input_num() const = 0;
 
