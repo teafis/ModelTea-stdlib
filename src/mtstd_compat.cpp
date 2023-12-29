@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: MIT
+
+#ifdef MT_USE_C_COMPAT
+
 #include "mtstd_compat.h"
 
 #include <cstring>
@@ -215,11 +219,15 @@ template <mt::stdlib::DataType DT>
 struct SizeBlockFunctor {
     template <mt::stdlib::ArithType AT>
     static model_block* create_arith_block(const size_t size) {
-        auto arith = new mt::stdlib::arith_block_dynamic<DT, AT>();
-        auto ptr = new model_arith_block<DT>(arith, size);
-        arith->s_in.size = size;
-        arith->s_in.values = ptr->data.get();
-        return ptr;
+        if (mt::stdlib::type_info<DT>::is_arith) {
+            auto arith = new mt::stdlib::arith_block_dynamic<DT, AT>();
+            auto ptr = new model_arith_block<DT>(arith, size);
+            arith->s_in.size = size;
+            arith->s_in.values = ptr->data.get();
+            return ptr;
+        } else {
+            return nullptr;
+        }
     }
 
     model_block* operator()(const std::string& name, const size_t size) {
@@ -419,3 +427,5 @@ int32_t mt_stdlib_get_output_type(const model_block* blk, const uint32_t port_nu
     *data_type = static_cast<uint32_t>(blk->block->get_output_type(port_num));
     return 1;
 }
+
+#endif // MT_USE_C_COMPAT

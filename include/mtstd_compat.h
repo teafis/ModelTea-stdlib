@@ -3,6 +3,8 @@
 #ifndef MT_STDLIB_COMPAT_H
 #define MT_STDLIB_COMPAT_H
 
+#ifdef MT_USE_C_COMPAT
+
 #include <cstdint>
 
 #ifdef __cplusplus
@@ -65,5 +67,7 @@ int32_t mt_stdlib_get_output_type(const model_block* blk, const uint32_t port_nu
 #ifdef __cplusplus
 }
 #endif
+
+#endif // MT_USE_C_COMPAT
 
 #endif // MT_STDLIB_COMPAT_H
