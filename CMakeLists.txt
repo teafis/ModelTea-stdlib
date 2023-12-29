@@ -4,9 +4,6 @@ cmake_minimum_required(VERSION 3.18)
 
 set(VCPKG_FEATURE_FLAGS "versions")
 
-option(MTSTD_USE_STRING_FUNCS "Compile in string functions for conversion from enums to strings" ON)
-option(MTSTD_USE_C_COMPAT "Compile in a C-level compatibility library" ON)
-
 # Define the project information
 project (
     mtstdlib
@@ -24,59 +21,77 @@ set(
     src/mtstd_types.cpp
 )
 
-if(MTSTD_USE_STRING_FUNCS)
-    list(APPEND
-        MODELTEA_STD_MODEL_SOURCES
-        include/mtstd_except.hpp
-        include/mtstd_string.hpp
-        src/mtstd_string.cpp)
-endif()
-
-if(MTSTD_USE_C_COMPAT)
-    list(APPEND
-        MODELTEA_STD_MODEL_SOURCES
-        include/mtstd_compat.h
-        src/mtstd_compat.cpp)
-endif()
+set(
+    MODELTEA_STD_FULL_SOURCES
+    ${MODELTEA_STD_MODEL_SOURCES}
+    include/mtstd_except.hpp
+    include/mtstd_string.hpp
+    src/mtstd_string.cpp
+    include/mtstd_compat.h
+    src/mtstd_compat.cpp
+)
 
 # Define the library
 add_library(
     mtstdlib
+    ${MODELTEA_STD_FULL_SOURCES}
+)
+
+add_library(
+    mtstdlib_rt
     ${MODELTEA_STD_MODEL_SOURCES}
 )
 
 # Define the C++ Standard Required
-set_property(TARGET mtstdlib PROPERTY CXX_STANDARD 11)
+set_property(TARGET mtstdlib PROPERTY CXX_STANDARD 20)
 set_property(TARGET mtstdlib PROPERTY CXX_STANDARD_REQUIRED ON)
+
+set_property(TARGET mtstdlib_rt PROPERTY CXX_STANDARD 11)
+set_property(TARGET mtstdlib_rt PROPERTY CXX_STANDARD_REQUIRED ON)
 
 # Include Directories
 target_include_directories(mtstdlib PUBLIC include)
+target_include_directories(mtstdlib_rt PUBLIC include)
 
 # Add include parameter if needed
-if(MTSTD_USE_STRING_FUNCS)
-    target_compile_definitions(mtstdlib PUBLIC MT_STDLIB_USE_STRING_FUNCS)
-endif()
-
-if(MTSTD_USE_C_COMPAT)
-    target_compile_definitions(mtstdlib PUBLIC MT_USE_C_COMPAT)
-endif()
+target_compile_definitions(mtstdlib PUBLIC MT_STDLIB_USE_FULL_LIB)
 
 # Set appropriate catch libraries
 
 if(CMAKE_TESTING_ENABLED)
-    add_executable(
-        mtstd_test
+    find_package(Catch2 CONFIG REQUIRED)
+
+    set(
+        MTSTD_TEST_FILES
         tests/arith_block.cpp
         tests/clock_block.cpp
-        tests/const_block.cpp)
+        tests/const_block.cpp
+        )
+
+    add_executable(
+        mtstd_test
+        ${MTSTD_TEST_FILES}
+        )
 
     set_property(TARGET mtstd_test PROPERTY CXX_STANDARD 20)
     set_property(TARGET mtstd_test PROPERTY CXX_STANDARD_REQUIRED ON)
 
     target_link_libraries(mtstd_test PRIVATE mtstdlib)
-
-    find_package(Catch2 CONFIG REQUIRED)
     target_link_libraries(mtstd_test PRIVATE Catch2::Catch2 Catch2::Catch2WithMain)
 
     add_test(NAME mtstd_test COMMAND mtstd_test)
+
+    add_executable(
+        mtstd_test_rt
+        ${MTSTD_TEST_FILES}
+        )
+
+    set_property(TARGET mtstd_test_rt PROPERTY CXX_STANDARD 20)
+    set_property(TARGET mtstd_test_rt PROPERTY CXX_STANDARD_REQUIRED ON)
+
+    target_link_libraries(mtstd_test_rt PRIVATE mtstdlib_rt)
+
+    target_link_libraries(mtstd_test_rt PRIVATE Catch2::Catch2 Catch2::Catch2WithMain)
+
+    add_test(NAME mtstd_test_rt COMMAND mtstd_test_rt)
 endif()

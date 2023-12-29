@@ -3,7 +3,7 @@
 #ifndef MT_STDLIB_STRING_H
 #define MT_STDLIB_STRING_H
 
-#ifdef MT_STDLIB_USE_STRING_FUNCS
+#ifdef MT_STDLIB_USE_FULL_LIB
 
 #include "mtstd_types.hpp"
 
@@ -37,6 +37,6 @@ extern const std::string BASE_NAMESPACE;
 }
 }
 
-#endif // MT_STDLIB_USE_STRING_FUNCS
+#endif // MT_STDLIB_USE_FULL_LIB
 
 #endif // MT_STDLIB_STRING_H

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-#ifdef MT_USE_C_COMPAT
+#ifdef MT_STDLIB_USE_FULL_LIB
 
 #include "mtstd_compat.h"
 
@@ -312,10 +312,6 @@ void mt_stdlib_reset(model_block* blk) {
     }
 }
 
-#ifdef MT_STDLIB_USE_STRING_FUNCS
-int32_t mt_stdlib_get_class_name(const model_block* blk, char* str, uint32_t buffer_size);
-int32_t mt_stdlib_get_full_name(const model_block* blk, char* str, uint32_t buffer_size);
-
 static int32_t block_get_name(const model_block* blk, char* str, const uint32_t buffer_size, const bool include_namespace) {
     if (blk == nullptr) {
         return 0;
@@ -337,7 +333,6 @@ int32_t mt_stdlib_get_class_name(const model_block* blk, char* str, const uint32
 int32_t mt_stdlib_get_full_name(const model_block* blk, char* str, const uint32_t buffer_size) {
     return block_get_name(blk, str, buffer_size, true);
 }
-#endif
 
 static int32_t get_dt_size(const mt::stdlib::DataType dt) {
     switch (dt) {
@@ -428,4 +423,4 @@ int32_t mt_stdlib_get_output_type(const model_block* blk, const uint32_t port_nu
     return 1;
 }
 
-#endif // MT_USE_C_COMPAT
+#endif // MT_STDLIB_USE_FULL_LIB

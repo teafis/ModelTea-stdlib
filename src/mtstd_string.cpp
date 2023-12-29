@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 
+#ifdef MT_STDLIB_USE_FULL_LIB
+
 #include "mtstd_string.hpp"
-#include "mtstd.hpp"
 #include "mtstd_except.hpp"
 
 #include <sstream>
@@ -130,3 +131,5 @@ std::string mt::stdlib::with_namespace(const std::string& name) {
     oss << BASE_NAMESPACE << ":: " << name;
     return oss.str();
 }
+
+#endif // MT_STDLIB_USE_FULL_LIB

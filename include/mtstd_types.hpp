@@ -4,16 +4,16 @@
 #define MT_STDLIB_TYPES_H
 
 #include <cstdint>
-#include <cstring>
 
-#ifdef MT_STDLIB_USE_STRING_FUNCS
+#ifdef MT_STDLIB_USE_FULL_LIB
+#include <cstring>
 #include <string>
 #endif
 
 namespace mt {
 namespace stdlib {
 
-#ifdef MT_STDLIB_USE_STRING_FUNCS
+#ifdef MT_STDLIB_USE_FULL_LIB
 extern const std::string BASE_NAMESPACE;
 #endif
 
@@ -39,7 +39,7 @@ struct type_info<DataType::U8> {
     static const bool is_arith = true;
     static const bool is_integral = true;
     static const bool is_signed = false;
-#if MT_STDLIB_USE_STRING_FUNCS
+#if MT_STDLIB_USE_FULL_LIB
     static constexpr const char* name = "uint8_t";
 #endif
 };
@@ -50,7 +50,7 @@ struct type_info<DataType::I8> {
     static const bool is_arith = true;
     static const bool is_integral = true;
     static const bool is_signed = true;
-#if MT_STDLIB_USE_STRING_FUNCS
+#if MT_STDLIB_USE_FULL_LIB
     static constexpr const char* name = "int8_t";
 #endif
 };
@@ -61,7 +61,7 @@ struct type_info<DataType::U16> {
     static const bool is_arith = true;
     static const bool is_integral = true;
     static const bool is_signed = false;
-#if MT_STDLIB_USE_STRING_FUNCS
+#if MT_STDLIB_USE_FULL_LIB
     static constexpr const char* name = "uint16_t";
 #endif
 };
@@ -72,7 +72,7 @@ struct type_info<DataType::I16> {
     static const bool is_arith = true;
     static const bool is_integral = true;
     static const bool is_signed = true;
-#if MT_STDLIB_USE_STRING_FUNCS
+#if MT_STDLIB_USE_FULL_LIB
     static constexpr const char* name = "int16_t";
 #endif
 };
@@ -83,7 +83,7 @@ struct type_info<DataType::U32> {
     static const bool is_arith = true;
     static const bool is_integral = true;
     static const bool is_signed = false;
-#if MT_STDLIB_USE_STRING_FUNCS
+#if MT_STDLIB_USE_FULL_LIB
     static constexpr const char* name = "uint32_t";
 #endif
 };
@@ -94,7 +94,7 @@ struct type_info<DataType::I32> {
     static const bool is_arith = true;
     static const bool is_integral = true;
     static const bool is_signed = true;
-#if MT_STDLIB_USE_STRING_FUNCS
+#if MT_STDLIB_USE_FULL_LIB
     static constexpr const char* name = "int32_t";
 #endif
 };
@@ -105,7 +105,7 @@ struct type_info<DataType::F32> {
     static const bool is_arith = true;
     static const bool is_integral = false;
     static const bool is_signed = true;
-#if MT_STDLIB_USE_STRING_FUNCS
+#if MT_STDLIB_USE_FULL_LIB
     static constexpr const char* name = "float";
 #endif
 };
@@ -116,7 +116,7 @@ struct type_info<DataType::F64> {
     static const bool is_arith = true;
     static const bool is_integral = false;
     static const bool is_signed = true;
-#if MT_STDLIB_USE_STRING_FUNCS
+#if MT_STDLIB_USE_FULL_LIB
     static constexpr const char* name = "double";
 #endif
 };
@@ -127,7 +127,7 @@ struct type_info<DataType::BOOL> {
     static const bool is_arith = false;
     static const bool is_integral = true;
     static const bool is_signed = false;
-#if MT_STDLIB_USE_STRING_FUNCS
+#if MT_STDLIB_USE_FULL_LIB
     static constexpr const char* name = "bool";
 #endif
 };
@@ -159,7 +159,7 @@ enum class TrigFunction {
     ATAN2,
 };
 
-#ifdef MT_USE_C_COMPAT
+#ifdef MT_STDLIB_USE_FULL_LIB
 struct block_interface {
     virtual void reset();
 
@@ -207,16 +207,13 @@ protected:
     }
 
 public:
-#ifdef MT_STDLIB_USE_STRING_FUNCS
     std::string get_type_name(bool include_namespace = true);
-#endif
 
 protected:
-#ifdef MT_STDLIB_USE_STRING_FUNCS
     virtual std::string get_class_name() const = 0;
-#endif
 };
-#endif
+
+#endif // MT_STDLIB_USE_FULL_LIB
 
 }
 }

@@ -3,7 +3,7 @@
 #ifndef MT_STDLIB_COMPAT_H
 #define MT_STDLIB_COMPAT_H
 
-#ifdef MT_USE_C_COMPAT
+#ifdef MT_STDLIB_USE_FULL_LIB
 
 #include <cstdint>
 
@@ -44,13 +44,9 @@ void mt_stdlib_step(model_block* blk);
 
 void mt_stdlib_reset(model_block* blk);
 
-#ifdef MT_STDLIB_USE_STRING_FUNCS
-
 int32_t mt_stdlib_get_class_name(const model_block* blk, char* str, uint32_t buffer_size);
 
 int32_t mt_stdlib_get_full_name(const model_block* blk, char* str, uint32_t buffer_size);
-
-#endif
 
 int32_t mt_stdlib_set_input(model_block* blk, uint32_t port_num, const model_value* value);
 
@@ -68,6 +64,6 @@ int32_t mt_stdlib_get_output_type(const model_block* blk, const uint32_t port_nu
 }
 #endif
 
-#endif // MT_USE_C_COMPAT
+#endif // MT_STDLIB_USE_FULL_LIB
 
 #endif // MT_STDLIB_COMPAT_H

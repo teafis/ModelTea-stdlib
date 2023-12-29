@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: MIT
 
 #include "mtstd.hpp"
+
+#ifdef MT_STDLIB_USE_FULL_LIB
 #include "mtstd_types.hpp"
+#endif // MT_STDLIB_USE_FULL_LIB
 
 mt::stdlib::clock_block::clock_block(const double dt) : time_step{dt} {
     reset();
@@ -11,7 +14,8 @@ void mt::stdlib::clock_block::reset() { s_out.value = 0.0; }
 
 void mt::stdlib::clock_block::step() { s_out.value += time_step; }
 
-#ifdef MT_USE_C_COMPAT
+#ifdef MT_STDLIB_USE_FULL_LIB
+
 bool mt::stdlib::clock_block::set_input(const size_t port_num, const DataType dt, const void* input, const size_t data_size) {
     return false;
 }
@@ -43,4 +47,9 @@ mt::stdlib::DataType mt::stdlib::clock_block::get_output_type(const size_t port_
         return DataType::NONE;
     }
 }
-#endif
+
+std::string mt::stdlib::clock_block::get_class_name() const {
+    return "clock_block";
+}
+
+#endif // MT_STDLIB_USE_FULL_LIB
