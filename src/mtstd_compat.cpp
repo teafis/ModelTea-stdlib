@@ -30,7 +30,6 @@ const static std::string BLK_REL_LT = "rel_less";
 const static std::string BLK_REL_LEQ = "rel_less_eq";
 const static std::string BLK_REL_EQ = "rel_equal";
 const static std::string BLK_REL_NEQ = "rel_not_equal";
-
 const static std::string BLK_TRIG_SIN = "trig_sin";
 const static std::string BLK_TRIG_COS = "trig_cos";
 const static std::string BLK_TRIG_TAN = "trig_tan";
@@ -75,7 +74,7 @@ const static std::unordered_map<std::string, inner_block_info> BLK_INFOS{
     {BLK_TRIG_ATAN2, inner_block_info(BLK_TRIG_ATAN2, "trig_atan2", "")},
 };
 
-block_info* mt_stdlib_info_init() {
+const block_info* mt_stdlib_info_init() {
     // Initialize several iteration parameters
     block_info* first = nullptr;
     block_info* current = nullptr;
@@ -105,9 +104,9 @@ block_info* mt_stdlib_info_init() {
     return first;
 }
 
-int32_t mt_stdlib_info_destroy(block_info* info) {
+int32_t mt_stdlib_info_destroy(const block_info* info) {
     // Create an iteration segment, to delete the list front-to-back
-    block_info* current = info;
+    block_info* current = const_cast<block_info*>(info);
 
     // Loop while not empty
     while (current != nullptr) {

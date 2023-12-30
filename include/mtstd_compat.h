@@ -26,9 +26,9 @@ struct block_info {
     const block_info* next;
 };
 
-block_info* mt_stdlib_info_init();
+const block_info* mt_stdlib_info_init();
 
-int32_t mt_stdlib_info_destroy(block_info* info);
+int32_t mt_stdlib_info_destroy(const block_info* info);
 
 model_block* mt_stdlib_create(const char* name, uint32_t data_type);
 

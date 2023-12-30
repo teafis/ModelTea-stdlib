@@ -63,14 +63,15 @@ if(CMAKE_TESTING_ENABLED)
 
     set(
         MTSTD_TEST_FILES
-        tests/arith_block.cpp
-        tests/clock_block.cpp
-        tests/const_block.cpp
+        tests/block_arith.cpp
+        tests/block_clock.cpp
+        tests/block_const.cpp
         )
 
     add_executable(
         mtstd_test
         ${MTSTD_TEST_FILES}
+        tests/compat_block_list.cpp
         )
 
     set_property(TARGET mtstd_test PROPERTY CXX_STANDARD 20)
