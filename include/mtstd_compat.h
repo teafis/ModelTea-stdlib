@@ -19,7 +19,6 @@ extern const char* MT_TYPE_FLAGS_ALL;
 
 extern const char* MT_INIT_DEFAULT;
 extern const char* MT_INIT_SIZE ;
-extern const char* MT_INIT_DT;
 extern const char* MT_INIT_VALUE;
 
 const mt_block_info_t* mt_stdlib_info_init();
@@ -33,8 +32,6 @@ mt_block_creation_t mt_stdlib_blk_create(const char* name, uint32_t data_type);
 mt_block_creation_t mt_stdlib_blk_create_with_size(const char* name, uint32_t data_type, uint32_t size);
 
 mt_block_creation_t mt_stdlib_blk_create_with_value(const char* name, const mt_value_t* value);
-
-mt_block_creation_t mt_stdlib_blk_create_with_time_step(const char* name, uint32_t data_type, double dt);
 
 void mt_stdlib_blk_destroy(const mt_block_t* blk);
 

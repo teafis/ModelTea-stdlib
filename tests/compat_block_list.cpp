@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <catch2/catch_all.hpp>
 
-#include <iostream>
 #include <memory>
 #include <ranges>
 #include <unordered_map>
@@ -142,9 +141,7 @@ TEST_CASE("Data Type Model Check", "[compat]") {
             mt_block_creation_t blk_init{};
             const auto dt_int = static_cast<uint32_t>(dt);
 
-            if (MT_INIT_DT == creation_flags) {
-                blk_init = mt_stdlib_blk_create_with_time_step(iter->name, dt_int, 0.1);
-            } else if (MT_INIT_SIZE == creation_flags) {
+            if (MT_INIT_SIZE == creation_flags) {
                 blk_init = mt_stdlib_blk_create_with_size(iter->name, dt_int, 3);
             } else if (MT_INIT_VALUE == creation_flags) {
                 auto data_ptr = std::unique_ptr<uint8_t[]>(new uint8_t[mt_stdlib_type_size(dt_int)]);
@@ -162,10 +159,6 @@ TEST_CASE("Data Type Model Check", "[compat]") {
 
             // Ensure that the block gets created correctly
             if (std::find(dtypes.begin(), dtypes.end(), dt) != dtypes.end()) {
-                if (blk_init.block == nullptr) {
-                    std::cout << iter->name << ", " << blk_init.err << ", " << static_cast<int>(dt) << '\n';
-                }
-
                 REQUIRE(blk_init.block != nullptr);
                 REQUIRE(blk_init.err == nullptr);
             } else {

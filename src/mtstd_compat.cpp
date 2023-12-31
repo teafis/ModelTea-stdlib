@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 
+#include "mtstd_compat_types.h"
 #ifdef MT_STDLIB_USE_FULL_LIB
 
 #include "mtstd_compat.h"
@@ -55,7 +56,6 @@ const char* MT_TYPE_FLAGS_ALL = "all";
 
 const char* MT_INIT_DEFAULT = "default";
 const char* MT_INIT_SIZE = "size";
-const char* MT_INIT_DT = "dt";
 const char* MT_INIT_VALUE = "val";
 
 const static std::unordered_map<std::string, inner_block_info> BLK_INFOS{
@@ -67,8 +67,8 @@ const static std::unordered_map<std::string, inner_block_info> BLK_INFOS{
     {BLK_CLOCK, inner_block_info(BLK_CLOCK, "clock", MT_INIT_VALUE, MT_TYPE_FLAGS_NUMERIC)},
     {BLK_CONST, inner_block_info(BLK_CONST, "const", MT_INIT_VALUE, MT_TYPE_FLAGS_ALL)},
     {BLK_DELAY, inner_block_info(BLK_DELAY, "delay", MT_INIT_DEFAULT, MT_TYPE_FLAGS_ALL)},
-    {BLK_DERIV, inner_block_info(BLK_DERIV, "deriv", MT_INIT_DT, MT_TYPE_FLAGS_FLOAT)},
-    {BLK_INTEG, inner_block_info(BLK_INTEG, "integ", MT_INIT_DT, MT_TYPE_FLAGS_FLOAT)},
+    {BLK_DERIV, inner_block_info(BLK_DERIV, "deriv", MT_INIT_VALUE, MT_TYPE_FLAGS_FLOAT)},
+    {BLK_INTEG, inner_block_info(BLK_INTEG, "integ", MT_INIT_VALUE, MT_TYPE_FLAGS_FLOAT)},
     {BLK_SWITCH, inner_block_info(BLK_SWITCH, "switch", MT_INIT_DEFAULT, MT_TYPE_FLAGS_ALL)},
     {BLK_LIMITER, inner_block_info(BLK_LIMITER, "limit", MT_INIT_DEFAULT, MT_TYPE_FLAGS_NUMERIC)},
     {BLK_REL_GT, inner_block_info(BLK_REL_GT, ">", MT_INIT_DEFAULT, MT_TYPE_FLAGS_NUMERIC)},
@@ -354,36 +354,20 @@ struct StandardBlockFunctor {
     }
 };
 
-struct DeltaTimeBlockFunctor {
-    mt_block_creation_t operator()(const uint64_t data_type, const std::string& name, const double dt) {
-        if (name == BLK_DERIV) {
-            return create_block_of_type<mt::stdlib::derivative_block, mt::stdlib::derivative_block_types>(data_type, dt);
-        } else if (name == BLK_INTEG) {
-            return create_block_of_type<mt::stdlib::integrator_block, mt::stdlib::integrator_block_types>(data_type, dt);
-        } else {
-            throw mt_error_message(MT_ERROR_UNKNOWN_BLOCK_NAME);
-        }
-    }
-};
-
-template <mt::stdlib::DataType DT>
-struct ValueBlockFunctor {
-    mt_block_t* operator()(const uint64_t data_type, const std::string& name, const mt_value_t* value) {
-        using data_t = typename mt::stdlib::type_info<DT>::type_t;
-        if (value == nullptr || value->data == nullptr || value->size != sizeof(data_t) || static_cast<mt::stdlib::DataType>(value->type) != DT) {
+struct SingleArgConstructor {
+    mt_block_creation_t operator()(const std::string& name, const mt_value_t* val) {
+        if (val == nullptr || val->data == nullptr) {
             throw mt_error_message(MT_ERROR_NULLPTR_PROVIDED);
         }
 
-        const auto data = *static_cast<const data_t*>(value->data);
-
-        if (name == BLK_CONST) {
-            return new mt_block_t(new mt::stdlib::const_block<DT>(data));
+        if (name == BLK_DERIV) {
+            return create_block_of_type<mt::stdlib::derivative_block, mt::stdlib::derivative_block_types>(val->type, val);
+        } else if (name == BLK_INTEG) {
+            return create_block_of_type<mt::stdlib::integrator_block, mt::stdlib::integrator_block_types>(val->type, val);
+        } else if (name == BLK_CONST) {
+            return create_block_of_type<mt::stdlib::const_block, mt::stdlib::const_block_types>(val->type, val);
         } else if (name == BLK_CLOCK) {
-            if constexpr (mt::stdlib::type_info<DT>::is_numeric) {
-                return new mt_block_t(new mt::stdlib::clock_block<DT>(data));
-            } else {
-                throw mt_error_message(MT_ERROR_UNSUPPORTED_DTYPE);
-            }
+            return create_block_of_type<mt::stdlib::clock_block, mt::stdlib::clock_block_types>(val->type, val);
         } else {
             throw mt_error_message(MT_ERROR_UNKNOWN_BLOCK_NAME);
         }
@@ -530,11 +514,7 @@ mt_block_creation_t mt_stdlib_blk_create_with_value(const char* name, const mt_v
         };
     }
 
-    return create_block_with_type_inner<ValueBlockFunctor, true, true, true>(value->type, value->type, name, value);
-}
-
-mt_block_creation_t mt_stdlib_blk_create_with_time_step(const char* name, uint32_t data_type, double dt) {
-    return DeltaTimeBlockFunctor()(data_type, name, dt);
+    return SingleArgConstructor()(name, value);
 }
 
 void mt_stdlib_blk_destroy(const mt_block_t* blk) {

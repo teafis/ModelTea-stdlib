@@ -215,6 +215,8 @@ struct clock_block MT_COMPAT_SUBCLASS {
     void step() MT_COMPAT_OVERRIDE { s_out.value += time_step; }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
+    explicit clock_block(const mt_value_t* input) : clock_block(get_model_value<DT>(input)) {}
+
     void set_input(size_t port_num, const mt_value_t* value) override {
         throw block_error("input port too high");
     }
@@ -279,6 +281,8 @@ struct const_block MT_COMPAT_SUBCLASS {
     const output_t s_out;
 
 #ifdef MT_STDLIB_USE_FULL_LIB
+    explicit const_block(const mt_value_t* value) : const_block(get_model_value<DT>(value)) {}
+
     std::string get_class_name() const override {
         std::ostringstream oss;
         oss << "const_block<" << type_info<DT>::name << '>';
@@ -461,6 +465,8 @@ struct derivative_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
+    explicit derivative_block(const mt_value_t* dt) : derivative_block(get_model_value<DT>(dt)) {}
+
     void set_input(size_t port_num, const mt_value_t* value) override {
         if (port_num == 0) {
             set_input_value<DT>(s_in.value, value);
@@ -559,6 +565,8 @@ struct integrator_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
+    explicit integrator_block(const mt_value_t* dt) : integrator_block(get_model_value<DT>(dt)) {}
+
     std::string get_class_name() const override {
         std::ostringstream oss;
         oss << "integrator_block<" << type_info<DT>::name << '>';
@@ -841,6 +849,8 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
+    explicit limiter_block_const(const mt_value_t* upper, const mt_value_t* lower) : limiter_block_const(get_model_value<DT>(upper), get_model_value<DT>(lower)) {}
+
     void set_input(size_t port_num, const mt_value_t* value) override {
         if (port_num == 0) {
             set_input_value<DT>(s_in.value, value);
