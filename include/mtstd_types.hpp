@@ -3,11 +3,14 @@
 #ifndef MT_STDLIB_TYPES_H
 #define MT_STDLIB_TYPES_H
 
+#include "mtstd_except.hpp"
 #include <cstdint>
 
 #ifdef MT_STDLIB_USE_FULL_LIB
 #include <cstring>
 #include <string>
+
+#include "mtstd_compat_types.h"
 #endif
 
 namespace mt {
@@ -174,9 +177,9 @@ struct block_interface {
 
     virtual void step();
 
-    virtual bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) = 0;
+    virtual void set_input(size_t port_num, const mt_value_t* value) = 0;
 
-    virtual bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) = 0;
+    virtual void get_output(size_t port_num, mt_value_t* value) = 0;
 
     virtual size_t get_input_num() const = 0;
 
@@ -188,31 +191,43 @@ struct block_interface {
 
 protected:
     template <DataType DT>
-    static bool set_input_value(typename type_info<DT>::type_t& value, const void* input, const int data_size) {
+    static type_info<DT>::type_t get_model_value(const mt_value_t* value) {
         using data_t = typename type_info<DT>::type_t;
 
-        if (data_size != sizeof(data_t)) {
-            return false;
-        } else if (input == nullptr) {
-            return false;
+        if (value == nullptr) {
+            throw block_error("value cannot be nullptr");
+        } else if (value->data == nullptr) {
+            throw block_error("value data cannot be nullptr");
+        } else if (sizeof(data_t) != value->size || static_cast<DataType>(value->type) != DT) {
+            throw block_error("data types do not match for provided model value");
         }
 
-        value = *static_cast<const data_t*>(input);
-        return true;
+        return *static_cast<const data_t*>(value->data);
     }
 
     template <DataType DT>
-    static bool get_output_value(const typename type_info<DT>::type_t& value, void* output, const int data_size) {
+    static void set_model_value(mt_value_t* value, const type_info<DT>::type_t x) {
         using data_t = typename type_info<DT>::type_t;
 
-        if (data_size != sizeof(data_t)) {
-            return false;
-        } else if (output == nullptr) {
-            return false;
+        if (value == nullptr) {
+            throw block_error("value cannot be nullptr");
+        } else if (value->data == nullptr) {
+            throw block_error("value data cannot be nullptr");
+        } else if (sizeof(data_t) != value->size || static_cast<DataType>(value->type) != DT) {
+            throw block_error("data types do not match for provided model value");
         }
 
-        std::memcpy(static_cast<data_t*>(output), &value, sizeof(value));
-        return true;
+        *static_cast<data_t*>(value->data) = x;
+    }
+
+    template <DataType DT>
+    static void set_input_value(typename type_info<DT>::type_t& value, const mt_value_t* input) {
+        value = get_model_value<DT>(input);
+    }
+
+    template <DataType DT>
+    static void get_output_value(const typename type_info<DT>::type_t& value, mt_value_t* output) {
+        set_model_value<DT>(output, value);
     }
 
 public:

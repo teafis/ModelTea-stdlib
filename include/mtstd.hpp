@@ -7,6 +7,8 @@
 #include <cstddef>
 #include <sstream>
 
+#include "mtstd_compat_types.h"
+#include "mtstd_except.hpp"
 #include "mtstd_ext.hpp"
 #include "mtstd_types.hpp"
 
@@ -109,19 +111,19 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
-        if (dt == DT && s_in.values != nullptr && port_num < s_in.size) {
-            return set_input_value<DT>(s_in.values[port_num], input, data_size);
+    void set_input(size_t port_num, const mt_value_t* value) override {
+        if (s_in.values != nullptr && port_num < s_in.size) {
+            set_input_value<DT>(s_in.values[port_num], value);
         } else {
-            return false;
+            throw block_error("input port too high");
         }
     }
 
-    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
-        if (dt == DT && port_num == 0) {
-            return get_output_value<DT>(s_out.value, output, data_size);
+    void get_output(size_t port_num, mt_value_t* value) override {
+        if (port_num == 0) {
+            return get_output_value<DT>(s_out.value, value);
         } else {
-            return false;
+            throw block_error("output port too high");
         }
     }
 
@@ -213,15 +215,15 @@ struct clock_block MT_COMPAT_SUBCLASS {
     void step() MT_COMPAT_OVERRIDE { s_out.value += time_step; }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
-        return false;
+    void set_input(size_t port_num, const mt_value_t* value) override {
+        throw block_error("input port too high");
     }
 
-    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
-        if (dt == DT && port_num == 0) {
-            return get_output_value<DataType::F64>(s_out.value, output, data_size);
+    void get_output(size_t port_num, mt_value_t* value) override {
+        if (port_num == 0) {
+            return get_output_value<DT>(s_out.value, value);
         } else {
-            return false;
+            throw block_error("output port too high");
         }
     }
 
@@ -282,15 +284,15 @@ struct const_block MT_COMPAT_SUBCLASS {
         oss << "const_block<" << type_info<DT>::name << '>';
         return oss.str();
     }
-    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
-        return false;
+    void set_input(size_t port_num, const mt_value_t* value) override {
+        throw block_error("input port too high");
     }
 
-    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
-        if (dt != DT || port_num != 0) {
-            return false;
+    void get_output(size_t port_num, mt_value_t* value) override {
+        if (port_num == 0) {
+            return get_output_value<DT>(s_out.value, value);
         } else {
-            return get_output_value<DT>(s_out.value, output, data_size);
+            throw block_error("output port too high");
         }
     }
 
@@ -357,23 +359,23 @@ struct delay_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
-        if (port_num == 0 && dt == DT) {
-            return set_input_value<DT>(s_in.value, input, data_size);
-        } else if (port_num == 1 && dt == DT) {
-            return set_input_value<DT>(s_in.reset, input, data_size);
-        } else if (port_num == 2 && dt == DataType::BOOL) {
-            return set_input_value<DataType::BOOL>(s_in.reset_flag, input, data_size);
+    void set_input(size_t port_num, const mt_value_t* value) override {
+        if (port_num == 0) {
+            set_input_value<DT>(s_in.value, value);
+        } else if (port_num == 1) {
+            set_input_value<DT>(s_in.reset, value);
+        } else if (port_num == 2) {
+            set_input_value<DataType::BOOL>(s_in.reset_flag, value);
         } else {
-            return false;
+            throw block_error("input port too high");
         }
     }
 
-    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
-        if (dt == DT && port_num == 0) {
-            return get_output_value<DT>(s_out.value, output, data_size);
+    void get_output(size_t port_num, mt_value_t* value) override {
+        if (port_num == 0) {
+            get_output_value<DT>(s_out.value, value);
         } else {
-            return false;
+            throw block_error("output port too high");
         }
     }
 
@@ -459,21 +461,21 @@ struct derivative_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
-        if (port_num == 0 && dt == DT) {
-            return set_input_value<DT>(s_in.value, input, data_size);
-        } else if (port_num == 1 && dt == DataType::BOOL) {
-            return set_input_value<DataType::BOOL>(s_in.reset_flag, input, data_size);
+    void set_input(size_t port_num, const mt_value_t* value) override {
+        if (port_num == 0) {
+            set_input_value<DT>(s_in.value, value);
+        } else if (port_num == 1) {
+            set_input_value<DataType::BOOL>(s_in.reset_flag, value);
         } else {
-            return false;
+            throw block_error("input port too high");
         }
     }
 
-    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
-        if (dt == DT && port_num == 0) {
-            return get_output_value<DT>(s_out.value, output, data_size);
+    void get_output(size_t port_num, mt_value_t* value) override {
+        if (port_num == 0) {
+            get_output_value<DT>(s_out.value, value);
         } else {
-            return false;
+            throw block_error("output port too high");
         }
     }
 
@@ -563,23 +565,23 @@ struct integrator_block MT_COMPAT_SUBCLASS {
         return oss.str();
     }
 
-    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
-        if (port_num == 0 && dt == DT) {
-            return set_input_value<DT>(s_in.value, input, data_size);
-        } else if (port_num == 1 && dt == DT) {
-            return set_input_value<DT>(s_in.reset, input, data_size);
-        } else if (port_num == 2 && dt == DataType::BOOL) {
-            return set_input_value<DataType::BOOL>(s_in.reset_flag, input, data_size);
+    void set_input(size_t port_num, const mt_value_t* value) override {
+        if (port_num == 0) {
+            set_input_value<DT>(s_in.value, value);
+        } else if (port_num == 1) {
+            set_input_value<DT>(s_in.reset, value);
+        } else if (port_num == 2) {
+            set_input_value<DataType::BOOL>(s_in.reset_flag, value);
         } else {
-            return false;
+            throw block_error("input port too high");
         }
     }
 
-    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
-        if (dt == DT && port_num == 0) {
-            return get_output_value<DT>(s_out.value, output, data_size);
+    void get_output(size_t port_num, mt_value_t* value) override {
+        if (port_num == 0) {
+            get_output_value<DT>(s_out.value, value);
         } else {
-            return false;
+            throw block_error("output port too high");
         }
     }
 
@@ -618,9 +620,9 @@ struct integrator_block MT_COMPAT_SUBCLASS {
 
 #ifdef MT_STDLIB_USE_FULL_LIB
 struct switch_block_types {
-    static const bool uses_integral = false;
+    static const bool uses_integral = true;
     static const bool uses_float = true;
-    static const bool uses_logical = false;
+    static const bool uses_logical = true;
 };
 #endif // MT_STDLIB_USE_FULL_LIB
 
@@ -659,23 +661,23 @@ struct switch_block MT_COMPAT_SUBCLASS {
         return oss.str();
     }
 
-    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
-        if (port_num == 0 && dt == DataType::BOOL) {
-            return set_input_value<DataType::BOOL>(s_in.value_flag, input, data_size);
-        } else if (port_num == 1 && dt == DT) {
-            return set_input_value<DT>(s_in.value_a, input, data_size);
-        } else if (port_num == 2 && dt == DT) {
-            return set_input_value<DT>(s_in.value_b, input, data_size);
+    void set_input(size_t port_num, const mt_value_t* value) override {
+        if (port_num == 0) {
+            set_input_value<DataType::BOOL>(s_in.value_flag, value);
+        } else if (port_num == 1) {
+            set_input_value<DT>(s_in.value_a, value);
+        } else if (port_num == 2) {
+            set_input_value<DT>(s_in.value_b, value);
         } else {
-            return false;
+            throw block_error("input port too high");
         }
     }
 
-    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
-        if (dt == DT && port_num == 0) {
-            return get_output_value<DT>(s_out.value, output, data_size);
+    void get_output(size_t port_num, mt_value_t* value) override {
+        if (port_num == 0) {
+            get_output_value<DT>(s_out.value, value);
         } else {
-            return false;
+            throw block_error("output port too high");
         }
     }
 
@@ -712,7 +714,7 @@ struct switch_block MT_COMPAT_SUBCLASS {
 
 #ifdef MT_STDLIB_USE_FULL_LIB
 struct limiter_block_types {
-    static const bool uses_integral = false;
+    static const bool uses_integral = true;
     static const bool uses_float = true;
     static const bool uses_logical = false;
 };
@@ -751,25 +753,23 @@ struct limiter_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
-        if (dt != DT) {
-            return false;
-        } else if (port_num == 0) {
-            return set_input_value<DT>(s_in.value, input, data_size);
-        } else if (port_num == 1 && dt == DT) {
-            return set_input_value<DT>(s_in.limit_lower, input, data_size);
-        } else if (port_num == 2 && dt == DT) {
-            return set_input_value<DT>(s_in.limit_upper, input, data_size);
+    void set_input(size_t port_num, const mt_value_t* value) override {
+        if (port_num == 0) {
+            set_input_value<DT>(s_in.value, value);
+        } else if (port_num == 1) {
+            set_input_value<DT>(s_in.limit_lower, value);
+        } else if (port_num == 2) {
+            set_input_value<DT>(s_in.limit_upper, value);
         } else {
-            return false;
+            throw block_error("input port too high");
         }
     }
 
-    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
-        if (dt == DT && port_num == 0) {
-            return get_output_value<DT>(s_out.value, output, data_size);
+    void get_output(size_t port_num, mt_value_t* value) override {
+        if (port_num == 0) {
+            get_output_value<DT>(s_out.value, value);
         } else {
-            return false;
+            throw block_error("output port too high");
         }
     }
 
@@ -841,21 +841,19 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
-        if (dt != DT) {
-            return false;
-        } else if (port_num == 0) {
-            return set_input_value<DT>(s_in.value, input, data_size);
+    void set_input(size_t port_num, const mt_value_t* value) override {
+        if (port_num == 0) {
+            set_input_value<DT>(s_in.value, value);
         } else {
-            return false;
+            throw block_error("input port too high");
         }
     }
 
-    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
-        if (dt == DT && port_num == 0) {
-            return get_output_value<DT>(s_out.value, output, data_size);
+    void get_output(size_t port_num, mt_value_t* value) override {
+        if (port_num == 0) {
+            get_output_value<DT>(s_out.value, value);
         } else {
-            return false;
+            throw block_error("output port too high");
         }
     }
 
@@ -1001,23 +999,21 @@ struct relational_block MT_COMPAT_SUBCLASS {
         return oss.str();
     }
 
-    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
-        if (dt != DT) {
-            return false;
+    void set_input(size_t port_num, const mt_value_t* value) override {
+        if (port_num == 0) {
+            set_input_value<DT>(s_in.value_a, value);
         } else if (port_num == 0) {
-            return set_input_value<DT>(s_in.value_a, input, data_size);
-        } else if (port_num == 1) {
-            return set_input_value<DT>(s_in.value_b, input, data_size);
+            set_input_value<DT>(s_in.value_b, value);
         } else {
-            return false;
+            throw block_error("input port too high");
         }
     }
 
-    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
-        if (dt == DataType::BOOL && port_num == 0) {
-            return get_output_value<DataType::BOOL>(s_out.value, output, data_size);
+    void get_output(size_t port_num, mt_value_t* value) override {
+        if (port_num == 0) {
+            get_output_value<DT>(s_out.value, value);
         } else {
-            return false;
+            throw block_error("output port too high");
         }
     }
 
@@ -1164,19 +1160,19 @@ struct trig_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
-        if (dt == DT && port_num < get_input_num()) {
-            return set_input_value<DT>(s_in.values[port_num], input, data_size);
+    void set_input(size_t port_num, const mt_value_t* value) override {
+        if (port_num < get_input_num()) {
+            set_input_value<DT>(s_in.values[port_num], value);
         } else {
-            return false;
+            throw block_error("input port too high");
         }
     }
 
-    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
-        if (dt == DT && port_num == 0) {
-            return get_output_value<DT>(s_out.value, output, data_size);
+    void get_output(size_t port_num, mt_value_t* value) override {
+        if (port_num == 0) {
+            get_output_value<DT>(s_out.value, value);
         } else {
-            return false;
+            throw block_error("output port too high");
         }
     }
 

@@ -379,7 +379,11 @@ struct ValueBlockFunctor {
         if (name == BLK_CONST) {
             return new mt_block_t(new mt::stdlib::const_block<DT>(data));
         } else if (name == BLK_CLOCK) {
-            return new mt_block_t(new mt::stdlib::clock_block<DT>(data));
+            if constexpr (mt::stdlib::type_info<DT>::is_numeric) {
+                return new mt_block_t(new mt::stdlib::clock_block<DT>(data));
+            } else {
+                throw mt_error_message(MT_ERROR_UNSUPPORTED_DTYPE);
+            }
         } else {
             throw mt_error_message(MT_ERROR_UNKNOWN_BLOCK_NAME);
         }
@@ -578,8 +582,12 @@ int32_t mt_stdlib_blk_set_input(mt_block_t* blk, uint32_t port_num, const mt_val
         return 0;
     }
 
-    const auto dt = static_cast<mt::stdlib::DataType>(value->type);
-    return blk->block->set_input(port_num, dt, value->data, value->size) ? 1 : 0;
+    try {
+        blk->block->set_input(port_num, value);
+        return 1;
+    } catch (const mt::stdlib::block_error&) {
+        return 0;
+    }
 }
 
 int32_t mt_stdlib_blk_get_output(const mt_block_t* blk, uint32_t port_num, mt_value_t* value) {
@@ -587,8 +595,12 @@ int32_t mt_stdlib_blk_get_output(const mt_block_t* blk, uint32_t port_num, mt_va
         return 0;
     }
 
-    const auto dt = static_cast<mt::stdlib::DataType>(value->type);
-    return blk->block->get_output(port_num, dt, value->data, value->size);
+    try {
+        blk->block->get_output(port_num, value);
+        return 1;
+    } catch (const mt::stdlib::block_error&) {
+        return 0;
+    }
 }
 
 int32_t mt_stdlib_blk_get_num_inputs(const mt_block_t* blk, uint32_t* num) {

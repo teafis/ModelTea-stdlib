@@ -28,6 +28,7 @@ set(
     include/mtstd_string.hpp
     src/mtstd_string.cpp
     include/mtstd_compat.h
+    include/mtstd_compat_types.h
     src/mtstd_compat.cpp
 )
 

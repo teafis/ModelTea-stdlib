@@ -163,7 +163,7 @@ TEST_CASE("Data Type Model Check", "[compat]") {
             // Ensure that the block gets created correctly
             if (std::find(dtypes.begin(), dtypes.end(), dt) != dtypes.end()) {
                 if (blk_init.block == nullptr) {
-                    std::cout << iter->name << ", " << blk_init.err << '\n';
+                    std::cout << iter->name << ", " << blk_init.err << ", " << static_cast<int>(dt) << '\n';
                 }
 
                 REQUIRE(blk_init.block != nullptr);
