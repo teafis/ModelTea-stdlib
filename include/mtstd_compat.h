@@ -11,54 +11,76 @@
 extern "C" {
 #endif
 
-struct model_block;
+struct mt_block_t;
 
-struct model_value {
+struct mt_value_t {
     uint32_t type;
     uint32_t size;
     void* data;
 };
 
-struct block_info {
+struct mt_value_list_t {
+    mt_value_t value;
+    mt_value_list_t* next;
+};
+
+struct mt_block_info_t {
     const char* name;
     const char* display;
     const char* create_flags;
-    const block_info* next;
+    const char* type_flags;
+    const mt_block_info_t* next;
 };
 
-const block_info* mt_stdlib_info_init();
+struct mt_block_creation_t {
+    const mt_block_t* block;
+    const char* err;
+};
 
-int32_t mt_stdlib_info_destroy(const block_info* info);
+extern const char* MT_TYPE_FLAGS_NUMERIC;
+extern const char* MT_TYPE_FLAGS_FLOAT;
+extern const char* MT_TYPE_FLAGS_ALL;
 
-model_block* mt_stdlib_create(const char* name, uint32_t data_type);
+extern const char* MT_INIT_DEFAULT;
+extern const char* MT_INIT_SIZE ;
+extern const char* MT_INIT_DT;
+extern const char* MT_INIT_VALUE;
 
-model_block* mt_stdlib_create_size(const char* name, uint32_t data_type, uint32_t size);
+const mt_block_info_t* mt_stdlib_info_init();
 
-model_block* mt_stdlib_create_with_value(const char* name, const model_value* value);
+void mt_stdlib_info_destroy(const mt_block_info_t* info);
 
-model_block* mt_stdlib_create_with_time_step(const char* name, uint32_t data_type, double dt);
+uint32_t mt_stdlib_type_size(uint32_t data_type);
 
-void mt_stdlib_destroy(const model_block* blk);
+mt_block_creation_t mt_stdlib_blk_create(const char* name, uint32_t data_type);
 
-void mt_stdlib_step(model_block* blk);
+mt_block_creation_t mt_stdlib_blk_create_with_size(const char* name, uint32_t data_type, uint32_t size);
 
-void mt_stdlib_reset(model_block* blk);
+mt_block_creation_t mt_stdlib_blk_create_with_value(const char* name, const mt_value_t* value);
 
-int32_t mt_stdlib_get_class_name(const model_block* blk, char* str, uint32_t buffer_size);
+mt_block_creation_t mt_stdlib_blk_create_with_time_step(const char* name, uint32_t data_type, double dt);
 
-int32_t mt_stdlib_get_full_name(const model_block* blk, char* str, uint32_t buffer_size);
+void mt_stdlib_blk_destroy(const mt_block_t* blk);
 
-int32_t mt_stdlib_set_input(model_block* blk, uint32_t port_num, const model_value* value);
+void mt_stdlib_blk_step(mt_block_t* blk);
 
-int32_t mt_stdlib_get_output(const model_block* blk, uint32_t port_num, model_value* value);
+void mt_stdlib_blk_reset(mt_block_t* blk);
 
-int32_t mt_stdlib_get_num_inputs(const model_block* blk, uint32_t* num);
+int32_t mt_stdlib_blk_get_class_name(const mt_block_t* blk, char* str, uint32_t buffer_size);
 
-int32_t mt_stdlib_get_num_outputs(const model_block* blk, uint32_t* num);
+int32_t mt_stdlib_blk_get_full_name(const mt_block_t* blk, char* str, uint32_t buffer_size);
 
-int32_t mt_stdlib_get_input_type(const model_block* blk, uint32_t port_num, uint32_t* data_type);
+int32_t mt_stdlib_blk_set_input(mt_block_t* blk, uint32_t port_num, const mt_value_t* value);
 
-int32_t mt_stdlib_get_output_type(const model_block* blk, const uint32_t port_num, uint32_t* data_type);
+int32_t mt_stdlib_blk_get_output(const mt_block_t* blk, uint32_t port_num, mt_value_t* value);
+
+int32_t mt_stdlib_blk_get_num_inputs(const mt_block_t* blk, uint32_t* num);
+
+int32_t mt_stdlib_blk_get_num_outputs(const mt_block_t* blk, uint32_t* num);
+
+int32_t mt_stdlib_blk_get_input_type(const mt_block_t* blk, uint32_t port_num, uint32_t* data_type);
+
+int32_t mt_stdlib_blk_get_output_type(const mt_block_t* blk, const uint32_t port_num, uint32_t* data_type);
 
 #ifdef __cplusplus
 }

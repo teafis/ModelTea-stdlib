@@ -36,8 +36,9 @@ struct type_info {};
 template <>
 struct type_info<DataType::U8> {
     using type_t = uint8_t;
-    static const bool is_arith = true;
+    static const bool is_numeric = true;
     static const bool is_integral = true;
+    static const bool is_float = false;
     static const bool is_signed = false;
 #if MT_STDLIB_USE_FULL_LIB
     static constexpr const char* name = "uint8_t";
@@ -47,8 +48,9 @@ struct type_info<DataType::U8> {
 template <>
 struct type_info<DataType::I8> {
     using type_t = int8_t;
-    static const bool is_arith = true;
+    static const bool is_numeric = true;
     static const bool is_integral = true;
+    static const bool is_float = false;
     static const bool is_signed = true;
 #if MT_STDLIB_USE_FULL_LIB
     static constexpr const char* name = "int8_t";
@@ -58,8 +60,9 @@ struct type_info<DataType::I8> {
 template <>
 struct type_info<DataType::U16> {
     using type_t = uint16_t;
-    static const bool is_arith = true;
+    static const bool is_numeric = true;
     static const bool is_integral = true;
+    static const bool is_float = false;
     static const bool is_signed = false;
 #if MT_STDLIB_USE_FULL_LIB
     static constexpr const char* name = "uint16_t";
@@ -69,8 +72,9 @@ struct type_info<DataType::U16> {
 template <>
 struct type_info<DataType::I16> {
     using type_t = int16_t;
-    static const bool is_arith = true;
+    static const bool is_numeric = true;
     static const bool is_integral = true;
+    static const bool is_float = false;
     static const bool is_signed = true;
 #if MT_STDLIB_USE_FULL_LIB
     static constexpr const char* name = "int16_t";
@@ -80,8 +84,9 @@ struct type_info<DataType::I16> {
 template <>
 struct type_info<DataType::U32> {
     using type_t = uint32_t;
-    static const bool is_arith = true;
+    static const bool is_numeric = true;
     static const bool is_integral = true;
+    static const bool is_float = false;
     static const bool is_signed = false;
 #if MT_STDLIB_USE_FULL_LIB
     static constexpr const char* name = "uint32_t";
@@ -91,8 +96,9 @@ struct type_info<DataType::U32> {
 template <>
 struct type_info<DataType::I32> {
     using type_t = int32_t;
-    static const bool is_arith = true;
+    static const bool is_numeric = true;
     static const bool is_integral = true;
+    static const bool is_float = false;
     static const bool is_signed = true;
 #if MT_STDLIB_USE_FULL_LIB
     static constexpr const char* name = "int32_t";
@@ -102,8 +108,9 @@ struct type_info<DataType::I32> {
 template <>
 struct type_info<DataType::F32> {
     using type_t = float;
-    static const bool is_arith = true;
+    static const bool is_numeric = true;
     static const bool is_integral = false;
+    static const bool is_float = true;
     static const bool is_signed = true;
 #if MT_STDLIB_USE_FULL_LIB
     static constexpr const char* name = "float";
@@ -113,8 +120,9 @@ struct type_info<DataType::F32> {
 template <>
 struct type_info<DataType::F64> {
     using type_t = double;
-    static const bool is_arith = true;
+    static const bool is_numeric = true;
     static const bool is_integral = false;
+    static const bool is_float = true;
     static const bool is_signed = true;
 #if MT_STDLIB_USE_FULL_LIB
     static constexpr const char* name = "double";
@@ -124,8 +132,9 @@ struct type_info<DataType::F64> {
 template <>
 struct type_info<DataType::BOOL> {
     using type_t = bool;
-    static const bool is_arith = false;
+    static const bool is_numeric = false;
     static const bool is_integral = true;
+    static const bool is_float = false;
     static const bool is_signed = false;
 #if MT_STDLIB_USE_FULL_LIB
     static constexpr const char* name = "bool";

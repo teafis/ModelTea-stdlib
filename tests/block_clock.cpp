@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 
+#include "mtstd_types.hpp"
 #include <catch2/catch_all.hpp>
 
 #include <catch2/matchers/catch_matchers.hpp>
@@ -9,7 +10,7 @@
 static void test_with_timestamp(const double dt) {
     double check_val = 0.0;
 
-    mt::stdlib::clock_block clock(dt);
+    mt::stdlib::clock_block<mt::stdlib::DataType::F64> clock(dt);
     clock.reset();
 
     REQUIRE_THAT(clock.time_step, Catch::Matchers::WithinRel(dt));

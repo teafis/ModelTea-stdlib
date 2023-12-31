@@ -71,6 +71,14 @@ struct ArithOperation<DT, ArithType::MOD> {
     }
 };
 
+#ifdef MT_STDLIB_USE_FULL_LIB
+struct arith_block_types {
+    static const bool uses_integral = true;
+    static const bool uses_float = true;
+    static const bool uses_logical = false;
+};
+#endif // MT_STDLIB_USE_FULL_LIB
+
 template <DataType DT, ArithType AT>
 struct arith_block_dynamic MT_COMPAT_SUBCLASS {
     using data_t = typename type_info<DT>::type_t;
@@ -176,40 +184,80 @@ private:
     std::array<data_t, SIZE> _input_array;
 };
 
+#ifdef MT_STDLIB_USE_FULL_LIB
+struct clock_block_types {
+    static const bool uses_integral = true;
+    static const bool uses_float = true;
+    static const bool uses_logical = false;
+};
+#endif // MT_STDLIB_USE_FULL_LIB
+
+template <DataType DT>
 struct clock_block MT_COMPAT_SUBCLASS {
+    using data_t = typename type_info<DT>::type_t;
+
     struct output_t {
-        double value;
+        data_t value;
     };
 
-    explicit clock_block(double dt);
+    explicit clock_block(data_t dt) : time_step{dt} {
+        static_assert(type_info<DT>::is_numeric, "data type must be numeric");
+        reset();
+    }
 
     clock_block(const clock_block&) = delete;
     clock_block& operator=(const clock_block&) = delete;
 
-    void reset() MT_COMPAT_OVERRIDE;
+    void reset() MT_COMPAT_OVERRIDE { s_out.value = 0.0; }
 
-    void step() MT_COMPAT_OVERRIDE;
+    void step() MT_COMPAT_OVERRIDE { s_out.value += time_step; }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override;
+    bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
+        return false;
+    }
 
-    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override;
+    bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
+        if (dt == DT && port_num == 0) {
+            return get_output_value<DataType::F64>(s_out.value, output, data_size);
+        } else {
+            return false;
+        }
+    }
 
-    size_t get_input_num() const override;
+    size_t get_input_num() const override { return 0; }
 
-    size_t get_output_num() const override;
+    size_t get_output_num() const override { return 1; }
 
-    DataType get_input_type(size_t port_num) const override;
+    DataType get_input_type(size_t port_num) const override {
+        return DataType::NONE;
+    }
 
-    DataType get_output_type(size_t port_num) const override;
+    DataType get_output_type(size_t port_num) const override {
+        if (port_num == 0) {
+            return DT;
+        } else {
+            return DataType::NONE;
+        }
+    }
 
-    std::string get_class_name() const override;
+    std::string get_class_name() const override {
+        return "clock_block";
+    }
 #endif
 
     output_t s_out;
 
-    const double time_step;
+    const data_t time_step;
 };
+
+#ifdef MT_STDLIB_USE_FULL_LIB
+struct const_block_types {
+    static const bool uses_integral = true;
+    static const bool uses_float = true;
+    static const bool uses_logical = true;
+};
+#endif // MT_STDLIB_USE_FULL_LIB
 
 template <DataType DT>
 struct const_block MT_COMPAT_SUBCLASS {
@@ -237,7 +285,6 @@ struct const_block MT_COMPAT_SUBCLASS {
     bool set_input(size_t port_num, DataType dt, const void* input, size_t data_size) override {
         return false;
     }
-
 
     bool get_output(size_t port_num, DataType dt, void* output, size_t data_size) override {
         if (dt != DT || port_num != 0) {
@@ -268,6 +315,14 @@ struct const_block MT_COMPAT_SUBCLASS {
     }
 #endif
 };
+
+#ifdef MT_STDLIB_USE_FULL_LIB
+struct delay_block_types {
+    static const bool uses_integral = true;
+    static const bool uses_float = true;
+    static const bool uses_logical = true;
+};
+#endif // MT_STDLIB_USE_FULL_LIB
 
 template <DataType DT>
 struct delay_block MT_COMPAT_SUBCLASS {
@@ -361,6 +416,14 @@ struct delay_block MT_COMPAT_SUBCLASS {
     data_t next_value;
 };
 
+#ifdef MT_STDLIB_USE_FULL_LIB
+struct derivative_block_types {
+    static const bool uses_integral = false;
+    static const bool uses_float = true;
+    static const bool uses_logical = false;
+};
+#endif // MT_STDLIB_USE_FULL_LIB
+
 template <DataType DT>
 struct derivative_block MT_COMPAT_SUBCLASS {
     using data_t = typename type_info<DT>::type_t;
@@ -375,7 +438,7 @@ struct derivative_block MT_COMPAT_SUBCLASS {
     };
 
     explicit derivative_block(const double dt) : s_in{}, s_out{}, time_step(dt) {
-        // Empty Constructor
+        static_assert(type_info<DT>::is_float, "derivative data type must be a floating point type");
     }
 
     derivative_block(const derivative_block&) = delete;
@@ -454,6 +517,14 @@ struct derivative_block MT_COMPAT_SUBCLASS {
     const double time_step;
 };
 
+#ifdef MT_STDLIB_USE_FULL_LIB
+struct integrator_block_types {
+    static const bool uses_integral = false;
+    static const bool uses_float = true;
+    static const bool uses_logical = false;
+};
+#endif // MT_STDLIB_USE_FULL_LIB
+
 template <DataType DT>
 struct integrator_block MT_COMPAT_SUBCLASS {
     using data_t = typename type_info<DT>::type_t;
@@ -469,7 +540,7 @@ struct integrator_block MT_COMPAT_SUBCLASS {
     };
 
     explicit integrator_block(const double dt) : time_step(dt) {
-        // Empty Constructor
+        static_assert(type_info<DT>::is_float, "integrator data type must be a floating point type");
     }
 
     integrator_block(const integrator_block&) = delete;
@@ -544,6 +615,14 @@ struct integrator_block MT_COMPAT_SUBCLASS {
 
     const double time_step;
 };
+
+#ifdef MT_STDLIB_USE_FULL_LIB
+struct switch_block_types {
+    static const bool uses_integral = false;
+    static const bool uses_float = true;
+    static const bool uses_logical = false;
+};
+#endif // MT_STDLIB_USE_FULL_LIB
 
 template <DataType DT>
 struct switch_block MT_COMPAT_SUBCLASS {
@@ -630,6 +709,14 @@ struct switch_block MT_COMPAT_SUBCLASS {
     input_t s_in;
     output_t s_out;
 };
+
+#ifdef MT_STDLIB_USE_FULL_LIB
+struct limiter_block_types {
+    static const bool uses_integral = false;
+    static const bool uses_float = true;
+    static const bool uses_logical = false;
+};
+#endif // MT_STDLIB_USE_FULL_LIB
 
 template <DataType DT>
 struct limiter_block MT_COMPAT_SUBCLASS {
@@ -861,6 +948,29 @@ struct RelationalOperation<DT, RelationalOperator::LESS_THAN_EQUAL> {
     }
 };
 
+#ifdef MT_STDLIB_USE_FULL_LIB
+template <RelationalOperator OP>
+struct relational_block_types {
+    static const bool uses_integral = true;
+    static const bool uses_float = true;
+    static const bool uses_logical = false;
+};
+
+template <>
+struct relational_block_types<RelationalOperator::EQUAL> {
+    static const bool uses_integral = true;
+    static const bool uses_float = true;
+    static const bool uses_logical = true;
+};
+
+template <>
+struct relational_block_types<RelationalOperator::NOT_EQUAL> {
+    static const bool uses_integral = true;
+    static const bool uses_float = true;
+    static const bool uses_logical = true;
+};
+#endif // MT_STDLIB_USE_FULL_LIB
+
 template <DataType DT, RelationalOperator OP>
 struct relational_block MT_COMPAT_SUBCLASS {
     using data_t = typename type_info<DT>::type_t;
@@ -958,6 +1068,7 @@ struct TrigOperation<DT, N, TrigFunction::SIN> {
     using data_t = typename type_info<DT>::type_t;
     static data_t operation(const data_t values[N]) {
         static_assert(N == 1, "sin requires a single argument");
+        static_assert(type_info<DT>::is_numeric, "sin requires a numeric data type");
         return t_sin(values[0]);
     }
 };
@@ -967,6 +1078,7 @@ struct TrigOperation<DT, N, TrigFunction::COS> {
     using data_t = typename type_info<DT>::type_t;
     static data_t operation(const data_t values[N]) {
         static_assert(N == 1, "cos requires a single argument");
+        static_assert(type_info<DT>::is_numeric, "cos requires a numeric data type");
         return t_cos(values[0]);
     }
 };
@@ -976,6 +1088,7 @@ struct TrigOperation<DT, N, TrigFunction::TAN> {
     using data_t = typename type_info<DT>::type_t;
     static data_t operation(const data_t values[N]) {
         static_assert(N == 1, "tan requires a single argument");
+        static_assert(type_info<DT>::is_numeric, "tan requires a numeric data type");
         return t_tan(values[0]);
     }
 };
@@ -985,6 +1098,7 @@ struct TrigOperation<DT, N, TrigFunction::ASIN> {
     using data_t = typename type_info<DT>::type_t;
     static data_t operation(const data_t values[N]) {
         static_assert(N == 1, "arcsin requires a single argument");
+        static_assert(type_info<DT>::is_numeric, "arcsin requires a numeric data type");
         return t_asin(values[0]);
     }
 };
@@ -994,6 +1108,7 @@ struct TrigOperation<DT, N, TrigFunction::ACOS> {
     using data_t = typename type_info<DT>::type_t;
     static data_t operation(const data_t values[N]) {
         static_assert(N == 1, "arccos requires a single argument");
+        static_assert(type_info<DT>::is_numeric, "arccos requires a numeric data type");
         return t_acos(values[0]);
     }
 };
@@ -1003,6 +1118,7 @@ struct TrigOperation<DT, N, TrigFunction::ATAN> {
     using data_t = typename type_info<DT>::type_t;
     static data_t operation(const data_t values[N]) {
         static_assert(N == 1, "arctan requires a single argument");
+        static_assert(type_info<DT>::is_numeric, "arctan requires a numeric data type");
         return t_atan(values[0]);
     }
 };
@@ -1012,9 +1128,18 @@ struct TrigOperation<DT, N, TrigFunction::ATAN2> {
     using data_t = typename type_info<DT>::type_t;
     static data_t operation(const data_t values[N]) {
         static_assert(N == 2, "arctan2 requires a single argument");
+        static_assert(type_info<DT>::is_numeric, "arctan2 requires a numeric data type");
         return t_atan2(values[0], values[1]);
     }
 };
+
+#ifdef MT_STDLIB_USE_FULL_LIB
+struct trig_block_types {
+    static const bool uses_integral = false;
+    static const bool uses_float = true;
+    static const bool uses_logical = false;
+};
+#endif // MT_STDLIB_USE_FULL_LIB
 
 template <DataType DT, TrigFunction FCN>
 struct trig_block MT_COMPAT_SUBCLASS {
