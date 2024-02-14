@@ -14,7 +14,6 @@ project (
 set(
     MODELTEA_STD_MODEL_SOURCES
     include/mtstd.hpp
-    src/mtstd.cpp
     include/mtstd_ext.hpp
     src/mtstd_ext.cpp
     include/mtstd_types.hpp
