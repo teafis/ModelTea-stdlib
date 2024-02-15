@@ -28,6 +28,8 @@ namespace stdlib {
 #define MT_COMPAT_OVERRIDE
 #endif
 
+using time_step_t = double;
+
 template <DataType DT, ArithType AT>
 struct ArithOperation {};
 
@@ -468,7 +470,7 @@ struct derivative_block MT_COMPAT_SUBCLASS {
         data_t value;
     };
 
-    explicit derivative_block(const double dt) : s_in{}, s_out{}, time_step(dt) {
+    explicit derivative_block(const time_step_t dt) : s_in{}, s_out{}, time_step(dt) {
         static_assert(type_info<DT>::is_float, "derivative data type must be a floating point type");
     }
 
@@ -553,7 +555,7 @@ public:
     output_t s_out;
 
     data_t last_value;
-    const double time_step;
+    const time_step_t time_step;
 };
 
 #ifdef MT_STDLIB_USE_FULL_LIB
@@ -578,7 +580,7 @@ struct integrator_block MT_COMPAT_SUBCLASS {
         data_t value;
     };
 
-    explicit integrator_block(const double dt) : time_step(dt) {
+    explicit integrator_block(const time_step_t dt) : time_step(dt) {
         static_assert(type_info<DT>::is_float, "integrator data type must be a floating point type");
     }
 
@@ -660,7 +662,7 @@ public:
     input_t s_in;
     output_t s_out;
 
-    const double time_step;
+    const time_step_t time_step;
 };
 
 #ifdef MT_STDLIB_USE_FULL_LIB
