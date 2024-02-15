@@ -14,7 +14,6 @@ project (
 set(
     MODELTEA_STD_MODEL_SOURCES
     include/mtstd.hpp
-    src/mtstd.cpp
     include/mtstd_ext.hpp
     src/mtstd_ext.cpp
     include/mtstd_types.hpp
@@ -30,6 +29,8 @@ set(
     include/mtstd_compat.h
     include/mtstd_compat_types.h
     src/mtstd_compat.cpp
+    include/mtstd_creation.hpp
+    src/mtstd_creation.cpp
 )
 
 # Define the library

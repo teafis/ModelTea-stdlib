@@ -13,13 +13,16 @@
 extern "C" {
 #endif
 
-extern const char* MT_TYPE_FLAGS_NUMERIC;
-extern const char* MT_TYPE_FLAGS_FLOAT;
-extern const char* MT_TYPE_FLAGS_ALL;
+extern const int32_t MT_TYPE_FLAGS_NONE;
+extern const int32_t MT_TYPE_FLAGS_BOOL;
+extern const int32_t MT_TYPE_FLAGS_INTEGRAL;
+extern const int32_t MT_TYPE_FLAGS_NUMERIC;
+extern const int32_t MT_TYPE_FLAGS_FLOAT;
+extern const int32_t MT_TYPE_FLAGS_ALL;
 
-extern const char* MT_INIT_DEFAULT;
-extern const char* MT_INIT_SIZE ;
-extern const char* MT_INIT_VALUE;
+extern const int32_t MT_INIT_DEFAULT;
+extern const int32_t MT_INIT_SIZE;
+extern const int32_t MT_INIT_VALUE;
 
 const mt_block_info_t* mt_stdlib_info_init();
 
@@ -27,11 +30,11 @@ void mt_stdlib_info_destroy(const mt_block_info_t* info);
 
 uint32_t mt_stdlib_type_size(uint32_t data_type);
 
-mt_block_creation_t mt_stdlib_blk_create(const char* name, uint32_t data_type);
+mt_block_t* mt_stdlib_blk_create(const char* name, const char* sub_name, uint32_t data_type);
 
-mt_block_creation_t mt_stdlib_blk_create_with_size(const char* name, uint32_t data_type, uint32_t size);
+mt_block_t* mt_stdlib_blk_create_with_size(const char* name, const char* sub_name, uint32_t data_type, uint32_t size);
 
-mt_block_creation_t mt_stdlib_blk_create_with_value(const char* name, const mt_value_t* value);
+mt_block_t* mt_stdlib_blk_create_with_value(const char* name, const char* sub_name, const mt_value_t* value);
 
 void mt_stdlib_blk_destroy(const mt_block_t* blk);
 

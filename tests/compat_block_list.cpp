@@ -91,9 +91,17 @@ TEST_CASE("Test Block List", "[compat]") {
     while (iter != nullptr) {
         REQUIRE(iter != nullptr);
         REQUIRE(iter->name != nullptr);
-        REQUIRE(iter->display != nullptr);
+        REQUIRE(iter->sub_name != nullptr);
 
-        auto it = expected_names.find(iter->name);
+        std::ostringstream oss;
+        oss << iter->name;
+        if (!std::string(iter->sub_name).empty())
+        {
+            oss << '_' << iter->sub_name;
+        }
+        const std::string combined_name = oss.str();
+
+        auto it = expected_names.find(combined_name);
         REQUIRE(it != expected_names.end());
         REQUIRE(it->second == false);
 
@@ -112,6 +120,8 @@ TEST_CASE("Test Block List", "[compat]") {
     }
 }
 
+#include <iostream>
+
 TEST_CASE("Data Type Model Check", "[compat]") {
     auto init_vals = mt_stdlib_info_init();
     REQUIRE(init_vals != nullptr);
@@ -120,10 +130,8 @@ TEST_CASE("Data Type Model Check", "[compat]") {
     size_t i = 0;
 
     while (iter != nullptr) {
-        mt_block_creation_t blk_init{};
-
-        const std::string creation_flags = iter->create_flags;
-        const std::string type_flags = iter->type_flags;
+        const int32_t creation_flags = iter->create_flags;
+        const int32_t type_flags = iter->type_flags;
 
         std::vector<mt::stdlib::DataType> dtypes;
 
@@ -138,11 +146,11 @@ TEST_CASE("Data Type Model Check", "[compat]") {
         REQUIRE(dtypes.size() > 0);
 
         for (const auto& dt : DT_ALL) {
-            mt_block_creation_t blk_init{};
+            mt_block_t* blk;
             const auto dt_int = static_cast<uint32_t>(dt);
 
             if (MT_INIT_SIZE == creation_flags) {
-                blk_init = mt_stdlib_blk_create_with_size(iter->name, dt_int, 3);
+                blk = mt_stdlib_blk_create_with_size(iter->name, iter->sub_name, dt_int, 3);
             } else if (MT_INIT_VALUE == creation_flags) {
                 auto data_ptr = std::unique_ptr<uint8_t[]>(new uint8_t[mt_stdlib_type_size(dt_int)]);
                 mt_value_t value {
@@ -150,25 +158,27 @@ TEST_CASE("Data Type Model Check", "[compat]") {
                     .size = mt_stdlib_type_size(dt_int),
                     .data = data_ptr.get()
                 };
-                blk_init = mt_stdlib_blk_create_with_value(iter->name, &value);
+                blk = mt_stdlib_blk_create_with_value(iter->name, iter->sub_name, &value);
             } else if (MT_INIT_DEFAULT == creation_flags) {
-                blk_init = mt_stdlib_blk_create(iter->name, dt_int);
+                blk = mt_stdlib_blk_create(iter->name, iter->sub_name, dt_int);
             } else {
                 REQUIRE(false);
             }
 
             // Ensure that the block gets created correctly
             if (std::find(dtypes.begin(), dtypes.end(), dt) != dtypes.end()) {
-                REQUIRE(blk_init.block != nullptr);
-                REQUIRE(blk_init.err == nullptr);
+                REQUIRE(blk != nullptr);
             } else {
-                REQUIRE(blk_init.block == nullptr);
-                REQUIRE(blk_init.err != nullptr);
+                if (blk != nullptr)
+                {
+                    std::cerr << iter->name << "::" << iter->sub_name << std::endl;
+                }
+                REQUIRE(blk == nullptr);
             }
 
             // Destory the block if needed
-            if (blk_init.block != nullptr) {
-                mt_stdlib_blk_destroy(blk_init.block);
+            if (blk != nullptr) {
+                mt_stdlib_blk_destroy(blk);
             }
         }
 
@@ -182,22 +192,21 @@ TEST_CASE("Data Type Model Check", "[compat]") {
 
 TEST_CASE("Arith Block Creation", "[compat]") {
     std::vector<std::string> arith_blocks{
-        "arith_add",
-        "arith_sub",
-        "arith_mul",
-        "arith_div",
-        "arith_mod",
+        "add",
+        "sub",
+        "mul",
+        "div",
+        "mod",
     };
 
     for (const auto& name : arith_blocks) {
         for (const auto& dt : DT_NUM) {
             const auto dt_int = static_cast<uint32_t>(dt);
-            auto mdl = mt_stdlib_blk_create_with_size(name.c_str(), dt_int, 2);
+            auto mdl = mt_stdlib_blk_create_with_size("arith", name.c_str(), dt_int, 2);
 
-            REQUIRE(mdl.block != nullptr);
-            REQUIRE(mdl.err == nullptr);
+            REQUIRE(mdl != nullptr);
 
-            mt_stdlib_blk_destroy(mdl.block);
+            mt_stdlib_blk_destroy(mdl);
         }
     }
 }

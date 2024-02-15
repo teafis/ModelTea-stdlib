@@ -9,6 +9,38 @@
 
 const std::string mt::stdlib::BASE_NAMESPACE = "mt::stdlib";
 
+const std::string mt::stdlib::BLK_NAME_ARITH = "arith";
+const std::string mt::stdlib::BLK_NAME_CLOCK = "clock";
+const std::string mt::stdlib::BLK_NAME_CONST = "constant";
+const std::string mt::stdlib::BLK_NAME_DELAY = "delay";
+const std::string mt::stdlib::BLK_NAME_DERIV = "derivative";
+const std::string mt::stdlib::BLK_NAME_INTEG = "integrator";
+const std::string mt::stdlib::BLK_NAME_SWITCH = "switch";
+const std::string mt::stdlib::BLK_NAME_LIMITER = "limiter";
+const std::string mt::stdlib::BLK_NAME_REL = "rel";
+const std::string mt::stdlib::BLK_NAME_RELEQ = "releq";
+const std::string mt::stdlib::BLK_NAME_TRIG = "trig";
+
+const std::string mt::stdlib::BLK_SUB_NAME_ARITH_ADD = "add";
+const std::string mt::stdlib::BLK_SUB_NAME_ARITH_SUB = "sub";
+const std::string mt::stdlib::BLK_SUB_NAME_ARITH_MUL = "mul";
+const std::string mt::stdlib::BLK_SUB_NAME_ARITH_DIV = "div";
+const std::string mt::stdlib::BLK_SUB_NAME_ARITH_MOD = "mod";
+const std::string mt::stdlib::BLK_SUB_NAME_REL_GT = "greater";
+const std::string mt::stdlib::BLK_SUB_NAME_REL_GEQ = "greater_eq";
+const std::string mt::stdlib::BLK_SUB_NAME_REL_LT = "less";
+const std::string mt::stdlib::BLK_SUB_NAME_REL_LEQ = "less_eq";
+const std::string mt::stdlib::BLK_SUB_NAME_REL_EQ = "equal";
+const std::string mt::stdlib::BLK_SUB_NAME_REL_NEQ = "not_equal";
+const std::string mt::stdlib::BLK_SUB_NAME_TRIG_SIN = "sin";
+const std::string mt::stdlib::BLK_SUB_NAME_TRIG_COS = "cos";
+const std::string mt::stdlib::BLK_SUB_NAME_TRIG_TAN = "tan";
+const std::string mt::stdlib::BLK_SUB_NAME_TRIG_ASIN = "asin";
+const std::string mt::stdlib::BLK_SUB_NAME_TRIG_ACOS = "acos";
+const std::string mt::stdlib::BLK_SUB_NAME_TRIG_ATAN = "atan";
+const std::string mt::stdlib::BLK_SUB_NAME_TRIG_ATAN2 = "atan2";
+
+
 static std::string to_enum_name(mt::stdlib::SpecificationType spec,
                                 const std::string& type,
                                 const std::string& name) {

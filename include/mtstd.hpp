@@ -15,14 +15,12 @@
 #ifdef MT_STDLIB_USE_FULL_LIB
 #include "mtstd_string.hpp"
 #include <sstream>
-#include <string>
 #endif
 
 namespace mt {
 namespace stdlib {
 
 #if MT_STDLIB_USE_FULL_LIB
-extern const std::string BASE_NAMESPACE;
 #define MT_COMPAT_SUBCLASS : public block_interface
 #define MT_COMPAT_OVERRIDE override
 #else
@@ -111,7 +109,7 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    void set_input(size_t port_num, const mt_value_t* value) override {
+    void set_input(size_t port_num, const ArgumentValue* value) override {
         if (s_in.values != nullptr && port_num < s_in.size) {
             set_input_value<DT>(s_in.values[port_num], value);
         } else {
@@ -119,7 +117,7 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
         }
     }
 
-    void get_output(size_t port_num, mt_value_t* value) override {
+    void get_output(size_t port_num, ArgumentValue* value) const override {
         if (port_num == 0) {
             return get_output_value<DT>(s_out.value, value);
         } else {
@@ -151,13 +149,20 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
         }
     }
 
+protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
-        oss << "arith_block_dynamic<" << type_info<DT>::name << ", " << arith_to_string(AT) << ">";
+        oss << "arith_block_dynamic<" << type_info<DT>::name << ", " << arith_to_string(AT) << ">"; // TODO - Use as static arith_block?
         return oss.str();
+    }
+
+public:
+    std::string get_block_name() const override {
+        return BLK_NAME_ARITH;
     }
 #endif
 
+public:
     input_t s_in;
     output_t s_out;
 };
@@ -175,6 +180,7 @@ struct arith_block : public arith_block_dynamic<DT, AT> {
     arith_block& operator=(const arith_block&) = delete;
 
 #ifdef MT_STDLIB_USE_FULL_LIB
+protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
         oss << "arith_block<" << type_info<DT>::name << ", " << arith_to_string(AT) << ", " << SIZE << ">";
@@ -215,13 +221,13 @@ struct clock_block MT_COMPAT_SUBCLASS {
     void step() MT_COMPAT_OVERRIDE { s_out.value += time_step; }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    explicit clock_block(const mt_value_t* input) : clock_block(get_model_value<DT>(input)) {}
+    explicit clock_block(const ArgumentValue* input) : clock_block(get_model_value<DT>(input)) {}
 
-    void set_input(size_t port_num, const mt_value_t* value) override {
+    void set_input(size_t port_num, const ArgumentValue* value) override {
         throw block_error("input port too high");
     }
 
-    void get_output(size_t port_num, mt_value_t* value) override {
+    void get_output(size_t port_num, ArgumentValue* value) const override {
         if (port_num == 0) {
             return get_output_value<DT>(s_out.value, value);
         } else {
@@ -245,8 +251,14 @@ struct clock_block MT_COMPAT_SUBCLASS {
         }
     }
 
+protected:
     std::string get_class_name() const override {
         return "clock_block";
+    }
+
+public:
+    std::string get_block_name() const override {
+        return BLK_NAME_CLOCK;
     }
 #endif
 
@@ -281,18 +293,13 @@ struct const_block MT_COMPAT_SUBCLASS {
     const output_t s_out;
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    explicit const_block(const mt_value_t* value) : const_block(get_model_value<DT>(value)) {}
+    explicit const_block(const ArgumentValue* value) : const_block(get_model_value<DT>(value)) {}
 
-    std::string get_class_name() const override {
-        std::ostringstream oss;
-        oss << "const_block<" << type_info<DT>::name << '>';
-        return oss.str();
-    }
-    void set_input(size_t port_num, const mt_value_t* value) override {
+    void set_input(size_t port_num, const ArgumentValue* value) override {
         throw block_error("input port too high");
     }
 
-    void get_output(size_t port_num, mt_value_t* value) override {
+    void get_output(size_t port_num, ArgumentValue* value) const override {
         if (port_num == 0) {
             return get_output_value<DT>(s_out.value, value);
         } else {
@@ -318,6 +325,18 @@ struct const_block MT_COMPAT_SUBCLASS {
         } else {
             return DataType::NONE;
         }
+    }
+
+protected:
+    std::string get_class_name() const override {
+        std::ostringstream oss;
+        oss << "const_block<" << type_info<DT>::name << '>';
+        return oss.str();
+    }
+
+public:
+    std::string get_block_name() const override {
+        return BLK_NAME_CONST;
     }
 #endif
 };
@@ -363,7 +382,7 @@ struct delay_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    void set_input(size_t port_num, const mt_value_t* value) override {
+    void set_input(size_t port_num, const ArgumentValue* value) override {
         if (port_num == 0) {
             set_input_value<DT>(s_in.value, value);
         } else if (port_num == 1) {
@@ -375,7 +394,7 @@ struct delay_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    void get_output(size_t port_num, mt_value_t* value) override {
+    void get_output(size_t port_num, ArgumentValue* value) const override {
         if (port_num == 0) {
             get_output_value<DT>(s_out.value, value);
         } else {
@@ -409,10 +428,16 @@ struct delay_block MT_COMPAT_SUBCLASS {
         }
     }
 
+protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
         oss << "delay_block<" << type_info<DT>::name << '>';
         return oss.str();
+    }
+
+public:
+    std::string get_block_name() const override {
+        return BLK_NAME_DELAY;
     }
 #endif
 
@@ -465,9 +490,9 @@ struct derivative_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    explicit derivative_block(const mt_value_t* dt) : derivative_block(get_model_value<DT>(dt)) {}
+    explicit derivative_block(const ArgumentValue* dt) : derivative_block(get_model_value<DT>(dt)) {}
 
-    void set_input(size_t port_num, const mt_value_t* value) override {
+    void set_input(size_t port_num, const ArgumentValue* value) override {
         if (port_num == 0) {
             set_input_value<DT>(s_in.value, value);
         } else if (port_num == 1) {
@@ -477,7 +502,7 @@ struct derivative_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    void get_output(size_t port_num, mt_value_t* value) override {
+    void get_output(size_t port_num, ArgumentValue* value) const override {
         if (port_num == 0) {
             get_output_value<DT>(s_out.value, value);
         } else {
@@ -511,10 +536,16 @@ struct derivative_block MT_COMPAT_SUBCLASS {
         }
     }
 
+protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
         oss << "derivative_block<" << type_info<DT>::name << '>';
         return oss.str();
+    }
+
+public:
+    std::string get_block_name() const override {
+        return BLK_NAME_DERIV;
     }
 #endif
 
@@ -565,15 +596,9 @@ struct integrator_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    explicit integrator_block(const mt_value_t* dt) : integrator_block(get_model_value<DT>(dt)) {}
+    explicit integrator_block(const ArgumentValue* dt) : integrator_block(get_model_value<DT>(dt)) {}
 
-    std::string get_class_name() const override {
-        std::ostringstream oss;
-        oss << "integrator_block<" << type_info<DT>::name << '>';
-        return oss.str();
-    }
-
-    void set_input(size_t port_num, const mt_value_t* value) override {
+    void set_input(size_t port_num, const ArgumentValue* value) override {
         if (port_num == 0) {
             set_input_value<DT>(s_in.value, value);
         } else if (port_num == 1) {
@@ -585,7 +610,7 @@ struct integrator_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    void get_output(size_t port_num, mt_value_t* value) override {
+    void get_output(size_t port_num, ArgumentValue* value) const override {
         if (port_num == 0) {
             get_output_value<DT>(s_out.value, value);
         } else {
@@ -617,6 +642,18 @@ struct integrator_block MT_COMPAT_SUBCLASS {
         } else {
             return DataType::NONE;
         }
+    }
+
+protected:
+    std::string get_class_name() const override {
+        std::ostringstream oss;
+        oss << "integrator_block<" << type_info<DT>::name << '>';
+        return oss.str();
+    }
+
+public:
+    std::string get_block_name() const override {
+        return BLK_NAME_INTEG;
     }
 #endif
 
@@ -663,13 +700,19 @@ struct switch_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
+protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
         oss << "switch_block<" << type_info<DT>::name << '>';
         return oss.str();
     }
 
-    void set_input(size_t port_num, const mt_value_t* value) override {
+public:
+    std::string get_block_name() const override {
+        return BLK_NAME_SWITCH;
+    }
+
+    void set_input(size_t port_num, const ArgumentValue* value) override {
         if (port_num == 0) {
             set_input_value<DataType::BOOL>(s_in.value_flag, value);
         } else if (port_num == 1) {
@@ -681,7 +724,7 @@ struct switch_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    void get_output(size_t port_num, mt_value_t* value) override {
+    void get_output(size_t port_num, ArgumentValue* value) const override {
         if (port_num == 0) {
             get_output_value<DT>(s_out.value, value);
         } else {
@@ -761,7 +804,7 @@ struct limiter_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    void set_input(size_t port_num, const mt_value_t* value) override {
+    void set_input(size_t port_num, const ArgumentValue* value) override {
         if (port_num == 0) {
             set_input_value<DT>(s_in.value, value);
         } else if (port_num == 1) {
@@ -773,7 +816,7 @@ struct limiter_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    void get_output(size_t port_num, mt_value_t* value) override {
+    void get_output(size_t port_num, ArgumentValue* value) const override {
         if (port_num == 0) {
             get_output_value<DT>(s_out.value, value);
         } else {
@@ -805,10 +848,16 @@ struct limiter_block MT_COMPAT_SUBCLASS {
         }
     }
 
+protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
         oss << "limiter_block<" << type_info<DT>::name << '>';
         return oss.str();
+    }
+
+public:
+    std::string get_block_name() const override {
+        return BLK_NAME_LIMITER;
     }
 #endif
 
@@ -849,9 +898,9 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    explicit limiter_block_const(const mt_value_t* upper, const mt_value_t* lower) : limiter_block_const(get_model_value<DT>(upper), get_model_value<DT>(lower)) {}
+    explicit limiter_block_const(const ArgumentValue* upper, const ArgumentValue* lower) : limiter_block_const(get_model_value<DT>(upper), get_model_value<DT>(lower)) {}
 
-    void set_input(size_t port_num, const mt_value_t* value) override {
+    void set_input(size_t port_num, const ArgumentValue* value) override {
         if (port_num == 0) {
             set_input_value<DT>(s_in.value, value);
         } else {
@@ -859,7 +908,7 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
         }
     }
 
-    void get_output(size_t port_num, mt_value_t* value) override {
+    void get_output(size_t port_num, ArgumentValue* value) const override {
         if (port_num == 0) {
             get_output_value<DT>(s_out.value, value);
         } else {
@@ -891,10 +940,16 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
         }
     }
 
+protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
         oss << "limiter_block_const<" << type_info<DT>::name << '>';
         return oss.str();
+    }
+
+public:
+    std::string get_block_name() const override {
+        return BLK_NAME_LIMITER;
     }
 #endif
 
@@ -1003,13 +1058,19 @@ struct relational_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
+protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
         oss << "relational_block<" << type_info<DT>::name << ", " << relational_to_string(OP) << '>';
         return oss.str();
     }
 
-    void set_input(size_t port_num, const mt_value_t* value) override {
+public:
+    std::string get_block_name() const override {
+        return BLK_NAME_REL;
+    }
+
+    void set_input(size_t port_num, const ArgumentValue* value) override {
         if (port_num == 0) {
             set_input_value<DT>(s_in.value_a, value);
         } else if (port_num == 0) {
@@ -1019,7 +1080,7 @@ struct relational_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    void get_output(size_t port_num, mt_value_t* value) override {
+    void get_output(size_t port_num, ArgumentValue* value) const override {
         if (port_num == 0) {
             get_output_value<DT>(s_out.value, value);
         } else {
@@ -1170,7 +1231,7 @@ struct trig_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    void set_input(size_t port_num, const mt_value_t* value) override {
+    void set_input(size_t port_num, const ArgumentValue* value) override {
         if (port_num < get_input_num()) {
             set_input_value<DT>(s_in.values[port_num], value);
         } else {
@@ -1178,7 +1239,7 @@ struct trig_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    void get_output(size_t port_num, mt_value_t* value) override {
+    void get_output(size_t port_num, ArgumentValue* value) const override {
         if (port_num == 0) {
             get_output_value<DT>(s_out.value, value);
         } else {
@@ -1210,11 +1271,18 @@ struct trig_block MT_COMPAT_SUBCLASS {
         }
     }
 
+protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
         oss << "trig_block<" << type_info<DT>::name << ", " << trig_func_to_string(FCN) << '>';
         return oss.str();
     }
+
+public:
+    std::string get_block_name() const override {
+        return BLK_NAME_TRIG;
+    }
+
 #endif
 
     input_t s_in;

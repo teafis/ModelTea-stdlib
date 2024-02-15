@@ -26,15 +26,10 @@ struct mt_value_list_t {
 
 struct mt_block_info_t {
     const char* name;
-    const char* display;
-    const char* create_flags;
-    const char* type_flags;
+    const char* sub_name;
+    int32_t create_flags;
+    int32_t type_flags;
     const mt_block_info_t* next;
-};
-
-struct mt_block_creation_t {
-    const mt_block_t* block;
-    const char* err;
 };
 
 #ifdef __cplusplus

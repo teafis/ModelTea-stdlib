@@ -172,14 +172,56 @@ enum class TrigFunction {
 };
 
 #ifdef MT_STDLIB_USE_FULL_LIB
+
+struct ArgumentValue
+{
+    virtual DataType get_type() const = 0;
+
+    virtual size_t as_size() const = 0;
+};
+
+template <DataType DT>
+struct ArgumentBox final : public ArgumentValue
+{
+    using data_t = typename type_info<DT>::type_t;
+
+    ArgumentBox() : value{} {}
+    ArgumentBox(const data_t val) : value{ val } {}
+
+    DataType get_type() const override
+    {
+        return DT;
+    }
+
+    size_t as_size() const override
+    {
+        if constexpr (type_info<DT>::is_integral) {
+            if (value >= 0)
+            {
+                return static_cast<size_t>(value);
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        else
+        {
+            throw block_error("unable to convert data type to size");
+        }
+    }
+
+    data_t value;
+};
+
 struct block_interface {
     virtual void reset();
 
     virtual void step();
 
-    virtual void set_input(size_t port_num, const mt_value_t* value) = 0;
+    virtual void set_input(size_t port_num, const ArgumentValue* value) = 0;
 
-    virtual void get_output(size_t port_num, mt_value_t* value) = 0;
+    virtual void get_output(size_t port_num, ArgumentValue* value) const = 0;
 
     virtual size_t get_input_num() const = 0;
 
@@ -191,47 +233,45 @@ struct block_interface {
 
 protected:
     template <DataType DT>
-    static type_info<DT>::type_t get_model_value(const mt_value_t* value) {
+    static typename type_info<DT>::type_t get_model_value(const ArgumentValue* value) {
         using data_t = typename type_info<DT>::type_t;
+        const auto cast_val = dynamic_cast<const ArgumentBox<DT>*>(value);
 
-        if (value == nullptr) {
+        if (cast_val == nullptr) {
             throw block_error("value cannot be nullptr");
-        } else if (value->data == nullptr) {
-            throw block_error("value data cannot be nullptr");
-        } else if (sizeof(data_t) != value->size || static_cast<DataType>(value->type) != DT) {
-            throw block_error("data types do not match for provided model value");
         }
-
-        return *static_cast<const data_t*>(value->data);
+        else {
+            return cast_val->value;
+        }
     }
 
     template <DataType DT>
-    static void set_model_value(mt_value_t* value, const type_info<DT>::type_t x) {
+    static void set_model_value(ArgumentValue* value, const typename type_info<DT>::type_t x) {
         using data_t = typename type_info<DT>::type_t;
+        auto cast_val = dynamic_cast<ArgumentBox<DT>*>(value);
 
-        if (value == nullptr) {
+        if (cast_val == nullptr) {
             throw block_error("value cannot be nullptr");
-        } else if (value->data == nullptr) {
-            throw block_error("value data cannot be nullptr");
-        } else if (sizeof(data_t) != value->size || static_cast<DataType>(value->type) != DT) {
-            throw block_error("data types do not match for provided model value");
         }
-
-        *static_cast<data_t*>(value->data) = x;
+        else {
+            cast_val->value = x;
+        }
     }
 
     template <DataType DT>
-    static void set_input_value(typename type_info<DT>::type_t& value, const mt_value_t* input) {
+    static void set_input_value(typename type_info<DT>::type_t& value, const ArgumentValue* input) {
         value = get_model_value<DT>(input);
     }
 
     template <DataType DT>
-    static void get_output_value(const typename type_info<DT>::type_t& value, mt_value_t* output) {
+    static void get_output_value(const typename type_info<DT>::type_t& value, ArgumentValue* output) {
         set_model_value<DT>(output, value);
     }
 
 public:
-    std::string get_type_name(bool include_namespace = true);
+    std::string get_type_name(bool include_namespace = true) const;
+
+    virtual std::string get_block_name() const = 0;
 
 protected:
     virtual std::string get_class_name() const = 0;

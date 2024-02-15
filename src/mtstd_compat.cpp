@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "mtstd_compat_types.h"
+
 #ifdef MT_STDLIB_USE_FULL_LIB
 
 #include "mtstd_compat.h"
@@ -11,106 +12,111 @@
 #include <utility>
 
 #include "mtstd.hpp"
+#include "mtstd_creation.hpp"
 #include "mtstd_except.hpp"
 #include "mtstd_types.hpp"
 
-const static std::string BLK_ARITH_ADD = "arith_add";
-const static std::string BLK_ARITH_SUB = "arith_sub";
-const static std::string BLK_ARITH_MUL = "arith_mul";
-const static std::string BLK_ARITH_DIV = "arith_div";
-const static std::string BLK_ARITH_MOD = "arith_mod";
-const static std::string BLK_CLOCK = "clock";
-const static std::string BLK_CONST = "constant";
-const static std::string BLK_DELAY = "delay";
-const static std::string BLK_DERIV = "derivative";
-const static std::string BLK_INTEG = "integrator";
-const static std::string BLK_SWITCH = "switch";
-const static std::string BLK_LIMITER = "limiter";
-const static std::string BLK_REL_GT = "rel_greater";
-const static std::string BLK_REL_GEQ = "rel_greater_eq";
-const static std::string BLK_REL_LT = "rel_less";
-const static std::string BLK_REL_LEQ = "rel_less_eq";
-const static std::string BLK_REL_EQ = "rel_equal";
-const static std::string BLK_REL_NEQ = "rel_not_equal";
-const static std::string BLK_TRIG_SIN = "trig_sin";
-const static std::string BLK_TRIG_COS = "trig_cos";
-const static std::string BLK_TRIG_TAN = "trig_tan";
-const static std::string BLK_TRIG_ASIN = "trig_asin";
-const static std::string BLK_TRIG_ACOS = "trig_acos";
-const static std::string BLK_TRIG_ATAN = "trig_atan";
-const static std::string BLK_TRIG_ATAN2 = "trig_atan2";
 
-struct inner_block_info {
-    inner_block_info(const std::string& name, const std::string& display, const std::string& create, const std::string& type)
-        : name(name), display(display), create_flags(create), type_flags(type) {}
+struct mt_block_t {
+    mt_block_t(std::unique_ptr<mt::stdlib::block_interface>&& interface) : block(std::move(interface)){
+        if (block == nullptr) {
+            throw mt::stdlib::block_error("unable to get block result");
+        }
+    }
 
-    const std::string name;
-    const std::string display;
-    const std::string create_flags;
-    const std::string type_flags;
+    const std::unique_ptr<mt::stdlib::block_interface> block;
 };
 
-const char* MT_TYPE_FLAGS_NUMERIC = "num";
-const char* MT_TYPE_FLAGS_FLOAT = "float";
-const char* MT_TYPE_FLAGS_ALL = "all";
+const int32_t MT_TYPE_FLAGS_NONE = static_cast<int32_t>(mt::stdlib::BlockInformation::TypeOptions::NONE);
+const int32_t MT_TYPE_FLAGS_BOOL = static_cast<int32_t>(mt::stdlib::BlockInformation::TypeOptions::BOOL);
+const int32_t MT_TYPE_FLAGS_INTEGRAL = static_cast<int32_t>(mt::stdlib::BlockInformation::TypeOptions::INTEGRAL);
+const int32_t MT_TYPE_FLAGS_NUMERIC = static_cast<int32_t>(mt::stdlib::BlockInformation::TypeOptions::NUMERIC);
+const int32_t MT_TYPE_FLAGS_FLOAT = static_cast<int32_t>(mt::stdlib::BlockInformation::TypeOptions::FLOAT);
+const int32_t MT_TYPE_FLAGS_ALL = static_cast<int32_t>(mt::stdlib::BlockInformation::TypeOptions::ALL);
 
-const char* MT_INIT_DEFAULT = "default";
-const char* MT_INIT_SIZE = "size";
-const char* MT_INIT_VALUE = "val";
+const int32_t MT_INIT_DEFAULT = static_cast<int32_t>(mt::stdlib::BlockInformation::ConstructorOptions::DEFAULT);
+const int32_t MT_INIT_SIZE = static_cast<int32_t>(mt::stdlib::BlockInformation::ConstructorOptions::SIZE);
+const int32_t MT_INIT_VALUE = static_cast<int32_t>(mt::stdlib::BlockInformation::ConstructorOptions::VALUE);
 
-const static std::unordered_map<std::string, inner_block_info> BLK_INFOS{
-    {BLK_ARITH_ADD, inner_block_info(BLK_ARITH_ADD, "+", MT_INIT_SIZE, MT_TYPE_FLAGS_NUMERIC)},
-    {BLK_ARITH_SUB, inner_block_info(BLK_ARITH_SUB, "-", MT_INIT_SIZE, MT_TYPE_FLAGS_NUMERIC)},
-    {BLK_ARITH_MUL, inner_block_info(BLK_ARITH_MUL, "*", MT_INIT_SIZE, MT_TYPE_FLAGS_NUMERIC)},
-    {BLK_ARITH_DIV, inner_block_info(BLK_ARITH_DIV, "/", MT_INIT_SIZE, MT_TYPE_FLAGS_NUMERIC)},
-    {BLK_ARITH_MOD, inner_block_info(BLK_ARITH_MOD, "%", MT_INIT_SIZE, MT_TYPE_FLAGS_NUMERIC)},
-    {BLK_CLOCK, inner_block_info(BLK_CLOCK, "clock", MT_INIT_VALUE, MT_TYPE_FLAGS_NUMERIC)},
-    {BLK_CONST, inner_block_info(BLK_CONST, "const", MT_INIT_VALUE, MT_TYPE_FLAGS_ALL)},
-    {BLK_DELAY, inner_block_info(BLK_DELAY, "delay", MT_INIT_DEFAULT, MT_TYPE_FLAGS_ALL)},
-    {BLK_DERIV, inner_block_info(BLK_DERIV, "deriv", MT_INIT_VALUE, MT_TYPE_FLAGS_FLOAT)},
-    {BLK_INTEG, inner_block_info(BLK_INTEG, "integ", MT_INIT_VALUE, MT_TYPE_FLAGS_FLOAT)},
-    {BLK_SWITCH, inner_block_info(BLK_SWITCH, "switch", MT_INIT_DEFAULT, MT_TYPE_FLAGS_ALL)},
-    {BLK_LIMITER, inner_block_info(BLK_LIMITER, "limit", MT_INIT_DEFAULT, MT_TYPE_FLAGS_NUMERIC)},
-    {BLK_REL_GT, inner_block_info(BLK_REL_GT, ">", MT_INIT_DEFAULT, MT_TYPE_FLAGS_NUMERIC)},
-    {BLK_REL_GEQ, inner_block_info(BLK_REL_GEQ, ">=", MT_INIT_DEFAULT, MT_TYPE_FLAGS_NUMERIC)},
-    {BLK_REL_LT, inner_block_info(BLK_REL_LT, "<", MT_INIT_DEFAULT, MT_TYPE_FLAGS_NUMERIC)},
-    {BLK_REL_LEQ, inner_block_info(BLK_REL_LEQ, "<=", MT_INIT_DEFAULT, MT_TYPE_FLAGS_NUMERIC)},
-    {BLK_REL_EQ, inner_block_info(BLK_REL_EQ, "==", MT_INIT_DEFAULT, MT_TYPE_FLAGS_ALL)},
-    {BLK_REL_NEQ, inner_block_info(BLK_REL_NEQ, "!=", MT_INIT_DEFAULT, MT_TYPE_FLAGS_ALL)},
-    {BLK_TRIG_SIN, inner_block_info(BLK_TRIG_SIN, "sin", MT_INIT_DEFAULT, MT_TYPE_FLAGS_FLOAT)},
-    {BLK_TRIG_COS, inner_block_info(BLK_TRIG_COS, "cos", MT_INIT_DEFAULT, MT_TYPE_FLAGS_FLOAT)},
-    {BLK_TRIG_TAN, inner_block_info(BLK_TRIG_TAN, "tan", MT_INIT_DEFAULT, MT_TYPE_FLAGS_FLOAT)},
-    {BLK_TRIG_ASIN, inner_block_info(BLK_TRIG_ASIN, "asin", MT_INIT_DEFAULT, MT_TYPE_FLAGS_FLOAT)},
-    {BLK_TRIG_ACOS, inner_block_info(BLK_TRIG_ACOS, "acos", MT_INIT_DEFAULT, MT_TYPE_FLAGS_FLOAT)},
-    {BLK_TRIG_ATAN, inner_block_info(BLK_TRIG_ATAN, "atan", MT_INIT_DEFAULT, MT_TYPE_FLAGS_FLOAT)},
-    {BLK_TRIG_ATAN2, inner_block_info(BLK_TRIG_ATAN2, "atan2", MT_INIT_DEFAULT, MT_TYPE_FLAGS_FLOAT)},
-};
 
 const mt_block_info_t* mt_stdlib_info_init() {
     // Initialize several iteration parameters
-    mt_block_info_t* first = nullptr;
-    mt_block_info_t* current = nullptr;
+    std::vector<std::unique_ptr<mt_block_info_t>> blocks;
 
-    for (const auto& kv : BLK_INFOS) {
+    thread_local const std::vector<std::string> EMPTY_NAME = { "" };
+
+    // Create a block for each element
+    for (const auto& base_info : mt::stdlib::get_available_blocks()) {
         // Create the info parameter
-        auto info = new mt_block_info_t{};
-        info->name = kv.second.name.c_str();
-        info->create_flags = kv.second.create_flags.c_str();
-        info->type_flags = kv.second.type_flags.c_str();
-        info->display = kv.second.display.c_str();
-        info->next = nullptr;
+        auto info = std::make_unique<mt_block_info_t>();
+        info->name = base_info.base_name.c_str();
+        info->sub_name = base_info.sub_name.c_str();
 
-        // Set the first parameters if on the first loop
-        if (first == nullptr) {
-            first = info;
-            current = info;
+        switch (base_info.constructor)
+        {
+            using enum mt::stdlib::BlockInformation::ConstructorOptions;
+        case DEFAULT:
+            info->create_flags = MT_INIT_DEFAULT;
+            break;
+        case VALUE:
+            info->create_flags = MT_INIT_VALUE;
+            break;
+        case SIZE:
+            info->create_flags = MT_INIT_SIZE;
+            break;
+        default:
+            return nullptr;
         }
 
-        // Add info to the list
-        current->next = info;
+        switch (base_info.types)
+        {
+            using enum mt::stdlib::BlockInformation::TypeOptions;
+        case NONE:
+            info->type_flags = MT_TYPE_FLAGS_NONE;
+            break;
+        case FLOAT:
+            info->type_flags = MT_TYPE_FLAGS_FLOAT;
+            break;
+        case INTEGRAL:
+            info->type_flags = MT_TYPE_FLAGS_INTEGRAL;
+            break;
+        case NUMERIC:
+            info->type_flags = MT_TYPE_FLAGS_NUMERIC;
+            break;
+        case BOOL:
+            info->type_flags = MT_TYPE_FLAGS_BOOL;
+            break;
+        case ALL:
+            info->type_flags = MT_TYPE_FLAGS_ALL;
+            break;
+        default:
+            return nullptr;
+        }
 
-        // Set current to the next item in the list
-        current = const_cast<mt_block_info_t*>(current->next);
+        info->next = nullptr;
+        blocks.emplace_back(std::move(info));
+    }
+
+    // Combine into a linked list
+    mt_block_info_t* first = nullptr;
+    mt_block_info_t* last = nullptr;
+
+    for (auto& ptr : blocks)
+    {
+        mt_block_info_t* current = ptr.release();
+        current->next = nullptr;
+
+        if (first == nullptr)
+        {
+            first = current;
+        }
+
+        if (last != nullptr)
+        {
+            last->next = current;
+        }
+
+        last = current;
     }
 
     // Return the result
@@ -157,364 +163,149 @@ uint32_t mt_stdlib_type_size(uint32_t data_type) {
     }
 }
 
-static const char* MT_ERROR_NONE = "";
-static const char* MT_ERROR_UNKNOWN_DTYPE = "unknown data type";
-static const char* MT_ERROR_UNSUPPORTED_DTYPE = "unsupported data type";
-static const char* MT_ERROR_DTYPE_IS_NOT_ARITH = "data type is not arithmetic";
-static const char* MT_ERROR_UNKNOWN_ERROR = "unknown error";
-static const char* MT_ERROR_UNKNOWN_BLOCK_NAME = "unknown block name";
-static const char* MT_ERROR_NULLPTR_PROVIDED = "nullptr provided";
-static const char* MT_ERROR_BUFFER_TOO_SMALL = "buffer too small";
+template <mt::stdlib::DataType DT>
+static std::unique_ptr<mt::stdlib::ArgumentBox<DT>> make_arg_type(const mt_value_t& value)
+{
+    using namespace mt::stdlib;
 
-struct mt_error_message : public mt::stdlib::block_error {
-    mt_error_message(const char* err) : mt::stdlib::block_error(err), err{err} {}
-
-    const char* err;
-};
-
-struct mt_block_t {
-    mt_block_t(mt::stdlib::block_interface* interface) {
-        if (interface == nullptr) {
-            throw mt_error_message(MT_ERROR_NULLPTR_PROVIDED);
-        }
-        block = std::unique_ptr<mt::stdlib::block_interface>(interface);
+    if (value.size != mt_stdlib_type_size(value.type) || static_cast<DataType>(value.type) != DT || value.data == nullptr)
+    {
+        return nullptr;
     }
+    else
+    {
+        return std::make_unique<ArgumentBox<DT>>(*static_cast<const ArgumentBox<DT>::data_t*>(value.data));
+    }
+}
 
-    std::unique_ptr<mt::stdlib::block_interface> block;
-};
+static std::unique_ptr<mt::stdlib::ArgumentValue> make_arg(const mt_value_t& value)
+{
+    using namespace mt::stdlib;
+
+    DataType dt = static_cast<DataType>(value.type);
+
+    switch (dt)
+    {
+        using enum DataType;
+    case BOOL:
+        return make_arg_type<BOOL>(value);
+    case U8:
+        return make_arg_type<U8>(value);
+    case I8:
+        return make_arg_type<I8>(value);
+    case U16:
+        return make_arg_type<U16>(value);
+    case I16:
+        return make_arg_type<I16>(value);
+    case U32:
+        return make_arg_type<U32>(value);
+    case I32:
+        return make_arg_type<I32>(value);
+    case F32:
+        return make_arg_type<F32>(value);
+    case F64:
+        return make_arg_type<F64>(value);
+    default:
+        return nullptr;
+    }
+}
 
 template <mt::stdlib::DataType DT>
-struct model_arith_block : public mt_block_t {
-    using data_t = typename mt::stdlib::type_info<DT>::type_t;
+static bool set_arg_type(const mt_value_t& value, const mt::stdlib::ArgumentValue* arg)
+{
+    using namespace mt::stdlib;
+    auto cast_arg = dynamic_cast<const mt::stdlib::ArgumentBox<DT>*>(arg);
 
-    model_arith_block(mt::stdlib::block_interface* interface, size_t size) : mt_block_t(interface) {
-        data = std::unique_ptr<data_t[]>(new data_t[size]);
+    if (value.size != mt_stdlib_type_size(value.type) || static_cast<DataType>(value.type) != DT || value.data == nullptr || cast_arg == nullptr)
+    {
+        return false;
     }
-
-    std::unique_ptr<data_t[]> data;
-};
-
-template <template <mt::stdlib::DataType> class BLK, class TYPES, typename... Args>
-static mt_block_creation_t create_block_of_type(const uint32_t data_type, Args&&... args) {
-    const auto dt = static_cast<mt::stdlib::DataType>(data_type);
-    mt::stdlib::block_interface* ptr = nullptr;
-
-    try {
-        if constexpr (TYPES::uses_integral) {
-            switch (dt) {
-            case mt::stdlib::DataType::U8:
-                ptr = new BLK<mt::stdlib::DataType::U8>(std::forward<Args>(args)...);
-                break;
-            case mt::stdlib::DataType::I8:
-                ptr = new BLK<mt::stdlib::DataType::I8>(std::forward<Args>(args)...);
-                break;
-            case mt::stdlib::DataType::U16:
-                ptr = new BLK<mt::stdlib::DataType::U16>(std::forward<Args>(args)...);
-                break;
-            case mt::stdlib::DataType::I16:
-                ptr = new BLK<mt::stdlib::DataType::I16>(std::forward<Args>(args)...);
-                break;
-            case mt::stdlib::DataType::U32:
-                ptr = new BLK<mt::stdlib::DataType::U32>(std::forward<Args>(args)...);
-                break;
-            case mt::stdlib::DataType::I32:
-                ptr = new BLK<mt::stdlib::DataType::I32>(std::forward<Args>(args)...);
-                break;
-            default:
-                break;
-            }
-        }
-
-        if constexpr (TYPES::uses_float) {
-            switch (dt) {
-            case mt::stdlib::DataType::F32:
-                ptr = new BLK<mt::stdlib::DataType::F32>(std::forward<Args>(args)...);
-                break;
-            case mt::stdlib::DataType::F64:
-                ptr = new BLK<mt::stdlib::DataType::F64>(std::forward<Args>(args)...);
-                break;
-            default:
-                break;
-            }
-        }
-
-        if constexpr (TYPES::uses_logical) {
-            switch (dt) {
-            case mt::stdlib::DataType::BOOL:
-                ptr = new BLK<mt::stdlib::DataType::BOOL>(std::forward<Args>(args)...);
-                break;
-            default:
-                break;
-            }
-        }
-
-        if (ptr == nullptr) {
-            return mt_block_creation_t{
-                .block = nullptr,
-                .err = MT_ERROR_UNKNOWN_DTYPE,
-            };
-        } else {
-            return mt_block_creation_t{
-                .block = new mt_block_t(ptr),
-                .err = nullptr,
-            };
-        }
-
-    } catch (const mt_error_message& err) {
-        return mt_block_creation_t{
-            .block = nullptr,
-            .err = err.err,
-        };
-    } catch (const mt::stdlib::block_error& err) {
-        return mt_block_creation_t{
-            .block = nullptr,
-            .err = MT_ERROR_UNKNOWN_ERROR,
-        };
+    else
+    {
+        *static_cast<typename type_info<DT>::type_t*>(value.data) = cast_arg->value;
+        return true;
     }
 }
 
-struct StandardBlockFunctor {
-    template <mt::stdlib::DataType DT>
-    using blk_rel_eq = mt::stdlib::relational_block<DT, mt::stdlib::RelationalOperator::EQUAL>;
+static bool set_arg(mt_value_t& value, const mt::stdlib::ArgumentValue* arg)
+{
+    using namespace mt::stdlib;
 
-    template <mt::stdlib::DataType DT>
-    using blk_rel_neq = mt::stdlib::relational_block<DT, mt::stdlib::RelationalOperator::NOT_EQUAL>;
+    DataType dt = static_cast<DataType>(value.type);
 
-    template <mt::stdlib::DataType DT>
-    using blk_rel_gt = mt::stdlib::relational_block<DT, mt::stdlib::RelationalOperator::GREATER_THAN>;
-
-    template <mt::stdlib::DataType DT>
-    using blk_rel_geq = mt::stdlib::relational_block<DT, mt::stdlib::RelationalOperator::GREATER_THAN_EQUAL>;
-
-    template <mt::stdlib::DataType DT>
-    using blk_rel_lt = mt::stdlib::relational_block<DT, mt::stdlib::RelationalOperator::LESS_THAN>;
-
-    template <mt::stdlib::DataType DT>
-    using blk_rel_leq = mt::stdlib::relational_block<DT, mt::stdlib::RelationalOperator::LESS_THAN_EQUAL>;
-
-    template <mt::stdlib::DataType DT>
-    using blk_trig_sin = mt::stdlib::trig_block<DT, mt::stdlib::TrigFunction::SIN>;
-
-    template <mt::stdlib::DataType DT>
-    using blk_trig_cos = mt::stdlib::trig_block<DT, mt::stdlib::TrigFunction::COS>;
-
-    template <mt::stdlib::DataType DT>
-    using blk_trig_tan = mt::stdlib::trig_block<DT, mt::stdlib::TrigFunction::TAN>;
-
-    template <mt::stdlib::DataType DT>
-    using blk_trig_asin = mt::stdlib::trig_block<DT, mt::stdlib::TrigFunction::ASIN>;
-
-    template <mt::stdlib::DataType DT>
-    using blk_trig_acos = mt::stdlib::trig_block<DT, mt::stdlib::TrigFunction::ACOS>;
-
-    template <mt::stdlib::DataType DT>
-    using blk_trig_atan = mt::stdlib::trig_block<DT, mt::stdlib::TrigFunction::ATAN>;
-
-    template <mt::stdlib::DataType DT>
-    using blk_trig_atan2 = mt::stdlib::trig_block<DT, mt::stdlib::TrigFunction::ATAN2>;
-
-    mt_block_creation_t operator()(const uint64_t data_type, const std::string& name) {
-        mt::stdlib::block_interface* inter = nullptr;
-
-        if (name == BLK_DELAY) {
-            return create_block_of_type<mt::stdlib::delay_block, mt::stdlib::delay_block_types>(data_type);
-        } else if (name == BLK_SWITCH) {
-            return create_block_of_type<mt::stdlib::switch_block, mt::stdlib::switch_block_types>(data_type);
-        } else if (name == BLK_LIMITER) {
-            return create_block_of_type<mt::stdlib::limiter_block, mt::stdlib::limiter_block_types>(data_type);
-        } else if (name == BLK_REL_EQ) {
-            return create_block_of_type<blk_rel_eq, mt::stdlib::relational_block_types<mt::stdlib::RelationalOperator::EQUAL>>(data_type);
-        } else if (name == BLK_REL_NEQ) {
-            return create_block_of_type<blk_rel_neq, mt::stdlib::relational_block_types<mt::stdlib::RelationalOperator::NOT_EQUAL>>(data_type);
-        } else if (name == BLK_REL_GT) {
-            return create_block_of_type<blk_rel_gt, mt::stdlib::relational_block_types<mt::stdlib::RelationalOperator::GREATER_THAN>>(data_type);
-        } else if (name == BLK_REL_GEQ) {
-            return create_block_of_type<blk_rel_geq, mt::stdlib::relational_block_types<mt::stdlib::RelationalOperator::GREATER_THAN_EQUAL>>(data_type);
-        } else if (name == BLK_REL_LT) {
-            return create_block_of_type<blk_rel_lt, mt::stdlib::relational_block_types<mt::stdlib::RelationalOperator::LESS_THAN>>(data_type);
-        } else if (name == BLK_REL_LEQ) {
-            return create_block_of_type<blk_rel_leq, mt::stdlib::relational_block_types<mt::stdlib::RelationalOperator::LESS_THAN_EQUAL>>(data_type);
-        } else if (name == BLK_TRIG_SIN) {
-            return create_block_of_type<blk_trig_sin, mt::stdlib::trig_block_types>(data_type);
-        } else if (name == BLK_TRIG_COS) {
-            return create_block_of_type<blk_trig_cos, mt::stdlib::trig_block_types>(data_type);
-        } else if (name == BLK_TRIG_TAN) {
-            return create_block_of_type<blk_trig_tan, mt::stdlib::trig_block_types>(data_type);
-        } else if (name == BLK_TRIG_ASIN) {
-            return create_block_of_type<blk_trig_asin, mt::stdlib::trig_block_types>(data_type);
-        } else if (name == BLK_TRIG_ACOS) {
-            return create_block_of_type<blk_trig_acos, mt::stdlib::trig_block_types>(data_type);
-        } else if (name == BLK_TRIG_ATAN) {
-            return create_block_of_type<blk_trig_atan, mt::stdlib::trig_block_types>(data_type);
-        } else if (name == BLK_TRIG_ATAN2) {
-            return create_block_of_type<blk_trig_atan2, mt::stdlib::trig_block_types>(data_type);
-        } else {
-            throw mt_error_message(MT_ERROR_UNKNOWN_BLOCK_NAME);
-        }
-    }
-};
-
-struct SingleArgConstructor {
-    mt_block_creation_t operator()(const std::string& name, const mt_value_t* val) {
-        if (val == nullptr || val->data == nullptr) {
-            throw mt_error_message(MT_ERROR_NULLPTR_PROVIDED);
-        }
-
-        if (name == BLK_DERIV) {
-            return create_block_of_type<mt::stdlib::derivative_block, mt::stdlib::derivative_block_types>(val->type, val);
-        } else if (name == BLK_INTEG) {
-            return create_block_of_type<mt::stdlib::integrator_block, mt::stdlib::integrator_block_types>(val->type, val);
-        } else if (name == BLK_CONST) {
-            return create_block_of_type<mt::stdlib::const_block, mt::stdlib::const_block_types>(val->type, val);
-        } else if (name == BLK_CLOCK) {
-            return create_block_of_type<mt::stdlib::clock_block, mt::stdlib::clock_block_types>(val->type, val);
-        } else {
-            throw mt_error_message(MT_ERROR_UNKNOWN_BLOCK_NAME);
-        }
-    }
-};
-
-template <mt::stdlib::DataType DT>
-struct ArithmeticBlockFunctor {
-    template <mt::stdlib::ArithType AT>
-    static mt_block_t* create_arith_block(const size_t size) {
-        if constexpr (mt::stdlib::type_info<DT>::is_numeric) {
-            auto arith = new mt::stdlib::arith_block_dynamic<DT, AT>();
-            auto ptr = new model_arith_block<DT>(arith, size);
-            arith->s_in.size = size;
-            arith->s_in.values = ptr->data.get();
-            return ptr;
-        } else {
-            throw mt_error_message(MT_ERROR_DTYPE_IS_NOT_ARITH);
-        }
-    }
-
-    mt_block_t* operator()(const std::string& name, const size_t size) {
-        if (name == BLK_ARITH_ADD) {
-            return create_arith_block<mt::stdlib::ArithType::ADD>(size);
-        } else if (name == BLK_ARITH_SUB) {
-            return create_arith_block<mt::stdlib::ArithType::SUB>(size);
-        } else if (name == BLK_ARITH_MUL) {
-            return create_arith_block<mt::stdlib::ArithType::MUL>(size);
-        } else if (name == BLK_ARITH_DIV) {
-            return create_arith_block<mt::stdlib::ArithType::DIV>(size);
-        } else if (name == BLK_ARITH_MOD) {
-            return create_arith_block<mt::stdlib::ArithType::MOD>(size);
-        } else {
-            throw mt_error_message(MT_ERROR_UNKNOWN_BLOCK_NAME);
-        }
-    }
-};
-
-template <template <mt::stdlib::DataType> class FCN, bool USE_INTEG, bool USE_FLOAT, bool USE_OTHER, typename... Args>
-static mt_block_creation_t create_block_with_type_inner(const uint32_t data_type, Args&&... args) {
-    const auto dt = static_cast<mt::stdlib::DataType>(data_type);
-    mt_block_t* ptr = nullptr;
-
-    try {
-        if constexpr (USE_INTEG) {
-            switch (dt) {
-            case mt::stdlib::DataType::U8:
-                ptr = FCN<mt::stdlib::DataType::U8>()(std::forward<Args>(args)...);
-                break;
-            case mt::stdlib::DataType::I8:
-                ptr = FCN<mt::stdlib::DataType::I8>()(std::forward<Args>(args)...);
-                break;
-            case mt::stdlib::DataType::U16:
-                ptr = FCN<mt::stdlib::DataType::U16>()(std::forward<Args>(args)...);
-                break;
-            case mt::stdlib::DataType::I16:
-                ptr = FCN<mt::stdlib::DataType::I16>()(std::forward<Args>(args)...);
-                break;
-            case mt::stdlib::DataType::U32:
-                ptr = FCN<mt::stdlib::DataType::U32>()(std::forward<Args>(args)...);
-                break;
-            case mt::stdlib::DataType::I32:
-                ptr = FCN<mt::stdlib::DataType::I32>()(std::forward<Args>(args)...);
-                break;
-            default:
-                break;
-            }
-        }
-
-        if constexpr (USE_FLOAT) {
-            switch (dt) {
-            case mt::stdlib::DataType::F32:
-                ptr = FCN<mt::stdlib::DataType::F32>()(std::forward<Args>(args)...);
-                break;
-            case mt::stdlib::DataType::F64:
-                ptr = FCN<mt::stdlib::DataType::F64>()(std::forward<Args>(args)...);
-                break;
-            default:
-                break;
-            }
-        }
-
-        if constexpr (USE_OTHER) {
-            switch (dt) {
-            case mt::stdlib::DataType::BOOL:
-                ptr = FCN<mt::stdlib::DataType::BOOL>()(std::forward<Args>(args)...);
-                break;
-            default:
-                break;
-            }
-        }
-
-        if (ptr == nullptr) {
-            return mt_block_creation_t{
-                .block = nullptr,
-                .err = MT_ERROR_UNKNOWN_DTYPE,
-            };
-        } else {
-            return mt_block_creation_t{
-                .block = ptr,
-                .err = nullptr,
-            };
-        }
-
-    } catch (const mt_error_message& err) {
-        return mt_block_creation_t{
-            .block = nullptr,
-            .err = err.err,
-        };
+    switch (dt)
+    {
+        using enum DataType;
+    case BOOL:
+        return set_arg_type<BOOL>(value, arg);
+    case U8:
+        return set_arg_type<U8>(value, arg);
+    case I8:
+        return set_arg_type<I8>(value, arg);
+    case U16:
+        return set_arg_type<U16>(value, arg);
+    case I16:
+        return set_arg_type<I16>(value, arg);
+    case U32:
+        return set_arg_type<U32>(value, arg);
+    case I32:
+        return set_arg_type<I32>(value, arg);
+    case F32:
+        return set_arg_type<F32>(value, arg);
+    case F64:
+        return set_arg_type<F64>(value, arg);
+    default:
+        return false;
     }
 }
 
-mt_block_creation_t mt_stdlib_blk_create(const char* name, uint32_t data_type) {
-    auto it = BLK_INFOS.find(name);
-    if (it == BLK_INFOS.end()) {
-        return mt_block_creation_t{
-            .block = nullptr,
-            .err = MT_ERROR_UNKNOWN_BLOCK_NAME,
-        };
+mt_block_t* mt_stdlib_blk_create(const char* name, const char* sub_name, uint32_t data_type) {
+    if (name == nullptr || sub_name == nullptr)
+    {
+        return nullptr;
     }
 
-    try {
-        return StandardBlockFunctor()(data_type, name);
-    } catch (const mt_error_message& msg) {
-        return mt_block_creation_t{
-            .block = nullptr,
-            .err = msg.err};
-    } catch (const mt::stdlib::block_error&) {
-        return mt_block_creation_t{
-            .block = nullptr,
-            .err = MT_ERROR_UNKNOWN_ERROR};
+    try
+    {
+        return new mt_block_t(mt::stdlib::create_block(name, sub_name, static_cast<mt::stdlib::DataType>(data_type), nullptr));
+    }
+    catch (const mt::stdlib::block_error& err)
+    {
+        return nullptr;
     }
 }
 
-mt_block_creation_t mt_stdlib_blk_create_with_size(const char* name, uint32_t data_type, uint32_t size) {
-    return create_block_with_type_inner<ArithmeticBlockFunctor, true, true, false>(data_type, name, size);
-}
-
-mt_block_creation_t mt_stdlib_blk_create_with_value(const char* name, const mt_value_t* value) {
-    if (value == nullptr) {
-        return mt_block_creation_t{
-            .block = nullptr,
-            .err = MT_ERROR_NULLPTR_PROVIDED,
-        };
+mt_block_t* mt_stdlib_blk_create_with_size(const char* name, const char* sub_name, uint32_t data_type, uint32_t size) {
+    if (name == nullptr || sub_name == nullptr)
+    {
+        return nullptr;
     }
 
-    return SingleArgConstructor()(name, value);
+    try
+    {
+        const auto arg = std::make_unique<mt::stdlib::ArgumentBox<mt::stdlib::DataType::U32>>(size);
+        return new mt_block_t(mt::stdlib::create_block(name, sub_name, static_cast<mt::stdlib::DataType>(data_type), arg.get()));
+    }
+    catch (const mt::stdlib::block_error& err)
+    {
+        return nullptr;
+    }
+}
+
+mt_block_t* mt_stdlib_blk_create_with_value(const char* name, const char* sub_name, const mt_value_t* value) {
+    if (name == nullptr || sub_name == nullptr || value == nullptr)
+    {
+        return nullptr;
+    }
+
+    try
+    {
+        return new mt_block_t(mt::stdlib::create_block(name, sub_name, static_cast<mt::stdlib::DataType>(value->type), make_arg(*value).get()));
+    }
+    catch (const mt::stdlib::block_error& err)
+    {
+        return nullptr;
+    }
 }
 
 void mt_stdlib_blk_destroy(const mt_block_t* blk) {
@@ -531,11 +322,11 @@ void mt_stdlib_blk_step(mt_block_t* blk) {
 
 void mt_stdlib_blk_reset(mt_block_t* blk) {
     if (blk != nullptr) {
-        blk->block.reset();
+        blk->block->reset();
     }
 }
 
-static uint32_t block_get_name(const mt_block_t* blk, char* str, const uint32_t buffer_size, const bool include_namespace) {
+static int32_t block_get_name(const mt_block_t* blk, char* str, const uint32_t buffer_size, const bool include_namespace) {
     if (blk == nullptr) {
         return 0;
     }
@@ -543,8 +334,9 @@ static uint32_t block_get_name(const mt_block_t* blk, char* str, const uint32_t 
     const auto name = blk->block->get_type_name(include_namespace);
     if (name.size() + 1 < buffer_size) {
         const auto last = std::strncpy(str, name.c_str(), std::min(static_cast<uint32_t>(name.size() + 1), buffer_size));
-        return last - str;
-    } else {
+        return static_cast<int32_t>(last - str);
+    }
+    else {
         return 0;
     }
 }
@@ -563,9 +355,10 @@ int32_t mt_stdlib_blk_set_input(mt_block_t* blk, uint32_t port_num, const mt_val
     }
 
     try {
-        blk->block->set_input(port_num, value);
+        blk->block->set_input(port_num, make_arg(*value).get());
         return 1;
-    } catch (const mt::stdlib::block_error&) {
+    }
+    catch (const mt::stdlib::block_error&) {
         return 0;
     }
 }
@@ -576,9 +369,12 @@ int32_t mt_stdlib_blk_get_output(const mt_block_t* blk, uint32_t port_num, mt_va
     }
 
     try {
-        blk->block->get_output(port_num, value);
+        auto ptr_val = make_arg(*value);
+        blk->block->get_output(port_num, ptr_val.get());
+        set_arg(*value, ptr_val.get());
         return 1;
-    } catch (const mt::stdlib::block_error&) {
+    }
+    catch (const mt::stdlib::block_error&) {
         return 0;
     }
 }
