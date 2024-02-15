@@ -231,6 +231,8 @@ struct block_interface {
 
     virtual DataType get_output_type(size_t port_num) const = 0;
 
+    virtual bool get_input_type_settable(size_t port_num) const = 0;
+
 protected:
     template <DataType DT>
     static typename type_info<DT>::type_t get_model_value(const ArgumentValue* value) {

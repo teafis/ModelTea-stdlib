@@ -131,6 +131,10 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
         return s_in.size;
     }
 
+    bool get_input_type_settable(size_t port_num) const override {
+        return port_num < get_input_num();
+    }
+
     size_t get_output_num() const override {
         return 1;
     }
@@ -239,6 +243,10 @@ struct clock_block MT_COMPAT_SUBCLASS {
 
     size_t get_input_num() const override { return 0; }
 
+    bool get_input_type_settable(size_t port_num) const override {
+        return false;
+    }
+
     size_t get_output_num() const override { return 1; }
 
     DataType get_input_type(size_t port_num) const override {
@@ -313,6 +321,10 @@ struct const_block MT_COMPAT_SUBCLASS {
         return 0;
     }
 
+    bool get_input_type_settable(size_t port_num) const override {
+        return false;
+    }
+
     size_t get_output_num() const override {
         return 1;
     }
@@ -384,12 +396,16 @@ struct delay_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
+    static const size_t PORT_VALUE_NUM = 0;
+    static const size_t PORT_RESET_NUM = 1;
+    static const size_t PORT_FLAG_NUM = 2;
+
     void set_input(size_t port_num, const ArgumentValue* value) override {
-        if (port_num == 0) {
+        if (port_num == PORT_VALUE_NUM) {
             set_input_value<DT>(s_in.value, value);
-        } else if (port_num == 1) {
+        } else if (port_num == PORT_RESET_NUM) {
             set_input_value<DT>(s_in.reset, value);
-        } else if (port_num == 2) {
+        } else if (port_num == PORT_FLAG_NUM) {
             set_input_value<DataType::BOOL>(s_in.reset_flag, value);
         } else {
             throw block_error("input port too high");
@@ -406,6 +422,10 @@ struct delay_block MT_COMPAT_SUBCLASS {
 
     size_t get_input_num() const override {
         return 3;
+    }
+
+    bool get_input_type_settable(size_t port_num) const override {
+        return port_num < PORT_FLAG_NUM;
     }
 
     size_t get_output_num() const override {
@@ -516,6 +536,10 @@ struct derivative_block MT_COMPAT_SUBCLASS {
         return 2;
     }
 
+    bool get_input_type_settable(size_t port_num) const override {
+        return port_num == 0;
+    }
+
     size_t get_output_num() const override {
         return 1;
     }
@@ -600,12 +624,16 @@ struct integrator_block MT_COMPAT_SUBCLASS {
 #ifdef MT_STDLIB_USE_FULL_LIB
     explicit integrator_block(const ArgumentValue* dt) : integrator_block(get_model_value<DT>(dt)) {}
 
+    static const size_t PORT_VALUE_NUM = 0;
+    static const size_t PORT_RESET_NUM = 1;
+    static const size_t PORT_FLAG_NUM = 2;
+
     void set_input(size_t port_num, const ArgumentValue* value) override {
-        if (port_num == 0) {
+        if (port_num == PORT_VALUE_NUM) {
             set_input_value<DT>(s_in.value, value);
-        } else if (port_num == 1) {
+        } else if (port_num == PORT_RESET_NUM) {
             set_input_value<DT>(s_in.reset, value);
-        } else if (port_num == 2) {
+        } else if (port_num == PORT_FLAG_NUM) {
             set_input_value<DataType::BOOL>(s_in.reset_flag, value);
         } else {
             throw block_error("input port too high");
@@ -622,6 +650,10 @@ struct integrator_block MT_COMPAT_SUBCLASS {
 
     size_t get_input_num() const override {
         return 3;
+    }
+
+    bool get_input_type_settable(size_t port_num) const override {
+        return port_num < PORT_FLAG_NUM;
     }
 
     size_t get_output_num() const override {
@@ -738,6 +770,10 @@ public:
         return 3;
     }
 
+    bool get_input_type_settable(size_t port_num) const override {
+        return port_num < get_input_num() && port_num != 0;
+    }
+
     size_t get_output_num() const override {
         return 1;
     }
@@ -830,6 +866,10 @@ struct limiter_block MT_COMPAT_SUBCLASS {
         return 3;
     }
 
+    bool get_input_type_settable(size_t port_num) const override {
+        return port_num < get_input_num();
+    }
+
     size_t get_output_num() const override {
         return 1;
     }
@@ -920,6 +960,10 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
 
     size_t get_input_num() const override {
         return 1;
+    }
+
+    bool get_input_type_settable(size_t port_num) const override {
+        return port_num < get_input_num();
     }
 
     size_t get_output_num() const override {
@@ -1094,6 +1138,10 @@ public:
         return 2;
     }
 
+    bool get_input_type_settable(size_t port_num) const override {
+        return port_num < get_input_num();
+    }
+
     size_t get_output_num() const override {
         return 1;
     }
@@ -1251,6 +1299,10 @@ struct trig_block MT_COMPAT_SUBCLASS {
 
     size_t get_input_num() const override {
         return TrigInfo<FCN>::input_count;
+    }
+
+    bool get_input_type_settable(size_t port_num) const override {
+        return port_num < get_input_num();
     }
 
     size_t get_output_num() const override {
