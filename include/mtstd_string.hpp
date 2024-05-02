@@ -45,7 +45,6 @@ extern const std::string BLK_SUB_NAME_TRIG_ACOS;
 extern const std::string BLK_SUB_NAME_TRIG_ATAN;
 extern const std::string BLK_SUB_NAME_TRIG_ATAN2;
 
-
 enum class SpecificationType {
     NONE,
     TYPE,

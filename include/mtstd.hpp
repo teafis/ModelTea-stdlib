@@ -7,7 +7,6 @@
 #include <cstddef>
 #include <sstream>
 
-#include "mtstd_compat_types.h"
 #include "mtstd_except.hpp"
 #include "mtstd_ext.hpp"
 #include "mtstd_types.hpp"
@@ -20,7 +19,7 @@
 namespace mt {
 namespace stdlib {
 
-#if MT_STDLIB_USE_FULL_LIB
+#ifdef MT_STDLIB_USE_FULL_LIB
 #define MT_COMPAT_SUBCLASS : public block_interface
 #define MT_COMPAT_OVERRIDE override
 #else
@@ -75,9 +74,9 @@ struct ArithOperation<DT, ArithType::MOD> {
 
 #ifdef MT_STDLIB_USE_FULL_LIB
 struct arith_block_types {
-    static const bool uses_integral = true;
-    static const bool uses_float = true;
-    static const bool uses_logical = false;
+    static constexpr bool uses_integral = true;
+    static constexpr bool uses_float = true;
+    static constexpr bool uses_logical = false;
 };
 #endif // MT_STDLIB_USE_FULL_LIB
 
@@ -111,7 +110,20 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    void set_input(size_t port_num, const ArgumentValue* value) override {
+    using type_info_t = arith_block_types;
+    block_types get_supported_types() const noexcept override {
+        return block_types{
+            .uses_integral = type_info_t::uses_integral,
+            .uses_float = type_info_t::uses_float,
+            .uses_logical = type_info_t::uses_logical,
+        };
+    }
+
+    DataType get_current_type() const noexcept override {
+        return DT;
+    }
+
+    void set_input(size_t port_num, const Argument* value) override {
         if (s_in.values != nullptr && port_num < s_in.size) {
             set_input_value<DT>(s_in.values[port_num], value);
         } else {
@@ -119,7 +131,7 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
         }
     }
 
-    void get_output(size_t port_num, ArgumentValue* value) const override {
+    void get_output(size_t port_num, Argument* value) const override {
         if (port_num == 0) {
             return get_output_value<DT>(s_out.value, value);
         } else {
@@ -127,15 +139,15 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
         }
     }
 
-    size_t get_input_num() const override {
+    size_t get_input_num() const noexcept override {
         return s_in.size;
     }
 
-    bool get_input_type_settable(size_t port_num) const override {
+    bool get_input_type_settable(size_t port_num) const noexcept override {
         return port_num < get_input_num();
     }
 
-    size_t get_output_num() const override {
+    size_t get_output_num() const noexcept override {
         return 1;
     }
 
@@ -143,7 +155,7 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
         if (port_num < s_in.size) {
             return DT;
         } else {
-            return DataType::NONE;
+            throw block_error("input port too high");
         }
     }
 
@@ -151,7 +163,7 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
         if (port_num == 0) {
             return DT;
         } else {
-            return DataType::NONE;
+            throw block_error("output port too high");
         }
     }
 
@@ -164,7 +176,7 @@ protected:
 
 public:
     std::string get_block_name() const override {
-        return BLK_NAME_ARITH;
+        return arith_to_string(AT);
     }
 #endif
 
@@ -200,9 +212,9 @@ private:
 
 #ifdef MT_STDLIB_USE_FULL_LIB
 struct clock_block_types {
-    static const bool uses_integral = true;
-    static const bool uses_float = true;
-    static const bool uses_logical = false;
+    static constexpr bool uses_integral = false;
+    static constexpr bool uses_float = true;
+    static constexpr bool uses_logical = false;
 };
 #endif // MT_STDLIB_USE_FULL_LIB
 
@@ -227,13 +239,26 @@ struct clock_block MT_COMPAT_SUBCLASS {
     void step() MT_COMPAT_OVERRIDE { s_out.value += time_step; }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    explicit clock_block(const ArgumentValue* input) : clock_block(get_model_value<DT>(input)) {}
+    explicit clock_block(const Argument* input) : clock_block(get_model_value<DT>(input)) {}
 
-    void set_input(size_t port_num, const ArgumentValue* value) override {
+    using type_info_t = clock_block_types;
+    block_types get_supported_types() const noexcept override {
+        return block_types{
+            .uses_integral = type_info_t::uses_integral,
+            .uses_float = type_info_t::uses_float,
+            .uses_logical = type_info_t::uses_logical,
+        };
+    }
+
+    DataType get_current_type() const noexcept override {
+        return DT;
+    }
+
+    void set_input(size_t port_num, const Argument* value) override {
         throw block_error("input port too high");
     }
 
-    void get_output(size_t port_num, ArgumentValue* value) const override {
+    void get_output(size_t port_num, Argument* value) const override {
         if (port_num == 0) {
             return get_output_value<DT>(s_out.value, value);
         } else {
@@ -241,23 +266,23 @@ struct clock_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    size_t get_input_num() const override { return 0; }
+    size_t get_input_num() const noexcept override { return 0; }
 
-    bool get_input_type_settable(size_t port_num) const override {
+    bool get_input_type_settable(size_t port_num) const noexcept override {
         return false;
     }
 
-    size_t get_output_num() const override { return 1; }
+    size_t get_output_num() const noexcept override { return 1; }
 
     DataType get_input_type(size_t port_num) const override {
-        return DataType::NONE;
+        throw block_error("input port too high");
     }
 
     DataType get_output_type(size_t port_num) const override {
         if (port_num == 0) {
             return DT;
         } else {
-            return DataType::NONE;
+            throw block_error("output port too high");
         }
     }
 
@@ -279,9 +304,9 @@ public:
 
 #ifdef MT_STDLIB_USE_FULL_LIB
 struct const_block_types {
-    static const bool uses_integral = true;
-    static const bool uses_float = true;
-    static const bool uses_logical = true;
+    static constexpr bool uses_integral = true;
+    static constexpr bool uses_float = true;
+    static constexpr bool uses_logical = true;
 };
 #endif // MT_STDLIB_USE_FULL_LIB
 
@@ -303,13 +328,26 @@ struct const_block MT_COMPAT_SUBCLASS {
     const output_t s_out;
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    explicit const_block(const ArgumentValue* value) : const_block(get_model_value<DT>(value)) {}
+    explicit const_block(const Argument* value) : const_block(get_model_value<DT>(value)) {}
 
-    void set_input(size_t port_num, const ArgumentValue* value) override {
+    using type_info_t = const_block_types;
+    block_types get_supported_types() const noexcept override {
+        return block_types{
+            .uses_integral = type_info_t::uses_integral,
+            .uses_float = type_info_t::uses_float,
+            .uses_logical = type_info_t::uses_logical,
+        };
+    }
+
+    DataType get_current_type() const noexcept override {
+        return DT;
+    }
+
+    void set_input(size_t port_num, const Argument* value) override {
         throw block_error("input port too high");
     }
 
-    void get_output(size_t port_num, ArgumentValue* value) const override {
+    void get_output(size_t port_num, Argument* value) const override {
         if (port_num == 0) {
             return get_output_value<DT>(s_out.value, value);
         } else {
@@ -317,27 +355,27 @@ struct const_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    size_t get_input_num() const override {
+    size_t get_input_num() const noexcept override {
         return 0;
     }
 
-    bool get_input_type_settable(size_t port_num) const override {
+    bool get_input_type_settable(size_t port_num) const noexcept override {
         return false;
     }
 
-    size_t get_output_num() const override {
+    size_t get_output_num() const noexcept override {
         return 1;
     }
 
     DataType get_input_type(size_t port_num) const override {
-        return DataType::NONE;
+        throw block_error("input port too high");
     }
 
     DataType get_output_type(size_t port_num) const override {
         if (port_num == 0) {
             return DT;
         } else {
-            return DataType::NONE;
+            throw block_error("output port too high");
         }
     }
 
@@ -357,9 +395,9 @@ public:
 
 #ifdef MT_STDLIB_USE_FULL_LIB
 struct delay_block_types {
-    static const bool uses_integral = true;
-    static const bool uses_float = true;
-    static const bool uses_logical = true;
+    static constexpr bool uses_integral = true;
+    static constexpr bool uses_float = true;
+    static constexpr bool uses_logical = true;
 };
 #endif // MT_STDLIB_USE_FULL_LIB
 
@@ -400,7 +438,20 @@ struct delay_block MT_COMPAT_SUBCLASS {
     static const size_t PORT_RESET_NUM = 1;
     static const size_t PORT_FLAG_NUM = 2;
 
-    void set_input(size_t port_num, const ArgumentValue* value) override {
+    using type_info_t = delay_block_types;
+    block_types get_supported_types() const noexcept override {
+        return block_types{
+            .uses_integral = type_info_t::uses_integral,
+            .uses_float = type_info_t::uses_float,
+            .uses_logical = type_info_t::uses_logical,
+        };
+    }
+
+    DataType get_current_type() const noexcept override {
+        return DT;
+    }
+
+    void set_input(size_t port_num, const Argument* value) override {
         if (port_num == PORT_VALUE_NUM) {
             set_input_value<DT>(s_in.value, value);
         } else if (port_num == PORT_RESET_NUM) {
@@ -412,7 +463,7 @@ struct delay_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    void get_output(size_t port_num, ArgumentValue* value) const override {
+    void get_output(size_t port_num, Argument* value) const override {
         if (port_num == 0) {
             get_output_value<DT>(s_out.value, value);
         } else {
@@ -420,15 +471,15 @@ struct delay_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    size_t get_input_num() const override {
+    size_t get_input_num() const noexcept override {
         return 3;
     }
 
-    bool get_input_type_settable(size_t port_num) const override {
+    bool get_input_type_settable(size_t port_num) const noexcept override {
         return port_num < PORT_FLAG_NUM;
     }
 
-    size_t get_output_num() const override {
+    size_t get_output_num() const noexcept override {
         return 1;
     }
 
@@ -438,7 +489,7 @@ struct delay_block MT_COMPAT_SUBCLASS {
         } else if (port_num == 2) {
             return DataType::BOOL;
         } else {
-            return DataType::NONE;
+            throw block_error("input port too high");
         }
     }
 
@@ -446,9 +497,11 @@ struct delay_block MT_COMPAT_SUBCLASS {
         if (port_num == 0) {
             return DT;
         } else {
-            return DataType::NONE;
+            throw block_error("output port too high");
         }
     }
+
+    bool outputs_are_delayed() const noexcept override { return true; }
 
 protected:
     std::string get_class_name() const override {
@@ -471,9 +524,9 @@ public:
 
 #ifdef MT_STDLIB_USE_FULL_LIB
 struct derivative_block_types {
-    static const bool uses_integral = false;
-    static const bool uses_float = true;
-    static const bool uses_logical = false;
+    static constexpr bool uses_integral = false;
+    static constexpr bool uses_float = true;
+    static constexpr bool uses_logical = false;
 };
 #endif // MT_STDLIB_USE_FULL_LIB
 
@@ -512,9 +565,22 @@ struct derivative_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    explicit derivative_block(const ArgumentValue* dt) : derivative_block(get_model_value<DT>(dt)) {}
+    explicit derivative_block(const Argument* dt) : derivative_block(get_model_value<DT>(dt)) {}
 
-    void set_input(size_t port_num, const ArgumentValue* value) override {
+    using type_info_t = derivative_block_types;
+    block_types get_supported_types() const noexcept override {
+        return block_types{
+            .uses_integral = type_info_t::uses_integral,
+            .uses_float = type_info_t::uses_float,
+            .uses_logical = type_info_t::uses_logical,
+        };
+    }
+
+    DataType get_current_type() const noexcept override {
+        return DT;
+    }
+
+    void set_input(size_t port_num, const Argument* value) override {
         if (port_num == 0) {
             set_input_value<DT>(s_in.value, value);
         } else if (port_num == 1) {
@@ -524,7 +590,7 @@ struct derivative_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    void get_output(size_t port_num, ArgumentValue* value) const override {
+    void get_output(size_t port_num, Argument* value) const override {
         if (port_num == 0) {
             get_output_value<DT>(s_out.value, value);
         } else {
@@ -532,15 +598,15 @@ struct derivative_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    size_t get_input_num() const override {
+    size_t get_input_num() const noexcept override {
         return 2;
     }
 
-    bool get_input_type_settable(size_t port_num) const override {
+    bool get_input_type_settable(size_t port_num) const noexcept override {
         return port_num == 0;
     }
 
-    size_t get_output_num() const override {
+    size_t get_output_num() const noexcept override {
         return 1;
     }
 
@@ -550,7 +616,7 @@ struct derivative_block MT_COMPAT_SUBCLASS {
         } else if (port_num == 1) {
             return DataType::BOOL;
         } else {
-            return DataType::NONE;
+            throw block_error("input port too high");
         }
     }
 
@@ -558,9 +624,11 @@ struct derivative_block MT_COMPAT_SUBCLASS {
         if (port_num == 0) {
             return DT;
         } else {
-            return DataType::NONE;
+            throw block_error("output port too high");
         }
     }
+
+    bool outputs_are_delayed() const noexcept override { return true; }
 
 protected:
     std::string get_class_name() const override {
@@ -584,9 +652,9 @@ public:
 
 #ifdef MT_STDLIB_USE_FULL_LIB
 struct integrator_block_types {
-    static const bool uses_integral = false;
-    static const bool uses_float = true;
-    static const bool uses_logical = false;
+    static constexpr bool uses_integral = false;
+    static constexpr bool uses_float = true;
+    static constexpr bool uses_logical = false;
 };
 #endif // MT_STDLIB_USE_FULL_LIB
 
@@ -622,13 +690,26 @@ struct integrator_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    explicit integrator_block(const ArgumentValue* dt) : integrator_block(get_model_value<DT>(dt)) {}
+    explicit integrator_block(const Argument* dt) : integrator_block(get_model_value<DT>(dt)) {}
 
     static const size_t PORT_VALUE_NUM = 0;
     static const size_t PORT_RESET_NUM = 1;
     static const size_t PORT_FLAG_NUM = 2;
 
-    void set_input(size_t port_num, const ArgumentValue* value) override {
+    using type_info_t = integrator_block_types;
+    block_types get_supported_types() const noexcept override {
+        return block_types{
+            .uses_integral = type_info_t::uses_integral,
+            .uses_float = type_info_t::uses_float,
+            .uses_logical = type_info_t::uses_logical,
+        };
+    }
+
+    DataType get_current_type() const noexcept override {
+        return DT;
+    }
+
+    void set_input(size_t port_num, const Argument* value) override {
         if (port_num == PORT_VALUE_NUM) {
             set_input_value<DT>(s_in.value, value);
         } else if (port_num == PORT_RESET_NUM) {
@@ -640,7 +721,7 @@ struct integrator_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    void get_output(size_t port_num, ArgumentValue* value) const override {
+    void get_output(size_t port_num, Argument* value) const override {
         if (port_num == 0) {
             get_output_value<DT>(s_out.value, value);
         } else {
@@ -648,15 +729,15 @@ struct integrator_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    size_t get_input_num() const override {
+    size_t get_input_num() const noexcept override {
         return 3;
     }
 
-    bool get_input_type_settable(size_t port_num) const override {
+    bool get_input_type_settable(size_t port_num) const noexcept override {
         return port_num < PORT_FLAG_NUM;
     }
 
-    size_t get_output_num() const override {
+    size_t get_output_num() const noexcept override {
         return 1;
     }
 
@@ -666,7 +747,7 @@ struct integrator_block MT_COMPAT_SUBCLASS {
         } else if (port_num == 2) {
             return DataType::BOOL;
         } else {
-            return DataType::NONE;
+            throw block_error("input port too high");
         }
     }
 
@@ -674,9 +755,11 @@ struct integrator_block MT_COMPAT_SUBCLASS {
         if (port_num == 0) {
             return DT;
         } else {
-            return DataType::NONE;
+            throw block_error("output port too high");
         }
     }
+
+    bool outputs_are_delayed() const noexcept override { return true; }
 
 protected:
     std::string get_class_name() const override {
@@ -699,9 +782,9 @@ public:
 
 #ifdef MT_STDLIB_USE_FULL_LIB
 struct switch_block_types {
-    static const bool uses_integral = true;
-    static const bool uses_float = true;
-    static const bool uses_logical = true;
+    static constexpr bool uses_integral = true;
+    static constexpr bool uses_float = true;
+    static constexpr bool uses_logical = true;
 };
 #endif // MT_STDLIB_USE_FULL_LIB
 
@@ -746,7 +829,20 @@ public:
         return BLK_NAME_SWITCH;
     }
 
-    void set_input(size_t port_num, const ArgumentValue* value) override {
+    using type_info_t = switch_block_types;
+    block_types get_supported_types() const noexcept override {
+        return block_types{
+            .uses_integral = type_info_t::uses_integral,
+            .uses_float = type_info_t::uses_float,
+            .uses_logical = type_info_t::uses_logical,
+        };
+    }
+
+    DataType get_current_type() const noexcept override {
+        return DT;
+    }
+
+    void set_input(size_t port_num, const Argument* value) override {
         if (port_num == 0) {
             set_input_value<DataType::BOOL>(s_in.value_flag, value);
         } else if (port_num == 1) {
@@ -758,7 +854,7 @@ public:
         }
     }
 
-    void get_output(size_t port_num, ArgumentValue* value) const override {
+    void get_output(size_t port_num, Argument* value) const override {
         if (port_num == 0) {
             get_output_value<DT>(s_out.value, value);
         } else {
@@ -766,15 +862,15 @@ public:
         }
     }
 
-    size_t get_input_num() const override {
+    size_t get_input_num() const noexcept override {
         return 3;
     }
 
-    bool get_input_type_settable(size_t port_num) const override {
+    bool get_input_type_settable(size_t port_num) const noexcept override {
         return port_num < get_input_num() && port_num != 0;
     }
 
-    size_t get_output_num() const override {
+    size_t get_output_num() const noexcept override {
         return 1;
     }
 
@@ -784,7 +880,7 @@ public:
         } else if (port_num == 1 || port_num == 2) {
             return DT;
         } else {
-            return DataType::NONE;
+            throw block_error("input port too high");
         }
     }
 
@@ -792,7 +888,7 @@ public:
         if (port_num == 0) {
             return DT;
         } else {
-            return DataType::NONE;
+            throw block_error("output port too high");
         }
     }
 #endif
@@ -803,9 +899,9 @@ public:
 
 #ifdef MT_STDLIB_USE_FULL_LIB
 struct limiter_block_types {
-    static const bool uses_integral = true;
-    static const bool uses_float = true;
-    static const bool uses_logical = false;
+    static constexpr bool uses_integral = true;
+    static constexpr bool uses_float = true;
+    static constexpr bool uses_logical = false;
 };
 #endif // MT_STDLIB_USE_FULL_LIB
 
@@ -842,7 +938,20 @@ struct limiter_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    void set_input(size_t port_num, const ArgumentValue* value) override {
+    using type_info_t = limiter_block_types;
+    block_types get_supported_types() const noexcept override {
+        return block_types{
+            .uses_integral = type_info_t::uses_integral,
+            .uses_float = type_info_t::uses_float,
+            .uses_logical = type_info_t::uses_logical,
+        };
+    }
+
+    DataType get_current_type() const noexcept override {
+        return DT;
+    }
+
+    void set_input(size_t port_num, const Argument* value) override {
         if (port_num == 0) {
             set_input_value<DT>(s_in.value, value);
         } else if (port_num == 1) {
@@ -854,7 +963,7 @@ struct limiter_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    void get_output(size_t port_num, ArgumentValue* value) const override {
+    void get_output(size_t port_num, Argument* value) const override {
         if (port_num == 0) {
             get_output_value<DT>(s_out.value, value);
         } else {
@@ -862,15 +971,15 @@ struct limiter_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    size_t get_input_num() const override {
+    size_t get_input_num() const noexcept override {
         return 3;
     }
 
-    bool get_input_type_settable(size_t port_num) const override {
+    bool get_input_type_settable(size_t port_num) const noexcept override {
         return port_num < get_input_num();
     }
 
-    size_t get_output_num() const override {
+    size_t get_output_num() const noexcept override {
         return 1;
     }
 
@@ -878,7 +987,7 @@ struct limiter_block MT_COMPAT_SUBCLASS {
         if (port_num < get_input_num()) {
             return DT;
         } else {
-            return DataType::NONE;
+            throw block_error("input port too high");
         }
     }
 
@@ -886,7 +995,7 @@ struct limiter_block MT_COMPAT_SUBCLASS {
         if (port_num == 0) {
             return DT;
         } else {
-            return DataType::NONE;
+            throw block_error("output port too high");
         }
     }
 
@@ -940,9 +1049,22 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    explicit limiter_block_const(const ArgumentValue* upper, const ArgumentValue* lower) : limiter_block_const(get_model_value<DT>(upper), get_model_value<DT>(lower)) {}
+    explicit limiter_block_const(const Argument* upper, const Argument* lower) : limiter_block_const(get_model_value<DT>(upper), get_model_value<DT>(lower)) {}
 
-    void set_input(size_t port_num, const ArgumentValue* value) override {
+    using type_info_t = limiter_block_types;
+    block_types get_supported_types() const noexcept override {
+        return block_types{
+            .uses_integral = type_info_t::uses_integral,
+            .uses_float = type_info_t::uses_float,
+            .uses_logical = type_info_t::uses_logical,
+        };
+    }
+
+    DataType get_current_type() const noexcept override {
+        return DT;
+    }
+
+    void set_input(size_t port_num, const Argument* value) override {
         if (port_num == 0) {
             set_input_value<DT>(s_in.value, value);
         } else {
@@ -950,7 +1072,7 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
         }
     }
 
-    void get_output(size_t port_num, ArgumentValue* value) const override {
+    void get_output(size_t port_num, Argument* value) const override {
         if (port_num == 0) {
             get_output_value<DT>(s_out.value, value);
         } else {
@@ -958,15 +1080,15 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
         }
     }
 
-    size_t get_input_num() const override {
+    size_t get_input_num() const noexcept override {
         return 1;
     }
 
-    bool get_input_type_settable(size_t port_num) const override {
+    bool get_input_type_settable(size_t port_num) const noexcept override {
         return port_num < get_input_num();
     }
 
-    size_t get_output_num() const override {
+    size_t get_output_num() const noexcept override {
         return 1;
     }
 
@@ -974,7 +1096,7 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
         if (port_num < get_input_num()) {
             return DT;
         } else {
-            return DataType::NONE;
+            throw block_error("input port too high");
         }
     }
 
@@ -982,7 +1104,7 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
         if (port_num == 0) {
             return DT;
         } else {
-            return DataType::NONE;
+            throw block_error("output port too high");
         }
     }
 
@@ -1060,23 +1182,23 @@ struct RelationalOperation<DT, RelationalOperator::LESS_THAN_EQUAL> {
 #ifdef MT_STDLIB_USE_FULL_LIB
 template <RelationalOperator OP>
 struct relational_block_types {
-    static const bool uses_integral = true;
-    static const bool uses_float = true;
-    static const bool uses_logical = false;
+    static constexpr bool uses_integral = true;
+    static constexpr bool uses_float = true;
+    static constexpr bool uses_logical = false;
 };
 
 template <>
 struct relational_block_types<RelationalOperator::EQUAL> {
-    static const bool uses_integral = true;
-    static const bool uses_float = true;
-    static const bool uses_logical = true;
+    static constexpr bool uses_integral = true;
+    static constexpr bool uses_float = true;
+    static constexpr bool uses_logical = true;
 };
 
 template <>
 struct relational_block_types<RelationalOperator::NOT_EQUAL> {
-    static const bool uses_integral = true;
-    static const bool uses_float = true;
-    static const bool uses_logical = true;
+    static constexpr bool uses_integral = true;
+    static constexpr bool uses_float = true;
+    static constexpr bool uses_logical = true;
 };
 #endif // MT_STDLIB_USE_FULL_LIB
 
@@ -1116,7 +1238,20 @@ public:
         return BLK_NAME_REL;
     }
 
-    void set_input(size_t port_num, const ArgumentValue* value) override {
+    using type_info_t = relational_block_types<OP>;
+    block_types get_supported_types() const noexcept override {
+        return block_types{
+            .uses_integral = type_info_t::uses_integral,
+            .uses_float = type_info_t::uses_float,
+            .uses_logical = type_info_t::uses_logical,
+        };
+    }
+
+    DataType get_current_type() const noexcept override {
+        return DT;
+    }
+
+    void set_input(size_t port_num, const Argument* value) override {
         if (port_num == 0) {
             set_input_value<DT>(s_in.value_a, value);
         } else if (port_num == 0) {
@@ -1126,7 +1261,7 @@ public:
         }
     }
 
-    void get_output(size_t port_num, ArgumentValue* value) const override {
+    void get_output(size_t port_num, Argument* value) const override {
         if (port_num == 0) {
             get_output_value<DT>(s_out.value, value);
         } else {
@@ -1134,15 +1269,15 @@ public:
         }
     }
 
-    size_t get_input_num() const override {
+    size_t get_input_num() const noexcept override {
         return 2;
     }
 
-    bool get_input_type_settable(size_t port_num) const override {
+    bool get_input_type_settable(size_t port_num) const noexcept override {
         return port_num < get_input_num();
     }
 
-    size_t get_output_num() const override {
+    size_t get_output_num() const noexcept override {
         return 1;
     }
 
@@ -1150,7 +1285,7 @@ public:
         if (port_num < get_input_num()) {
             return DT;
         } else {
-            return DataType::NONE;
+            throw block_error("input port too high");
         }
     }
 
@@ -1158,7 +1293,7 @@ public:
         if (port_num == 0) {
             return DataType::BOOL;
         } else {
-            return DataType::NONE;
+            throw block_error("output port too high");
         }
     }
 #endif
@@ -1252,9 +1387,9 @@ struct TrigOperation<DT, N, TrigFunction::ATAN2> {
 
 #ifdef MT_STDLIB_USE_FULL_LIB
 struct trig_block_types {
-    static const bool uses_integral = false;
-    static const bool uses_float = true;
-    static const bool uses_logical = false;
+    static constexpr bool uses_integral = false;
+    static constexpr bool uses_float = true;
+    static constexpr bool uses_logical = false;
 };
 #endif // MT_STDLIB_USE_FULL_LIB
 
@@ -1281,7 +1416,20 @@ struct trig_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-    void set_input(size_t port_num, const ArgumentValue* value) override {
+    using type_info_t = trig_block_types;
+    block_types get_supported_types() const noexcept override {
+        return block_types{
+            .uses_integral = type_info_t::uses_integral,
+            .uses_float = type_info_t::uses_float,
+            .uses_logical = type_info_t::uses_logical,
+        };
+    }
+
+    DataType get_current_type() const noexcept override {
+        return DT;
+    }
+
+    void set_input(size_t port_num, const Argument* value) override {
         if (port_num < get_input_num()) {
             set_input_value<DT>(s_in.values[port_num], value);
         } else {
@@ -1289,7 +1437,7 @@ struct trig_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    void get_output(size_t port_num, ArgumentValue* value) const override {
+    void get_output(size_t port_num, Argument* value) const override {
         if (port_num == 0) {
             get_output_value<DT>(s_out.value, value);
         } else {
@@ -1297,15 +1445,15 @@ struct trig_block MT_COMPAT_SUBCLASS {
         }
     }
 
-    size_t get_input_num() const override {
+    size_t get_input_num() const noexcept override {
         return TrigInfo<FCN>::input_count;
     }
 
-    bool get_input_type_settable(size_t port_num) const override {
+    bool get_input_type_settable(size_t port_num) const noexcept override {
         return port_num < get_input_num();
     }
 
-    size_t get_output_num() const override {
+    size_t get_output_num() const noexcept override {
         return 1;
     }
 
@@ -1313,7 +1461,7 @@ struct trig_block MT_COMPAT_SUBCLASS {
         if (port_num < get_input_num()) {
             return DT;
         } else {
-            return DataType::NONE;
+            throw block_error("input port too high");
         }
     }
 
@@ -1321,7 +1469,7 @@ struct trig_block MT_COMPAT_SUBCLASS {
         if (port_num == 0) {
             return DT;
         } else {
-            return DataType::NONE;
+            throw block_error("output port too high");
         }
     }
 
@@ -1334,7 +1482,7 @@ protected:
 
 public:
     std::string get_block_name() const override {
-        return BLK_NAME_TRIG;
+        return trig_func_to_string(FCN);
     }
 
 #endif

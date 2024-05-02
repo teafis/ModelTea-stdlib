@@ -26,9 +26,6 @@ set(
     include/mtstd_except.hpp
     include/mtstd_string.hpp
     src/mtstd_string.cpp
-    include/mtstd_compat.h
-    include/mtstd_compat_types.h
-    src/mtstd_compat.cpp
     include/mtstd_creation.hpp
     src/mtstd_creation.cpp
 )
@@ -73,7 +70,6 @@ if(CMAKE_TESTING_ENABLED)
     add_executable(
         mtstd_test
         ${MTSTD_TEST_FILES}
-        tests/compat_block_list.cpp
         )
 
     set_property(TARGET mtstd_test PROPERTY CXX_STANDARD 20)

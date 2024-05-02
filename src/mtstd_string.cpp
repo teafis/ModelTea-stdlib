@@ -40,7 +40,6 @@ const std::string mt::stdlib::BLK_SUB_NAME_TRIG_ACOS = "acos";
 const std::string mt::stdlib::BLK_SUB_NAME_TRIG_ATAN = "atan";
 const std::string mt::stdlib::BLK_SUB_NAME_TRIG_ATAN2 = "atan2";
 
-
 static std::string to_enum_name(mt::stdlib::SpecificationType spec,
                                 const std::string& type,
                                 const std::string& name) {
