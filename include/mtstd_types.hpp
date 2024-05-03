@@ -8,7 +8,6 @@
 
 #ifdef MT_STDLIB_USE_FULL_LIB
 #include <cstring>
-#include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -258,6 +257,8 @@ enum class TrigFunction {
 #ifdef MT_STDLIB_USE_FULL_LIB
 
 struct Argument {
+    virtual ~Argument() = default;
+
     virtual DataType get_type() const = 0;
 
     virtual size_t as_size() const = 0;
@@ -295,6 +296,8 @@ struct block_interface {
         bool uses_float;
         bool uses_logical;
     };
+
+    virtual ~block_interface() = default;
 
     virtual block_types get_supported_types() const noexcept = 0;
 
