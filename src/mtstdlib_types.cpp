@@ -2,7 +2,7 @@
 
 #ifdef MT_STDLIB_USE_FULL_LIB
 
-#include "mtstd_types.hpp"
+#include "mtstdlib_types.hpp"
 
 #include <array>
 #include <sstream>
@@ -53,9 +53,9 @@ std::vector<const mt::stdlib::type_info_meta*> mt::stdlib::get_meta_types() {
     return std::vector<const mt::stdlib::type_info_meta*>(s_type_array.begin(), s_type_array.end());
 }
 
-void mt::stdlib::block_interface::reset() {}
+void mt::stdlib::block_interface::reset() noexcept {}
 
-void mt::stdlib::block_interface::step() {}
+void mt::stdlib::block_interface::step() noexcept {}
 
 std::string mt::stdlib::block_interface::get_type_name(bool include_namespace) const {
     if (include_namespace) {

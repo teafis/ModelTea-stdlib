@@ -13,8 +13,8 @@ namespace stdlib {
 
 class block_error : public std::runtime_error {
 public:
-    block_error(const char* msg) : std::runtime_error(msg) {}
-    block_error(const std::string& msg) : std::runtime_error(msg) {}
+    explicit block_error(const char* msg) : std::runtime_error(msg) {}
+    explicit block_error(const std::string& msg) : std::runtime_error(msg) {}
 };
 
 }

@@ -7,12 +7,12 @@
 #include <cstddef>
 #include <sstream>
 
-#include "mtstd_except.hpp"
-#include "mtstd_ext.hpp"
-#include "mtstd_types.hpp"
+#include "mtstdlib_except.hpp"
+#include "mtstdlib_ext.hpp"
+#include "mtstdlib_types.hpp"
 
 #ifdef MT_STDLIB_USE_FULL_LIB
-#include "mtstd_string.hpp"
+#include "mtstdlib_string.hpp"
 #include <sstream>
 #endif
 
@@ -97,16 +97,20 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
     arith_block_dynamic(const arith_block_dynamic&) = delete;
     arith_block_dynamic& operator=(const arith_block_dynamic&) = delete;
 
-    void reset() MT_COMPAT_OVERRIDE { step(); }
+    void reset() noexcept MT_COMPAT_OVERRIDE { step(); }
 
-    void step() MT_COMPAT_OVERRIDE {
-        data_t val = s_in.values[0];
+    void step() noexcept MT_COMPAT_OVERRIDE {
+        if (s_in.size > 0) {
+            data_t val = s_in.values[0];
 
-        for (int i = 1; i < s_in.size; ++i) {
-            val = ArithOperation<DT, AT>::operation(val, s_in.values[i]);
+            for (int i = 1; i < s_in.size; ++i) {
+                val = ArithOperation<DT, AT>::operation(val, s_in.values[i]);
+            }
+
+            s_out.value = val;
+        } else {
+            s_out.value = {};
         }
-
-        s_out.value = val;
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
@@ -167,6 +171,22 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
         }
     }
 
+    std::string get_input_name(size_t port_num) const override {
+        if (port_num < s_in.size) {
+            return (std::ostringstream() << "values[" << port_num << "]").str();
+        } else {
+            throw block_error("input port too high");
+        }
+    }
+
+    std::string get_output_name(size_t port_num) const override {
+        if (port_num == 0) {
+            return "value";
+        } else {
+            throw block_error("output port too high");
+        }
+    }
+
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
@@ -176,7 +196,19 @@ protected:
 
 public:
     std::string get_block_name() const override {
-        return arith_to_string(AT);
+        if constexpr (AT == ArithType::ADD) {
+            return BLK_NAME_ARITH_ADD;
+        } else if constexpr (AT == ArithType::SUB) {
+            return BLK_NAME_ARITH_SUB;
+        } else if constexpr (AT == ArithType::MUL) {
+            return BLK_NAME_ARITH_MUL;
+        } else if constexpr (AT == ArithType::DIV) {
+            return BLK_NAME_ARITH_DIV;
+        } else if constexpr (AT == ArithType::MOD) {
+            return BLK_NAME_ARITH_MOD;
+        } else {
+            static_assert("unknown arithmetic type provided");
+        }
     }
 #endif
 
@@ -234,9 +266,9 @@ struct clock_block MT_COMPAT_SUBCLASS {
     clock_block(const clock_block&) = delete;
     clock_block& operator=(const clock_block&) = delete;
 
-    void reset() MT_COMPAT_OVERRIDE { s_out.value = 0.0; }
+    void reset() noexcept MT_COMPAT_OVERRIDE { s_out.value = 0.0; }
 
-    void step() MT_COMPAT_OVERRIDE { s_out.value += time_step; }
+    void step() noexcept MT_COMPAT_OVERRIDE { s_out.value += time_step; }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
     explicit clock_block(const Argument* input) : clock_block(get_model_value<DT>(input)) {}
@@ -281,6 +313,18 @@ struct clock_block MT_COMPAT_SUBCLASS {
     DataType get_output_type(size_t port_num) const override {
         if (port_num == 0) {
             return DT;
+        } else {
+            throw block_error("output port too high");
+        }
+    }
+
+    std::string get_input_name(size_t port_num) const override {
+            throw block_error("input port too high");
+    }
+
+    std::string get_output_name(size_t port_num) const override {
+        if (port_num == 0) {
+            return "value";
         } else {
             throw block_error("output port too high");
         }
@@ -379,6 +423,18 @@ struct const_block MT_COMPAT_SUBCLASS {
         }
     }
 
+    std::string get_input_name(size_t port_num) const override {
+            throw block_error("input port too high");
+    }
+
+    std::string get_output_name(size_t port_num) const override {
+        if (port_num == 0) {
+            return "value";
+        } else {
+            throw block_error("output port too high");
+        }
+    }
+
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
@@ -419,12 +475,12 @@ struct delay_block MT_COMPAT_SUBCLASS {
     delay_block(const delay_block&) = delete;
     delay_block& operator=(const delay_block&) = delete;
 
-    void reset() MT_COMPAT_OVERRIDE {
+    void reset() noexcept MT_COMPAT_OVERRIDE {
         next_value = s_in.reset;
         s_out.value = s_in.reset;
     }
 
-    void step() MT_COMPAT_OVERRIDE {
+    void step() noexcept MT_COMPAT_OVERRIDE {
         if (s_in.reset_flag) {
             reset();
         }
@@ -503,6 +559,26 @@ struct delay_block MT_COMPAT_SUBCLASS {
 
     bool outputs_are_delayed() const noexcept override { return true; }
 
+    std::string get_input_name(size_t port_num) const override {
+        if (port_num == PORT_VALUE_NUM) {
+            return "value";
+        } else if (port_num == PORT_RESET_NUM) {
+            return "reset";
+        } else if (port_num == PORT_FLAG_NUM) {
+            return "reset_flag";
+        } else {
+            throw block_error("input port too high");
+        }
+    }
+
+    std::string get_output_name(size_t port_num) const override {
+        if (port_num == 0) {
+            return "value";
+        } else {
+            throw block_error("output port too high");
+        }
+    }
+
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
@@ -550,12 +626,12 @@ struct derivative_block MT_COMPAT_SUBCLASS {
     derivative_block(const derivative_block&) = delete;
     derivative_block& operator=(const derivative_block&) = delete;
 
-    void reset() MT_COMPAT_OVERRIDE {
+    void reset() noexcept MT_COMPAT_OVERRIDE {
         last_value = {};
         s_out.value = {};
     }
 
-    void step() MT_COMPAT_OVERRIDE {
+    void step() noexcept MT_COMPAT_OVERRIDE {
         if (s_in.reset_flag) {
             reset();
         }
@@ -630,6 +706,24 @@ struct derivative_block MT_COMPAT_SUBCLASS {
 
     bool outputs_are_delayed() const noexcept override { return true; }
 
+std::string get_input_name(size_t port_num) const override {
+        if (port_num == 0) {
+            return "value";
+        } else if (port_num == 1) {
+            return "reset_flag";
+        } else {
+            throw block_error("input port too high");
+        }
+    }
+
+    std::string get_output_name(size_t port_num) const override {
+        if (port_num == 0) {
+            return "value";
+        } else {
+            throw block_error("output port too high");
+        }
+    }
+
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
@@ -679,9 +773,9 @@ struct integrator_block MT_COMPAT_SUBCLASS {
     integrator_block(const integrator_block&) = delete;
     integrator_block& operator=(const integrator_block&) = delete;
 
-    void reset() MT_COMPAT_OVERRIDE { s_out.value = s_in.reset; }
+    void reset() noexcept MT_COMPAT_OVERRIDE { s_out.value = s_in.reset; }
 
-    void step() MT_COMPAT_OVERRIDE {
+    void step() noexcept MT_COMPAT_OVERRIDE {
         if (s_in.reset_flag) {
             reset();
         } else {
@@ -761,6 +855,26 @@ struct integrator_block MT_COMPAT_SUBCLASS {
 
     bool outputs_are_delayed() const noexcept override { return true; }
 
+    std::string get_input_name(size_t port_num) const override {
+        if (port_num == PORT_VALUE_NUM) {
+            return "value";
+        } else if (port_num == PORT_RESET_NUM) {
+            return "reset";
+        } else if (port_num == PORT_FLAG_NUM) {
+            return "reset_flag";
+        } else {
+            throw block_error("input port too high");
+        }
+    }
+
+    std::string get_output_name(size_t port_num) const override {
+        if (port_num == 0) {
+            return "value";
+        } else {
+            throw block_error("output port too high");
+        }
+    }
+
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
@@ -806,9 +920,9 @@ struct switch_block MT_COMPAT_SUBCLASS {
     switch_block(const switch_block&) = delete;
     switch_block& operator=(const switch_block&) = delete;
 
-    void reset() MT_COMPAT_OVERRIDE { step(); }
+    void reset() noexcept MT_COMPAT_OVERRIDE { step(); }
 
-    void step() MT_COMPAT_OVERRIDE {
+    void step() noexcept MT_COMPAT_OVERRIDE {
         if (s_in.value_flag) {
             s_out.value = s_in.value_a;
         } else {
@@ -823,6 +937,10 @@ protected:
         oss << "switch_block<" << type_info<DT>::name << '>';
         return oss.str();
     }
+
+    static const size_t PORT_VALUE_FLAG = 0;
+    static const size_t PORT_VALUE_A = 1;
+    static const size_t PORT_VALUE_B = 2;
 
 public:
     std::string get_block_name() const override {
@@ -843,11 +961,11 @@ public:
     }
 
     void set_input(size_t port_num, const Argument* value) override {
-        if (port_num == 0) {
+        if (port_num == PORT_VALUE_FLAG) {
             set_input_value<DataType::BOOL>(s_in.value_flag, value);
-        } else if (port_num == 1) {
+        } else if (port_num == PORT_VALUE_A) {
             set_input_value<DT>(s_in.value_a, value);
-        } else if (port_num == 2) {
+        } else if (port_num == PORT_VALUE_B) {
             set_input_value<DT>(s_in.value_b, value);
         } else {
             throw block_error("input port too high");
@@ -867,7 +985,7 @@ public:
     }
 
     bool get_input_type_settable(size_t port_num) const noexcept override {
-        return port_num < get_input_num() && port_num != 0;
+        return port_num < get_input_num() && port_num != PORT_VALUE_FLAG;
     }
 
     size_t get_output_num() const noexcept override {
@@ -875,9 +993,9 @@ public:
     }
 
     DataType get_input_type(size_t port_num) const override {
-        if (port_num == 0) {
+        if (port_num == PORT_VALUE_FLAG) {
             return DataType::BOOL;
-        } else if (port_num == 1 || port_num == 2) {
+        } else if (port_num == PORT_VALUE_A || port_num == PORT_VALUE_B) {
             return DT;
         } else {
             throw block_error("input port too high");
@@ -887,6 +1005,26 @@ public:
     DataType get_output_type(size_t port_num) const override {
         if (port_num == 0) {
             return DT;
+        } else {
+            throw block_error("output port too high");
+        }
+    }
+
+    std::string get_input_name(size_t port_num) const override {
+        if (port_num == PORT_VALUE_FLAG) {
+            return "value_flag";
+        } else if (port_num == PORT_VALUE_A) {
+            return "value_a";
+        } else if (port_num == PORT_VALUE_B) {
+            return "value_b";
+        } else {
+            throw block_error("input port too high");
+        }
+    }
+
+    std::string get_output_name(size_t port_num) const override {
+        if (port_num == 0) {
+            return "value";
         } else {
             throw block_error("output port too high");
         }
@@ -923,9 +1061,9 @@ struct limiter_block MT_COMPAT_SUBCLASS {
     limiter_block(const limiter_block&) = delete;
     limiter_block& operator=(const limiter_block&) = delete;
 
-    void reset() MT_COMPAT_OVERRIDE { step(); }
+    void reset() noexcept MT_COMPAT_OVERRIDE { step(); }
 
-    void step() MT_COMPAT_OVERRIDE {
+    void step() noexcept MT_COMPAT_OVERRIDE {
         data_t x = s_in.value;
 
         if (x < s_in.limit_lower) {
@@ -938,6 +1076,12 @@ struct limiter_block MT_COMPAT_SUBCLASS {
     }
 
 #ifdef MT_STDLIB_USE_FULL_LIB
+protected:
+    static const size_t PORT_VALUE = 0;
+    static const size_t PORT_LIMIT_UPPER = 1;
+    static const size_t PORT_LIMIT_LOWER = 2;
+
+public:
     using type_info_t = limiter_block_types;
     block_types get_supported_types() const noexcept override {
         return block_types{
@@ -952,11 +1096,11 @@ struct limiter_block MT_COMPAT_SUBCLASS {
     }
 
     void set_input(size_t port_num, const Argument* value) override {
-        if (port_num == 0) {
+        if (port_num == PORT_VALUE) {
             set_input_value<DT>(s_in.value, value);
-        } else if (port_num == 1) {
+        } else if (port_num == PORT_LIMIT_LOWER) {
             set_input_value<DT>(s_in.limit_lower, value);
-        } else if (port_num == 2) {
+        } else if (port_num == PORT_LIMIT_UPPER) {
             set_input_value<DT>(s_in.limit_upper, value);
         } else {
             throw block_error("input port too high");
@@ -999,6 +1143,26 @@ struct limiter_block MT_COMPAT_SUBCLASS {
         }
     }
 
+    std::string get_input_name(size_t port_num) const override {
+        if (port_num == PORT_VALUE) {
+            return "value";
+        } else if (port_num == PORT_LIMIT_LOWER) {
+            return "limit_lower";
+        } else if (port_num == PORT_LIMIT_UPPER) {
+            return "limit_upper";
+        } else {
+            throw block_error("input port too high");
+        }
+    }
+
+    std::string get_output_name(size_t port_num) const override {
+        if (port_num == 0) {
+            return "value";
+        } else {
+            throw block_error("output port too high");
+        }
+    }
+
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
@@ -1034,9 +1198,9 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
     limiter_block_const(const limiter_block_const&) = delete;
     limiter_block_const& operator=(const limiter_block_const&) = delete;
 
-    void reset() MT_COMPAT_OVERRIDE { step(); }
+    void reset() noexcept MT_COMPAT_OVERRIDE { step(); }
 
-    void step() MT_COMPAT_OVERRIDE {
+    void step() noexcept MT_COMPAT_OVERRIDE {
         data_t x = s_in.value;
 
         if (x < bound_lower) {
@@ -1103,6 +1267,22 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
     DataType get_output_type(size_t port_num) const override {
         if (port_num == 0) {
             return DT;
+        } else {
+            throw block_error("output port too high");
+        }
+    }
+
+    std::string get_input_name(size_t port_num) const override {
+        if (port_num == 0) {
+            return "value";
+        } else {
+            throw block_error("input port too high");
+        }
+    }
+
+    std::string get_output_name(size_t port_num) const override {
+        if (port_num == 0) {
+            return "value";
         } else {
             throw block_error("output port too high");
         }
@@ -1219,9 +1399,9 @@ struct relational_block MT_COMPAT_SUBCLASS {
     relational_block(const relational_block&) = delete;
     relational_block& operator=(const relational_block&) = delete;
 
-    void reset() MT_COMPAT_OVERRIDE { step(); }
+    void reset() noexcept MT_COMPAT_OVERRIDE { step(); }
 
-    void step() MT_COMPAT_OVERRIDE {
+    void step() noexcept MT_COMPAT_OVERRIDE {
         s_out.value = RelationalOperation<DT, OP>::operation(s_in.value_a, s_in.value_b);
     }
 
@@ -1235,7 +1415,21 @@ protected:
 
 public:
     std::string get_block_name() const override {
-        return BLK_NAME_REL;
+        if constexpr (OP == RelationalOperator::EQUAL) {
+            return BLK_NAME_REL_EQ;
+        } else if constexpr (OP == RelationalOperator::NOT_EQUAL) {
+            return BLK_NAME_REL_NEQ;
+        } else if constexpr (OP == RelationalOperator::GREATER_THAN) {
+            return BLK_NAME_REL_GT;
+        } else if constexpr (OP == RelationalOperator::GREATER_THAN_EQUAL) {
+            return BLK_NAME_REL_GEQ;
+        } else if constexpr (OP == RelationalOperator::LESS_THAN) {
+            return BLK_NAME_REL_LT;
+        } else if constexpr (OP == RelationalOperator::LESS_THAN_EQUAL) {
+            return BLK_NAME_REL_LEQ;
+        } else {
+            static_assert("unknown relational operation provided");
+        }
     }
 
     using type_info_t = relational_block_types<OP>;
@@ -1292,6 +1486,24 @@ public:
     DataType get_output_type(size_t port_num) const override {
         if (port_num == 0) {
             return DataType::BOOL;
+        } else {
+            throw block_error("output port too high");
+        }
+    }
+
+    std::string get_input_name(size_t port_num) const override {
+        if (port_num == 0) {
+            return "value_a";
+        } else if (port_num == 1) {
+            return "value_b";
+        } else {
+            throw block_error("input port too high");
+        }
+    }
+
+    std::string get_output_name(size_t port_num) const override {
+        if (port_num == 0) {
+            return "value";
         } else {
             throw block_error("output port too high");
         }
@@ -1409,9 +1621,9 @@ struct trig_block MT_COMPAT_SUBCLASS {
     trig_block(const trig_block&) = delete;
     trig_block& operator=(const trig_block&) = delete;
 
-    void reset() MT_COMPAT_OVERRIDE { step(); }
+    void reset() noexcept MT_COMPAT_OVERRIDE { step(); }
 
-    void step() MT_COMPAT_OVERRIDE {
+    void step() noexcept MT_COMPAT_OVERRIDE {
         s_out.value = TrigOperation<DT, TrigInfo<FCN>::input_count, FCN>::operation(s_in.values);
     }
 
@@ -1473,6 +1685,22 @@ struct trig_block MT_COMPAT_SUBCLASS {
         }
     }
 
+    std::string get_input_name(size_t port_num) const override {
+        if (port_num < get_input_num()) {
+            return (std::ostringstream() << "values[" << port_num << "]").str();
+        } else {
+            throw block_error("input port too high");
+        }
+    }
+
+    std::string get_output_name(size_t port_num) const override {
+        if (port_num == 0) {
+            return "value";
+        } else {
+            throw block_error("output port too high");
+        }
+    }
+
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
@@ -1482,7 +1710,23 @@ protected:
 
 public:
     std::string get_block_name() const override {
-        return trig_func_to_string(FCN);
+        if constexpr (FCN == TrigFunction::SIN) {
+            return BLK_NAME_TRIG_SIN;
+        } else if (FCN == TrigFunction::COS) {
+            return BLK_NAME_TRIG_COS;
+        } else if (FCN == TrigFunction::TAN) {
+            return BLK_NAME_TRIG_TAN;
+        } else if (FCN == TrigFunction::ASIN) {
+            return BLK_NAME_TRIG_ASIN;
+        } else if (FCN == TrigFunction::ACOS) {
+            return BLK_NAME_TRIG_ACOS;
+        } else if (FCN == TrigFunction::ATAN) {
+            return BLK_NAME_TRIG_ATAN;
+        } else if (FCN == TrigFunction::ATAN2) {
+            return BLK_NAME_TRIG_ATAN2;
+        } else {
+            static_assert("unknown trig block type");
+        }
     }
 
 #endif

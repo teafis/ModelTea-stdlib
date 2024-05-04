@@ -2,20 +2,26 @@
 
 #ifdef MT_STDLIB_USE_FULL_LIB
 
-#include "mtstd_creation.hpp"
+#include "mtstdlib_creation.hpp"
 
-#include "mtstd_except.hpp"
-#include "mtstd_string.hpp"
+#include "mtstdlib_except.hpp"
+#include "mtstdlib_string.hpp"
 
-#include "mtstd.hpp"
+#include "mtstdlib.hpp"
 
+#include <algorithm>
+#include <array>
 #include <sstream>
 #include <unordered_map>
 
-mt::stdlib::BlockInformation::BlockInformation(std::string_view base_name, std::string_view sub_name, ConstructorOptions constructor, const block_interface::block_types& types) : base_name(base_name),
-                                                                                                                                                                                   sub_name(sub_name),
-                                                                                                                                                                                   constructor(constructor),
-                                                                                                                                                                                   types(types) {}
+mt::stdlib::BlockInformation::BlockInformation(std::string_view name, ConstructorOptions constructor, const block_interface::block_types& types) : name(name),
+                                                                                                                                                   symbolic_name{},
+                                                                                                                                                   constructor(constructor),
+                                                                                                                                                   types(types) {}
+
+mt::stdlib::BlockInformation::BlockInformation(std::string_view name, std::string_view symbolic_name, ConstructorOptions constructor, const block_interface::block_types& types) : BlockInformation(name, constructor, types) {
+    this->symbolic_name.emplace(symbolic_name);
+}
 
 mt::stdlib::DataType mt::stdlib::BlockInformation::get_default_data_type() const {
     if (types.uses_float) {
@@ -57,6 +63,37 @@ static mt::stdlib::block_interface::block_types create_block_types()
     };
 }
 
+static const auto ARITH_BLOCK_NAMES = std::to_array<std::pair<std::string, std::string>>({
+    {mt::stdlib::BLK_NAME_ARITH_ADD, "+"},
+    {mt::stdlib::BLK_NAME_ARITH_SUB, "-"},
+    {mt::stdlib::BLK_NAME_ARITH_MUL, "*"},
+    {mt::stdlib::BLK_NAME_ARITH_DIV, "/"},
+    {mt::stdlib::BLK_NAME_ARITH_MOD, "%"},
+});
+
+static const auto RELATIONAL_BLOCK_NAMES = std::to_array<std::pair<std::string, std::string>>({
+    {mt::stdlib::BLK_NAME_REL_GT, ">"},
+    {mt::stdlib::BLK_NAME_REL_GEQ, ">="},
+    {mt::stdlib::BLK_NAME_REL_LT, "<"},
+    {mt::stdlib::BLK_NAME_REL_LEQ, "<="},
+    {mt::stdlib::BLK_NAME_REL_EQ, "=="},
+    {mt::stdlib::BLK_NAME_REL_NEQ, "!="},
+});
+
+static const auto TRIG_BLOCK_NAMES = std::to_array({
+    mt::stdlib::BLK_NAME_TRIG_SIN,
+    mt::stdlib::BLK_NAME_TRIG_COS,
+    mt::stdlib::BLK_NAME_TRIG_TAN,
+    mt::stdlib::BLK_NAME_TRIG_ASIN,
+    mt::stdlib::BLK_NAME_TRIG_ACOS,
+    mt::stdlib::BLK_NAME_TRIG_ATAN,
+    mt::stdlib::BLK_NAME_TRIG_ATAN2,
+});
+
+static bool is_block_type(std::string_view s, std::span<const std::string> list) {
+    return std::find(list.begin(), list.end(), s) != list.end();
+}
+
 const static std::vector<mt::stdlib::BlockInformation> BLK_LIST = []() {
     using namespace mt::stdlib;
 
@@ -70,36 +107,24 @@ const static std::vector<mt::stdlib::BlockInformation> BLK_LIST = []() {
         BlockInformation(BLK_NAME_LIMITER, "", BlockInformation::ConstructorOptions::DEFAULT, create_block_types<limiter_block_types>()),
     };
 
-    for (const auto& a_name : {BLK_SUB_NAME_ARITH_ADD, BLK_SUB_NAME_ARITH_SUB, BLK_SUB_NAME_ARITH_MUL, BLK_SUB_NAME_ARITH_DIV, BLK_SUB_NAME_ARITH_MOD}) {
-        blks.emplace_back(BLK_NAME_ARITH, a_name, BlockInformation::ConstructorOptions::SIZE, create_block_types<arith_block_types>());
+    for (const auto& [a_name, a_symb_name] : ARITH_BLOCK_NAMES) {
+        blks.emplace_back(a_name, a_symb_name, BlockInformation::ConstructorOptions::SIZE, create_block_types<arith_block_types>());
     }
 
-    for (const auto& r_name : {BLK_SUB_NAME_REL_EQ, BLK_SUB_NAME_REL_NEQ}) {
+    for (const auto& [r_name, r_symb_name] : RELATIONAL_BLOCK_NAMES) {
         block_interface::block_types dt_info;
 
-        if (r_name == BLK_SUB_NAME_REL_EQ) {
+        if (r_name == BLK_NAME_REL_EQ) {
             dt_info = create_block_types<relational_block_types<RelationalOperator::EQUAL>>();
-        } else if (r_name == BLK_SUB_NAME_REL_NEQ) {
+        } else if (r_name == BLK_NAME_REL_NEQ) {
             dt_info = create_block_types<relational_block_types<RelationalOperator::NOT_EQUAL>>();
-        } else {
-            std::ostringstream oss;
-            oss << "unsupported block types provided - \"" << r_name << '\"';
-            throw block_error(oss.str());
-        }
-
-        blks.emplace_back(BLK_NAME_REL, r_name, BlockInformation::ConstructorOptions::DEFAULT, dt_info);
-    }
-
-    for (const auto& r_name : {BLK_SUB_NAME_REL_GT, BLK_SUB_NAME_REL_GEQ, BLK_SUB_NAME_REL_LT, BLK_SUB_NAME_REL_LEQ}) {
-        block_interface::block_types dt_info;
-
-        if (r_name == BLK_SUB_NAME_REL_GT) {
+        } else if (r_name == BLK_NAME_REL_GT) {
             dt_info = create_block_types<relational_block_types<RelationalOperator::GREATER_THAN>>();
-        } else if (r_name == BLK_SUB_NAME_REL_GEQ) {
+        } else if (r_name == BLK_NAME_REL_GEQ) {
             dt_info = create_block_types<relational_block_types<RelationalOperator::GREATER_THAN_EQUAL>>();
-        } else if (r_name == BLK_SUB_NAME_REL_LT) {
+        } else if (r_name == BLK_NAME_REL_LT) {
             dt_info = create_block_types<relational_block_types<RelationalOperator::LESS_THAN>>();
-        } else if (r_name == BLK_SUB_NAME_REL_LEQ) {
+        } else if (r_name == BLK_NAME_REL_LEQ) {
             dt_info = create_block_types<relational_block_types<RelationalOperator::LESS_THAN_EQUAL>>();
         } else {
             std::ostringstream oss;
@@ -107,21 +132,25 @@ const static std::vector<mt::stdlib::BlockInformation> BLK_LIST = []() {
             throw block_error(oss.str());
         }
 
-        blks.emplace_back(BLK_NAME_REL, r_name, BlockInformation::ConstructorOptions::DEFAULT, dt_info);
+        blks.emplace_back(r_name, r_symb_name, BlockInformation::ConstructorOptions::DEFAULT, dt_info);
     }
 
-    for (const auto& t_name : {BLK_SUB_NAME_TRIG_SIN, BLK_SUB_NAME_TRIG_COS, BLK_SUB_NAME_TRIG_TAN, BLK_SUB_NAME_TRIG_ASIN, BLK_SUB_NAME_TRIG_ACOS, BLK_SUB_NAME_TRIG_ATAN, BLK_SUB_NAME_TRIG_ATAN2}) {
-        blks.emplace_back(BLK_NAME_TRIG, t_name, BlockInformation::ConstructorOptions::DEFAULT, create_block_types<trig_block_types>());
+    for (const auto& t_name : TRIG_BLOCK_NAMES) {
+        blks.emplace_back(t_name, "", BlockInformation::ConstructorOptions::DEFAULT, create_block_types<trig_block_types>());
     }
 
     return blks;
 }();
 
-const static std::unordered_map<std::string, std::unordered_map<std::string, mt::stdlib::BlockInformation>> BLK_INFOS = []() {
-    std::unordered_map<std::string, std::unordered_map<std::string, mt::stdlib::BlockInformation>> blk_map;
+const static std::unordered_map<std::string, mt::stdlib::BlockInformation> BLK_INFOS = []() {
+    std::unordered_map<std::string, mt::stdlib::BlockInformation> blk_map;
 
     for (const auto& b : BLK_LIST) {
-        blk_map[b.base_name].emplace(b.sub_name, b);
+        blk_map.emplace(b.name, b);
+
+        if (b.symbolic_name.has_value()) {
+            blk_map.emplace(*b.symbolic_name, b);
+        }
     }
 
     return blk_map;
@@ -230,7 +259,7 @@ struct StandardBlockFunctor {
     template <mt::stdlib::DataType DT>
     using blk_trig_atan2 = mt::stdlib::trig_block<DT, mt::stdlib::TrigFunction::ATAN2>;
 
-    std::unique_ptr<mt::stdlib::block_interface> operator()(const mt::stdlib::DataType data_type, const std::string& name, const std::string& sub_name) {
+    std::unique_ptr<mt::stdlib::block_interface> operator()(const mt::stdlib::DataType data_type, const std::string& name) {
         mt::stdlib::block_interface* inter = nullptr;
 
         using namespace mt::stdlib;
@@ -241,46 +270,42 @@ struct StandardBlockFunctor {
             return create_block_of_type<switch_block, switch_block_types>(data_type);
         } else if (name == BLK_NAME_LIMITER) {
             return create_block_of_type<limiter_block, limiter_block_types>(data_type);
-        } else if (name == BLK_NAME_REL && sub_name == BLK_SUB_NAME_REL_EQ) {
+        } else if (name == BLK_NAME_REL_EQ) {
             return create_block_of_type<blk_rel_eq, mt::stdlib::relational_block_types<mt::stdlib::RelationalOperator::EQUAL>>(data_type);
-        } else if (name == BLK_NAME_REL && sub_name == BLK_SUB_NAME_REL_NEQ) {
+        } else if (name == BLK_NAME_REL_NEQ) {
             return create_block_of_type<blk_rel_neq, mt::stdlib::relational_block_types<mt::stdlib::RelationalOperator::NOT_EQUAL>>(data_type);
-        } else if (name == BLK_NAME_REL && sub_name == BLK_SUB_NAME_REL_GT) {
+        } else if (name == BLK_NAME_REL_GT) {
             return create_block_of_type<blk_rel_gt, mt::stdlib::relational_block_types<mt::stdlib::RelationalOperator::GREATER_THAN>>(data_type);
-        } else if (name == BLK_NAME_REL && sub_name == BLK_SUB_NAME_REL_GEQ) {
+        } else if (name == BLK_NAME_REL_GEQ) {
             return create_block_of_type<blk_rel_geq, mt::stdlib::relational_block_types<mt::stdlib::RelationalOperator::GREATER_THAN_EQUAL>>(data_type);
-        } else if (name == BLK_NAME_REL && sub_name == BLK_SUB_NAME_REL_LT) {
+        } else if (name == BLK_NAME_REL_LT) {
             return create_block_of_type<blk_rel_lt, mt::stdlib::relational_block_types<mt::stdlib::RelationalOperator::LESS_THAN>>(data_type);
-        } else if (name == BLK_NAME_REL && sub_name == BLK_SUB_NAME_REL_LEQ) {
+        } else if (name == BLK_NAME_REL_LEQ) {
             return create_block_of_type<blk_rel_leq, mt::stdlib::relational_block_types<mt::stdlib::RelationalOperator::LESS_THAN_EQUAL>>(data_type);
-        } else if (name == BLK_NAME_TRIG && sub_name == BLK_SUB_NAME_TRIG_SIN) {
+        } else if (name == BLK_NAME_TRIG_SIN) {
             return create_block_of_type<blk_trig_sin, mt::stdlib::trig_block_types>(data_type);
-        } else if (name == BLK_NAME_TRIG && sub_name == BLK_SUB_NAME_TRIG_COS) {
+        } else if (name == BLK_NAME_TRIG_COS) {
             return create_block_of_type<blk_trig_cos, mt::stdlib::trig_block_types>(data_type);
-        } else if (name == BLK_NAME_TRIG && sub_name == BLK_SUB_NAME_TRIG_TAN) {
+        } else if (name == BLK_NAME_TRIG_TAN) {
             return create_block_of_type<blk_trig_tan, mt::stdlib::trig_block_types>(data_type);
-        } else if (name == BLK_NAME_TRIG && sub_name == BLK_SUB_NAME_TRIG_ASIN) {
+        } else if (name == BLK_NAME_TRIG_ASIN) {
             return create_block_of_type<blk_trig_asin, mt::stdlib::trig_block_types>(data_type);
-        } else if (name == BLK_NAME_TRIG && sub_name == BLK_SUB_NAME_TRIG_ACOS) {
+        } else if (name == BLK_NAME_TRIG_ACOS) {
             return create_block_of_type<blk_trig_acos, mt::stdlib::trig_block_types>(data_type);
-        } else if (name == BLK_NAME_TRIG && sub_name == BLK_SUB_NAME_TRIG_ATAN) {
+        } else if (name == BLK_NAME_TRIG_ATAN) {
             return create_block_of_type<blk_trig_atan, mt::stdlib::trig_block_types>(data_type);
-        } else if (name == BLK_NAME_TRIG && sub_name == BLK_SUB_NAME_TRIG_ATAN2) {
+        } else if (name == BLK_NAME_TRIG_ATAN2) {
             return create_block_of_type<blk_trig_atan2, mt::stdlib::trig_block_types>(data_type);
         } else {
             std::ostringstream oss;
             oss << "Unknown block provided with \"" << name << "\"";
-            if (!sub_name.empty()) {
-                oss << " - \"" << sub_name << "\"";
-            }
-
             throw block_error(oss.str());
         }
     }
 };
 
 struct SingleArgConstructor {
-    std::unique_ptr<mt::stdlib::block_interface> operator()(const std::string& name, [[maybe_unused]] const std::string& sub_name, const mt::stdlib::Argument* val) {
+    std::unique_ptr<mt::stdlib::block_interface> operator()(const std::string& name, const mt::stdlib::Argument* val) {
         using namespace mt::stdlib;
 
         if (val == nullptr) {
@@ -328,28 +353,22 @@ struct ArithmeticBlockFunctor {
         }
     }
 
-    std::unique_ptr<mt::stdlib::block_interface> operator()(const std::string& name, const std::string& sub_name, const size_t size) {
+    std::unique_ptr<mt::stdlib::block_interface> operator()(const std::string& name, const size_t size) {
         using namespace mt::stdlib;
 
-        if (name == BLK_NAME_ARITH) {
-            if (sub_name == BLK_SUB_NAME_ARITH_ADD) {
-                return create_arith_block<mt::stdlib::ArithType::ADD>(size);
-            } else if (sub_name == BLK_SUB_NAME_ARITH_SUB) {
-                return create_arith_block<mt::stdlib::ArithType::SUB>(size);
-            } else if (sub_name == BLK_SUB_NAME_ARITH_MUL) {
-                return create_arith_block<mt::stdlib::ArithType::MUL>(size);
-            } else if (sub_name == BLK_SUB_NAME_ARITH_DIV) {
-                return create_arith_block<mt::stdlib::ArithType::DIV>(size);
-            } else if (sub_name == BLK_SUB_NAME_ARITH_MOD) {
-                return create_arith_block<mt::stdlib::ArithType::MOD>(size);
-            } else {
-                std::ostringstream oss;
-                oss << "unknown arith sub-name \"" << sub_name << "\" provided";
-                throw block_error(oss.str());
-            }
+        if (name == BLK_NAME_ARITH_ADD) {
+            return create_arith_block<mt::stdlib::ArithType::ADD>(size);
+        } else if (name == BLK_NAME_ARITH_SUB) {
+            return create_arith_block<mt::stdlib::ArithType::SUB>(size);
+        } else if (name == BLK_NAME_ARITH_MUL) {
+            return create_arith_block<mt::stdlib::ArithType::MUL>(size);
+        } else if (name == BLK_NAME_ARITH_DIV) {
+            return create_arith_block<mt::stdlib::ArithType::DIV>(size);
+        } else if (name == BLK_NAME_ARITH_MOD) {
+            return create_arith_block<mt::stdlib::ArithType::MOD>(size);
         } else {
             std::ostringstream oss;
-            oss << "unknown block name \"" << name << "\" provided";
+            oss << "unknown arith name \"" << name << "\" provided";
             throw block_error(oss.str());
         }
     }
@@ -419,7 +438,7 @@ static std::unique_ptr<mt::stdlib::block_interface> create_block_with_type_inner
     }
 }
 
-std::unique_ptr<mt::stdlib::block_interface> mt::stdlib::create_block(const std::string& name, const std::string& sub_name, DataType data_type, const Argument* argument) {
+std::unique_ptr<mt::stdlib::block_interface> mt::stdlib::create_block(const std::string& name, DataType data_type, const Argument* argument) {
     using namespace mt::stdlib;
 
     const auto it = BLK_INFOS.find(name);
@@ -429,19 +448,10 @@ std::unique_ptr<mt::stdlib::block_interface> mt::stdlib::create_block(const std:
         throw block_error(oss.str());
     }
 
-    const auto& blk_cat = it->second;
-
-    const auto itt = blk_cat.find(sub_name);
-    if (itt == blk_cat.end()) {
-        std::ostringstream oss;
-        oss << "no block info for name \"" << name << "::" << sub_name << "\" found";
-        throw block_error(oss.str());
-    }
-
-    const auto& info = itt->second;
+    const auto& info = it->second;
 
     if (info.constructor == BlockInformation::ConstructorOptions::VALUE || info.constructor == BlockInformation::ConstructorOptions::TIMESTEP) {
-        return SingleArgConstructor()(name, sub_name, argument);
+        return SingleArgConstructor()(name, argument);
     } else if (info.constructor == BlockInformation::ConstructorOptions::SIZE) {
         if (argument == nullptr) {
             throw block_error("must provide a valid size argument");
@@ -449,9 +459,9 @@ std::unique_ptr<mt::stdlib::block_interface> mt::stdlib::create_block(const std:
 
         const size_t size = argument->as_size();
 
-        return create_block_with_type_inner<ArithmeticBlockFunctor, true, true, false>(data_type, name, sub_name, size);
+        return create_block_with_type_inner<ArithmeticBlockFunctor, true, true, false>(data_type, name, size);
     } else if (info.constructor == BlockInformation::ConstructorOptions::DEFAULT) {
-        return StandardBlockFunctor()(data_type, name, sub_name);
+        return StandardBlockFunctor()(data_type, name);
     } else {
         throw block_error("invalid constructor argument found");
     }
@@ -461,7 +471,7 @@ std::unique_ptr<mt::stdlib::block_interface> mt::stdlib::create_block(
     const BlockInformation& info,
     DataType data_type,
     const Argument* argument) {
-    return create_block(info.base_name, info.sub_name, data_type, argument);
+    return create_block(info.name, data_type, argument);
 }
 
 #endif // MT_STDLIB_USE_FULL_LIB

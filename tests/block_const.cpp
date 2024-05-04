@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MIT
 
-#include "mtstd_types.hpp"
 #include <catch2/catch_all.hpp>
+
+#include "mtstdlib.hpp"
+#include "mtstdlib_types.hpp"
 
 #include <array>
 #include <limits>
 
-#include <mtstd.hpp>
 
 
 TEST_CASE("Block Const Int", "[const]") {

@@ -3,23 +3,20 @@
 #ifndef MT_STDLIB_TYPES_H
 #define MT_STDLIB_TYPES_H
 
-#include "mtstd_except.hpp"
 #include <cstdint>
 
 #ifdef MT_STDLIB_USE_FULL_LIB
+#include "mtstdlib_except.hpp"
+#include "mtstdlib_string_common.hpp"
+
 #include <cstring>
 #include <string>
 #include <string_view>
 #include <vector>
-
 #endif
 
 namespace mt {
 namespace stdlib {
-
-#ifdef MT_STDLIB_USE_FULL_LIB
-extern const std::string BASE_NAMESPACE;
-#endif
 
 enum class DataType : uint32_t {
     NONE = 0,
@@ -301,9 +298,9 @@ struct block_interface {
 
     virtual block_types get_supported_types() const noexcept = 0;
 
-    virtual void reset();
+    virtual void reset() noexcept;
 
-    virtual void step();
+    virtual void step() noexcept;
 
     virtual DataType get_current_type() const noexcept = 0;
 
@@ -322,6 +319,10 @@ struct block_interface {
     virtual bool get_input_type_settable(size_t port_num) const noexcept = 0;
 
     virtual bool outputs_are_delayed() const noexcept { return false; }
+
+    virtual std::string get_input_name(size_t port_num) const = 0;
+
+    virtual std::string get_output_name(size_t port_num) const = 0;
 
 protected:
     template <DataType DT>

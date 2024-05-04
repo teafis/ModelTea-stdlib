@@ -13,21 +13,22 @@ project (
 
 set(
     MODELTEA_STD_MODEL_SOURCES
-    include/mtstd.hpp
-    include/mtstd_ext.hpp
-    src/mtstd_ext.cpp
-    include/mtstd_types.hpp
-    src/mtstd_types.cpp
+    include/mtstdlib.hpp
+    include/mtstdlib_ext.hpp
+    src/mtstdlib_ext.cpp
+    include/mtstdlib_types.hpp
+    src/mtstdlib_types.cpp
 )
 
 set(
     MODELTEA_STD_FULL_SOURCES
     ${MODELTEA_STD_MODEL_SOURCES}
-    include/mtstd_except.hpp
-    include/mtstd_string.hpp
-    src/mtstd_string.cpp
-    include/mtstd_creation.hpp
-    src/mtstd_creation.cpp
+    include/mtstdlib_except.hpp
+    include/mtstdlib_string.hpp
+    include/mtstdlib_string_common.hpp
+    src/mtstdlib_string.cpp
+    include/mtstdlib_creation.hpp
+    src/mtstdlib_creation.cpp
 )
 
 # Define the library
