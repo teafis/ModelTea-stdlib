@@ -368,7 +368,7 @@ struct const_block MT_COMPAT_SUBCLASS {
         data_t value;
     };
 
-    explicit const_block(const data_t val) : s_out{.value = val} {
+    const_block(const data_t val) : s_out{.value = val} {
         // Empty Constructor
     }
 
