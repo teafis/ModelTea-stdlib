@@ -190,7 +190,13 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
-        oss << "arith_block_dynamic<" << type_info<DT>::name << ", " << arith_to_string(AT) << ">"; // TODO - Use as static arith_block?
+        oss << "arith_block_dynamic<" << datatype_to_string(DT) << ", " << arith_to_string(AT) << ">";
+        return oss.str();
+    }
+
+    std::string get_class_name_codegen() const override {
+        std::ostringstream oss;
+        oss << "arith_block<" << datatype_to_string(DT) << ", " << arith_to_string(AT) << ", " << s_in.size << ">";
         return oss.str();
     }
 
@@ -233,7 +239,7 @@ struct arith_block : public arith_block_dynamic<DT, AT> {
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
-        oss << "arith_block<" << type_info<DT>::name << ", " << arith_to_string(AT) << ", " << SIZE << ">";
+        oss << "arith_block<" << datatype_to_string(DT) << ", " << arith_to_string(AT) << ", " << SIZE << ">";
         return oss.str();
     }
 #endif
@@ -332,7 +338,7 @@ struct clock_block MT_COMPAT_SUBCLASS {
 
 protected:
     std::string get_class_name() const override {
-        return "clock_block";
+        return (std::ostringstream{} << "clock_block<" << datatype_to_string(DT) << '>').str();
     }
 
 public:
@@ -438,7 +444,7 @@ struct const_block MT_COMPAT_SUBCLASS {
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
-        oss << "const_block<" << type_info<DT>::name << '>';
+        oss << "const_block<" << datatype_to_string(DT) << '>';
         return oss.str();
     }
 
@@ -582,7 +588,7 @@ struct delay_block MT_COMPAT_SUBCLASS {
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
-        oss << "delay_block<" << type_info<DT>::name << '>';
+        oss << "delay_block<" << datatype_to_string(DT) << '>';
         return oss.str();
     }
 
@@ -727,7 +733,7 @@ std::string get_input_name(size_t port_num) const override {
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
-        oss << "derivative_block<" << type_info<DT>::name << '>';
+        oss << "derivative_block<" << datatype_to_string(DT) << '>';
         return oss.str();
     }
 
@@ -878,7 +884,7 @@ struct integrator_block MT_COMPAT_SUBCLASS {
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
-        oss << "integrator_block<" << type_info<DT>::name << '>';
+        oss << "integrator_block<" << datatype_to_string(DT) << '>';
         return oss.str();
     }
 
@@ -934,7 +940,7 @@ struct switch_block MT_COMPAT_SUBCLASS {
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
-        oss << "switch_block<" << type_info<DT>::name << '>';
+        oss << "switch_block<" << datatype_to_string(DT) << '>';
         return oss.str();
     }
 
@@ -1166,7 +1172,7 @@ public:
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
-        oss << "limiter_block<" << type_info<DT>::name << '>';
+        oss << "limiter_block<" << datatype_to_string(DT) << '>';
         return oss.str();
     }
 
@@ -1291,7 +1297,7 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
-        oss << "limiter_block_const<" << type_info<DT>::name << '>';
+        oss << "limiter_block_const<" << datatype_to_string(DT) << '>';
         return oss.str();
     }
 
@@ -1409,7 +1415,7 @@ struct relational_block MT_COMPAT_SUBCLASS {
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
-        oss << "relational_block<" << type_info<DT>::name << ", " << relational_to_string(OP) << '>';
+        oss << "relational_block<" << datatype_to_string(DT) << ", " << relational_to_string(OP) << '>';
         return oss.str();
     }
 
@@ -1704,7 +1710,7 @@ struct trig_block MT_COMPAT_SUBCLASS {
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
-        oss << "trig_block<" << type_info<DT>::name << ", " << trig_func_to_string(FCN) << '>';
+        oss << "trig_block<" << datatype_to_string(DT) << ", " << trig_func_to_string(FCN) << '>';
         return oss.str();
     }
 

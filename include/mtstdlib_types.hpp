@@ -318,7 +318,7 @@ struct block_interface {
 
     virtual bool get_input_type_settable(size_t port_num) const noexcept = 0;
 
-    virtual bool outputs_are_delayed() const noexcept { return false; }
+    virtual bool outputs_are_delayed() const noexcept;
 
     virtual std::string get_input_name(size_t port_num) const = 0;
 
@@ -360,12 +360,14 @@ protected:
     }
 
 public:
-    std::string get_type_name(bool include_namespace = true) const;
+    std::string get_type_name(bool use_codegen_name = true) const;
 
     virtual std::string get_block_name() const = 0;
 
 protected:
     virtual std::string get_class_name() const = 0;
+
+    virtual std::string get_class_name_codegen() const;
 };
 
 #endif // MT_STDLIB_USE_FULL_LIB

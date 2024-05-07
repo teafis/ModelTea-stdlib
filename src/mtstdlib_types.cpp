@@ -57,14 +57,19 @@ void mt::stdlib::block_interface::reset() noexcept {}
 
 void mt::stdlib::block_interface::step() noexcept {}
 
-std::string mt::stdlib::block_interface::get_type_name(bool include_namespace) const {
-    if (include_namespace) {
-        std::ostringstream oss;
-        oss << BASE_NAMESPACE << "::" << get_class_name();
-        return oss.str();
+bool mt::stdlib::block_interface::outputs_are_delayed() const noexcept { return false; }
+
+std::string mt::stdlib::block_interface::get_type_name(bool use_codegen_name) const {
+    std::ostringstream oss;
+    oss << BASE_NAMESPACE << "::";
+    if (use_codegen_name) {
+        oss << get_class_name_codegen();
     } else {
-        return get_class_name();
+        oss << get_class_name();
     }
+    return oss.str();
 }
+
+std::string mt::stdlib::block_interface::get_class_name_codegen() const { return get_class_name(); }
 
 #endif // MT_STDLIB_USE_FULL_LIB

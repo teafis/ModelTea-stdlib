@@ -45,9 +45,13 @@ enum class SpecificationType {
     FULL,
 };
 
-std::string
-arith_to_string(ArithType t,
-                SpecificationType specification = SpecificationType::FULL);
+std::string datatype_to_string(
+    DataType dt,
+    SpecificationType specification = SpecificationType::FULL);
+
+std::string arith_to_string(
+    ArithType t,
+    SpecificationType specification = SpecificationType::FULL);
 
 std::string relational_to_string(
     RelationalOperator op,

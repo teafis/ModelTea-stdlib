@@ -55,6 +55,49 @@ static std::string to_enum_name(mt::stdlib::SpecificationType spec,
     return oss.str();
 }
 
+std::string mt::stdlib::datatype_to_string(
+    DataType dt,
+    SpecificationType specification) {
+    static const std::string TYPE_NAME = "DataType";
+    std::string name;
+
+    switch (dt) {
+        using enum mt::stdlib::DataType;
+    case F64:
+        name = "F64";
+        break;
+    case F32:
+        name = "F32";
+        break;
+    case U8:
+        name = "U8";
+        break;
+    case U16:
+        name = "U16";
+        break;
+    case U32:
+        name = "U32";
+        break;
+    case I8:
+        name = "I8";
+        break;
+    case I16:
+        name = "I16";
+        break;
+    case I32:
+        name = "I32";
+        break;
+    case BOOL:
+        name = "BOOL";
+        break;
+    default:
+        throw block_error(
+            "unsupported data type function provided for string conversion");
+    }
+
+    return to_enum_name(specification, TYPE_NAME, name);
+}
+
 std::string mt::stdlib::arith_to_string(const ArithType t,
                                         SpecificationType specification) {
     static const std::string TYPE_NAME = "ArithType";
