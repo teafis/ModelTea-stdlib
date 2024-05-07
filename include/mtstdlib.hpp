@@ -368,7 +368,7 @@ struct const_block MT_COMPAT_SUBCLASS {
         data_t value;
     };
 
-    const_block(const data_t val) : s_out{.value = val} {
+    const_block(data_t val) : s_out{.value = val} {
         // Empty Constructor
     }
 
@@ -1733,6 +1733,129 @@ public:
         } else {
             static_assert("unknown trig block type");
         }
+    }
+
+#endif
+
+    input_t s_in;
+    output_t s_out;
+};
+
+#ifdef MT_STDLIB_USE_FULL_LIB
+struct conversion_block_types {
+    static constexpr bool uses_integral = true;
+    static constexpr bool uses_float = true;
+    static constexpr bool uses_logical = true;
+};
+#endif // MT_STDLIB_USE_FULL_LIB
+
+template <DataType DT_IN, DataType DT_OUT>
+struct conversion_block MT_COMPAT_SUBCLASS {
+    using data_t_in = typename type_info<DT_IN>::type_t;
+    using data_t_out = typename type_info<DT_OUT>::type_t;
+
+    struct input_t {
+        data_t_in value;
+    };
+
+    struct output_t {
+        data_t_out value;
+    };
+
+    conversion_block() = default;
+    conversion_block(const conversion_block&) = delete;
+    conversion_block& operator=(const conversion_block&) = delete;
+
+    void reset() noexcept MT_COMPAT_OVERRIDE { step(); }
+
+    void step() noexcept MT_COMPAT_OVERRIDE {
+        s_out.value = static_cast<data_t_out>(s_in.value);
+    }
+
+#ifdef MT_STDLIB_USE_FULL_LIB
+    using type_info_t = conversion_block_types;
+    block_types get_supported_types() const noexcept override {
+        return block_types{
+            .uses_integral = type_info_t::uses_integral,
+            .uses_float = type_info_t::uses_float,
+            .uses_logical = type_info_t::uses_logical,
+        };
+    }
+
+    DataType get_current_type() const noexcept override {
+        return DT_IN;
+    }
+
+    void set_input(size_t port_num, const Argument* value) override {
+        if (port_num < get_input_num()) {
+            set_input_value<DT_IN>(s_in.value, value);
+        } else {
+            throw block_error("input port too high");
+        }
+    }
+
+    void get_output(size_t port_num, Argument* value) const override {
+        if (port_num < get_output_num()) {
+            get_output_value<DT_OUT>(s_out.value, value);
+        } else {
+            throw block_error("output port too high");
+        }
+    }
+
+    size_t get_input_num() const noexcept override {
+        return 1;
+    }
+
+    bool get_input_type_settable(size_t port_num) const noexcept override {
+        return port_num < get_output_num();
+    }
+
+    size_t get_output_num() const noexcept override {
+        return 1;
+    }
+
+    DataType get_input_type(size_t port_num) const override {
+        if (port_num < get_input_num()) {
+            return DT_IN;
+        } else {
+            throw block_error("input port too high");
+        }
+    }
+
+    DataType get_output_type(size_t port_num) const override {
+        if (port_num < get_output_num()) {
+            return DT_OUT;
+        } else {
+            throw block_error("output port too high");
+        }
+    }
+
+    std::string get_input_name(size_t port_num) const override {
+        if (port_num < get_input_num()) {
+            return "value";
+        } else {
+            throw block_error("input port too high");
+        }
+    }
+
+    std::string get_output_name(size_t port_num) const override {
+        if (port_num < get_output_num()) {
+            return "value";
+        } else {
+            throw block_error("output port too high");
+        }
+    }
+
+protected:
+    std::string get_class_name() const override {
+        std::ostringstream oss;
+        oss << "conversion_block<" << datatype_to_string(DT_IN) << ", " << datatype_to_string(DT_OUT) << '>';
+        return oss.str();
+    }
+
+public:
+    std::string get_block_name() const override {
+        return BLK_NAME_CONVERSION;
     }
 
 #endif

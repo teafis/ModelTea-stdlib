@@ -27,6 +27,8 @@ enum class DataType : uint32_t {
     I16,
     U32,
     I32,
+    U64,
+    I64,
     F32,
     F64,
 };
@@ -164,6 +166,44 @@ struct type_info<DataType::I32> MT_STDLIB_TYPE_BASE {
     bool get_is_signed() const override { return is_signed; }
     const char* get_name() const override { return name; }
     DataType get_data_type() const override { return DataType::I32; }
+#endif
+};
+
+template <>
+struct type_info<DataType::U64> MT_STDLIB_TYPE_BASE {
+    using type_t = uint32_t;
+    static const bool is_numeric = true;
+    static const bool is_integral = true;
+    static const bool is_float = false;
+    static const bool is_signed = false;
+#ifdef MT_STDLIB_USE_FULL_LIB
+    static constexpr const char* name = "uint64_t";
+
+    bool get_is_numeric() const override { return is_numeric; }
+    bool get_is_integral() const override { return is_integral; }
+    bool get_is_float() const override { return is_float; }
+    bool get_is_signed() const override { return is_signed; }
+    const char* get_name() const override { return name; }
+    DataType get_data_type() const override { return DataType::U64; }
+#endif
+};
+
+template <>
+struct type_info<DataType::I64> MT_STDLIB_TYPE_BASE {
+    using type_t = int32_t;
+    static const bool is_numeric = true;
+    static const bool is_integral = true;
+    static const bool is_float = false;
+    static const bool is_signed = true;
+#ifdef MT_STDLIB_USE_FULL_LIB
+    static constexpr const char* name = "int64_t";
+
+    bool get_is_numeric() const override { return is_numeric; }
+    bool get_is_integral() const override { return is_integral; }
+    bool get_is_float() const override { return is_float; }
+    bool get_is_signed() const override { return is_signed; }
+    const char* get_name() const override { return name; }
+    DataType get_data_type() const override { return DataType::I64; }
 #endif
 };
 

@@ -14,13 +14,40 @@
 #include <sstream>
 #include <unordered_map>
 
-mt::stdlib::BlockInformation::BlockInformation(std::string_view name, ConstructorOptions constructor, const block_interface::block_types& types) : name(name),
-                                                                                                                                                   symbolic_name{},
-                                                                                                                                                   constructor(constructor),
-                                                                                                                                                   types(types) {}
+mt::stdlib::BlockInformation::BlockInformation(
+    std::string_view name,
+    ConstructorOptions constructor,
+    const block_interface::block_types& types)
+    : name(name),
+      symbolic_name{},
+      constructor_dynamic(constructor),
+      constructor_codegen(constructor),
+      types(types),
+      required_type_count(1),
+      uses_input_as_type(true) {}
 
-mt::stdlib::BlockInformation::BlockInformation(std::string_view name, std::string_view symbolic_name, ConstructorOptions constructor, const block_interface::block_types& types) : BlockInformation(name, constructor, types) {
-    this->symbolic_name.emplace(symbolic_name);
+mt::stdlib::BlockInformation mt::stdlib::BlockInformation::with_uses_input_as_type(bool val) const {
+    auto tmp = *this;
+    tmp.uses_input_as_type = val;
+    return tmp;
+}
+
+mt::stdlib::BlockInformation mt::stdlib::BlockInformation::with_constructor_codegen(ConstructorOptions options) const {
+    auto tmp = *this;
+    tmp.constructor_codegen = options;
+    return tmp;
+}
+
+mt::stdlib::BlockInformation mt::stdlib::BlockInformation::with_symbolic_name(std::optional<std::string> name) const {
+    auto tmp = *this;
+    tmp.symbolic_name = name;
+    return tmp;
+}
+
+mt::stdlib::BlockInformation mt::stdlib::BlockInformation::with_required_type_count(size_t count) const {
+    auto tmp = *this;
+    tmp.required_type_count = count;
+    return tmp;
 }
 
 mt::stdlib::DataType mt::stdlib::BlockInformation::get_default_data_type() const {
@@ -54,13 +81,11 @@ bool mt::stdlib::BlockInformation::type_supported(DataType dt) const {
 }
 
 template <typename T>
-static mt::stdlib::block_interface::block_types create_block_types()
-{
+static mt::stdlib::block_interface::block_types create_block_types() {
     return mt::stdlib::block_interface::block_types{
         .uses_integral = T::uses_integral,
         .uses_float = T::uses_float,
-        .uses_logical = T::uses_logical
-    };
+        .uses_logical = T::uses_logical};
 }
 
 static const auto ARITH_BLOCK_NAMES = std::to_array<std::pair<std::string, std::string>>({
@@ -97,20 +122,27 @@ static bool is_block_type(std::string_view s, std::span<const std::string> list)
 const static std::vector<mt::stdlib::BlockInformation> BLK_LIST = []() {
     using namespace mt::stdlib;
 
+    // Standard Blocks
     std::vector<BlockInformation> blks = {
-        BlockInformation(BLK_NAME_CLOCK, "", BlockInformation::ConstructorOptions::TIMESTEP, create_block_types<clock_block_types>()),
-        BlockInformation(BLK_NAME_CONST, "", BlockInformation::ConstructorOptions::VALUE, create_block_types<const_block_types>()),
-        BlockInformation(BLK_NAME_DELAY, "", BlockInformation::ConstructorOptions::DEFAULT, create_block_types<delay_block_types>()),
-        BlockInformation(BLK_NAME_DERIV, "", BlockInformation::ConstructorOptions::TIMESTEP, create_block_types<derivative_block_types>()),
-        BlockInformation(BLK_NAME_INTEG, "", BlockInformation::ConstructorOptions::TIMESTEP, create_block_types<integrator_block_types>()),
-        BlockInformation(BLK_NAME_SWITCH, "", BlockInformation::ConstructorOptions::DEFAULT, create_block_types<switch_block_types>()),
-        BlockInformation(BLK_NAME_LIMITER, "", BlockInformation::ConstructorOptions::DEFAULT, create_block_types<limiter_block_types>()),
+        BlockInformation(BLK_NAME_CLOCK, BlockInformation::ConstructorOptions::TIMESTEP, create_block_types<clock_block_types>()).with_uses_input_as_type(false),
+        BlockInformation(BLK_NAME_CONST, BlockInformation::ConstructorOptions::VALUE, create_block_types<const_block_types>()).with_uses_input_as_type(false),
+        BlockInformation(BLK_NAME_DELAY, BlockInformation::ConstructorOptions::NONE, create_block_types<delay_block_types>()),
+        BlockInformation(BLK_NAME_DERIV, BlockInformation::ConstructorOptions::TIMESTEP, create_block_types<derivative_block_types>()),
+        BlockInformation(BLK_NAME_INTEG, BlockInformation::ConstructorOptions::TIMESTEP, create_block_types<integrator_block_types>()),
+        BlockInformation(BLK_NAME_SWITCH, BlockInformation::ConstructorOptions::NONE, create_block_types<switch_block_types>()),
+        BlockInformation(BLK_NAME_LIMITER, BlockInformation::ConstructorOptions::NONE, create_block_types<limiter_block_types>()),
+        BlockInformation(BLK_NAME_CONVERSION, BlockInformation::ConstructorOptions::NONE, create_block_types<const_block_types>()).with_required_type_count(2),
     };
 
+    // Arithmetic Blocks
     for (const auto& [a_name, a_symb_name] : ARITH_BLOCK_NAMES) {
-        blks.emplace_back(a_name, a_symb_name, BlockInformation::ConstructorOptions::SIZE, create_block_types<arith_block_types>());
+        blks.emplace_back(
+            BlockInformation(a_name, BlockInformation::ConstructorOptions::SIZE, create_block_types<arith_block_types>())
+                .with_symbolic_name(a_symb_name)
+                .with_constructor_codegen(BlockInformation::ConstructorOptions::NONE));
     }
 
+    // Relational Blocks
     for (const auto& [r_name, r_symb_name] : RELATIONAL_BLOCK_NAMES) {
         block_interface::block_types dt_info;
 
@@ -132,11 +164,12 @@ const static std::vector<mt::stdlib::BlockInformation> BLK_LIST = []() {
             throw block_error(oss.str());
         }
 
-        blks.emplace_back(r_name, r_symb_name, BlockInformation::ConstructorOptions::DEFAULT, dt_info);
+        blks.emplace_back(BlockInformation(r_name, BlockInformation::ConstructorOptions::NONE, dt_info).with_symbolic_name(r_symb_name));
     }
 
+    // Trig Blocks
     for (const auto& t_name : TRIG_BLOCK_NAMES) {
-        blks.emplace_back(t_name, "", BlockInformation::ConstructorOptions::DEFAULT, create_block_types<trig_block_types>());
+        blks.emplace_back(t_name, BlockInformation::ConstructorOptions::NONE, create_block_types<trig_block_types>());
     }
 
     return blks;
@@ -183,6 +216,12 @@ static std::unique_ptr<mt::stdlib::block_interface> create_block_of_type(const m
             break;
         case mt::stdlib::DataType::I32:
             ptr = std::make_unique<BLK<mt::stdlib::DataType::I32>>(std::forward<Args>(args)...);
+            break;
+        case mt::stdlib::DataType::U64:
+            ptr = std::make_unique<BLK<mt::stdlib::DataType::U64>>(std::forward<Args>(args)...);
+            break;
+        case mt::stdlib::DataType::I64:
+            ptr = std::make_unique<BLK<mt::stdlib::DataType::I64>>(std::forward<Args>(args)...);
             break;
         default:
             break;
@@ -401,6 +440,12 @@ static std::unique_ptr<mt::stdlib::block_interface> create_block_with_type_inner
         case I32:
             ptr = FCN<I32>()(std::forward<Args>(args)...);
             break;
+        case U64:
+            ptr = FCN<U64>()(std::forward<Args>(args)...);
+            break;
+        case I64:
+            ptr = FCN<I64>()(std::forward<Args>(args)...);
+            break;
         default:
             break;
         }
@@ -438,7 +483,83 @@ static std::unique_ptr<mt::stdlib::block_interface> create_block_with_type_inner
     }
 }
 
-std::unique_ptr<mt::stdlib::block_interface> mt::stdlib::create_block(const std::string& name, DataType data_type, const Argument* argument) {
+template <mt::stdlib::DataType DT1, mt::stdlib::DataType DT2>
+struct DoubleTypeConstructor {
+    std::unique_ptr<mt::stdlib::block_interface> operator()(std::string_view name) {
+        if (name == mt::stdlib::BLK_NAME_CONVERSION) {
+            return std::make_unique<mt::stdlib::conversion_block<DT1, DT2>>();
+        } else {
+            throw mt::stdlib::block_error((std::ostringstream{} << "unknown block name with multiple types with name '" << name << "' provided").str());
+        }
+    }
+};
+
+template <template <mt::stdlib::DataType, mt::stdlib::DataType> class FCN, mt::stdlib::DataType DT1, typename... Args>
+static std::unique_ptr<mt::stdlib::block_interface> create_double_dt_block_inner(mt::stdlib::DataType dt2, Args&&... args) {
+    switch (dt2) {
+        using enum mt::stdlib::DataType;
+    case F32:
+        return FCN<DT1, F32>()(std::forward<Args>(args)...);
+    case F64:
+        return FCN<DT1, F64>()(std::forward<Args>(args)...);
+    case U8:
+        return FCN<DT1, U8>()(std::forward<Args>(args)...);
+    case U16:
+        return FCN<DT1, U16>()(std::forward<Args>(args)...);
+    case U32:
+        return FCN<DT1, U32>()(std::forward<Args>(args)...);
+    case U64:
+        return FCN<DT1, U64>()(std::forward<Args>(args)...);
+    case I8:
+        return FCN<DT1, I8>()(std::forward<Args>(args)...);
+    case I16:
+        return FCN<DT1, I16>()(std::forward<Args>(args)...);
+    case I32:
+        return FCN<DT1, I32>()(std::forward<Args>(args)...);
+    case I64:
+        return FCN<DT1, I64>()(std::forward<Args>(args)...);
+    case BOOL:
+        return FCN<DT1, BOOL>()(std::forward<Args>(args)...);
+    default:
+        throw mt::stdlib::block_error("unknown data type provided");
+    }
+}
+
+template <template <mt::stdlib::DataType, mt::stdlib::DataType> class FCN, typename... Args>
+static std::unique_ptr<mt::stdlib::block_interface> create_double_dt_block(mt::stdlib::DataType dt1, mt::stdlib::DataType dt2, Args&&... args) {
+    switch (dt1) {
+        using enum mt::stdlib::DataType;
+    case F32:
+        return create_double_dt_block_inner<FCN, F32>(dt2, std::forward<Args>(args)...);
+    case F64:
+        return create_double_dt_block_inner<FCN, F64>(dt2, std::forward<Args>(args)...);
+    case U8:
+        return create_double_dt_block_inner<FCN, U8>(dt2, std::forward<Args>(args)...);
+    case U16:
+        return create_double_dt_block_inner<FCN, U16>(dt2, std::forward<Args>(args)...);
+    case U32:
+        return create_double_dt_block_inner<FCN, U32>(dt2, std::forward<Args>(args)...);
+    case U64:
+        return create_double_dt_block_inner<FCN, U64>(dt2, std::forward<Args>(args)...);
+    case I8:
+        return create_double_dt_block_inner<FCN, I8>(dt2, std::forward<Args>(args)...);
+    case I16:
+        return create_double_dt_block_inner<FCN, I16>(dt2, std::forward<Args>(args)...);
+    case I32:
+        return create_double_dt_block_inner<FCN, I32>(dt2, std::forward<Args>(args)...);
+    case I64:
+        return create_double_dt_block_inner<FCN, I64>(dt2, std::forward<Args>(args)...);
+    case BOOL:
+        return create_double_dt_block_inner<FCN, BOOL>(dt2, std::forward<Args>(args)...);
+    default:
+        throw mt::stdlib::block_error("unknown data type provided");
+    }
+}
+
+std::unique_ptr<mt::stdlib::block_interface> mt::stdlib::create_block(
+    const std::string& name,
+    std::span<const DataType> data_types,
+    const Argument* argument) {
     using namespace mt::stdlib;
 
     const auto it = BLK_INFOS.find(name);
@@ -450,28 +571,44 @@ std::unique_ptr<mt::stdlib::block_interface> mt::stdlib::create_block(const std:
 
     const auto& info = it->second;
 
-    if (info.constructor == BlockInformation::ConstructorOptions::VALUE || info.constructor == BlockInformation::ConstructorOptions::TIMESTEP) {
-        return SingleArgConstructor()(name, argument);
-    } else if (info.constructor == BlockInformation::ConstructorOptions::SIZE) {
-        if (argument == nullptr) {
-            throw block_error("must provide a valid size argument");
+    if (info.required_type_count != data_types.size()) {
+        throw block_error("mismatch in required data type parameters");
+    }
+
+    if (info.required_type_count == 1) {
+        const auto data_type = data_types[0];
+
+        if (info.constructor_dynamic == BlockInformation::ConstructorOptions::VALUE || info.constructor_dynamic == BlockInformation::ConstructorOptions::TIMESTEP) {
+            return SingleArgConstructor()(name, argument);
+        } else if (info.constructor_dynamic == BlockInformation::ConstructorOptions::SIZE) {
+            if (argument == nullptr) {
+                throw block_error("must provide a valid size argument");
+            }
+
+            const size_t size = argument->as_size();
+
+            return create_block_with_type_inner<ArithmeticBlockFunctor, true, true, false>(data_type, name, size);
+        } else if (info.constructor_dynamic == BlockInformation::ConstructorOptions::NONE) {
+            return StandardBlockFunctor()(data_type, name);
+        } else {
+            throw block_error("invalid constructor argument found");
         }
-
-        const size_t size = argument->as_size();
-
-        return create_block_with_type_inner<ArithmeticBlockFunctor, true, true, false>(data_type, name, size);
-    } else if (info.constructor == BlockInformation::ConstructorOptions::DEFAULT) {
-        return StandardBlockFunctor()(data_type, name);
+    } else if (info.required_type_count == 2) {
+        if (info.name == BLK_NAME_CONVERSION) {
+            return create_double_dt_block<DoubleTypeConstructor>(data_types[0], data_types[1], info.name);
+        } else {
+            throw block_error((std::ostringstream{} << "unknown block name with multiple types with name '" << info.name << "' provided").str());
+        }
     } else {
-        throw block_error("invalid constructor argument found");
+        throw block_error("unsupported number of data types provided");
     }
 }
 
 std::unique_ptr<mt::stdlib::block_interface> mt::stdlib::create_block(
     const BlockInformation& info,
-    DataType data_type,
+    std::span<const DataType> data_types,
     const Argument* argument) {
-    return create_block(info.name, data_type, argument);
+    return create_block(info.name, data_types, argument);
 }
 
 #endif // MT_STDLIB_USE_FULL_LIB

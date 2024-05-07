@@ -10,9 +10,11 @@
 static const mt::stdlib::type_info<mt::stdlib::DataType::U8> s_t_u8{};
 static const mt::stdlib::type_info<mt::stdlib::DataType::U16> s_t_u16{};
 static const mt::stdlib::type_info<mt::stdlib::DataType::U32> s_t_u32{};
+static const mt::stdlib::type_info<mt::stdlib::DataType::U64> s_t_u64{};
 static const mt::stdlib::type_info<mt::stdlib::DataType::I8> s_t_i8{};
 static const mt::stdlib::type_info<mt::stdlib::DataType::I16> s_t_i16{};
 static const mt::stdlib::type_info<mt::stdlib::DataType::I32> s_t_i32{};
+static const mt::stdlib::type_info<mt::stdlib::DataType::I64> s_t_i64{};
 static const mt::stdlib::type_info<mt::stdlib::DataType::F32> s_t_f32{};
 static const mt::stdlib::type_info<mt::stdlib::DataType::F64> s_t_f64{};
 static const mt::stdlib::type_info<mt::stdlib::DataType::BOOL> s_t_bool{};
@@ -21,9 +23,11 @@ const static auto s_type_array = std::to_array<const mt::stdlib::type_info_meta*
     &s_t_u8,
     &s_t_u16,
     &s_t_u32,
+    &s_t_u64,
     &s_t_i8,
     &s_t_i16,
     &s_t_i32,
+    &s_t_i64,
     &s_t_f32,
     &s_t_f64,
     &s_t_bool,

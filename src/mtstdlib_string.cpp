@@ -11,6 +11,7 @@ constinit std::string mt::stdlib::BASE_NAMESPACE = "mt::stdlib";
 
 constinit std::string mt::stdlib::BLK_NAME_CLOCK = "clock";
 constinit std::string mt::stdlib::BLK_NAME_CONST = "constant";
+constinit std::string mt::stdlib::BLK_NAME_CONVERSION = "conversion";
 constinit std::string mt::stdlib::BLK_NAME_DELAY = "delay";
 constinit std::string mt::stdlib::BLK_NAME_DERIV = "derivative";
 constinit std::string mt::stdlib::BLK_NAME_INTEG = "integrator";
@@ -78,6 +79,9 @@ std::string mt::stdlib::datatype_to_string(
     case U32:
         name = "U32";
         break;
+    case U64:
+        name = "U64";
+        break;
     case I8:
         name = "I8";
         break;
@@ -86,6 +90,9 @@ std::string mt::stdlib::datatype_to_string(
         break;
     case I32:
         name = "I32";
+        break;
+    case I64:
+        name = "I64";
         break;
     case BOOL:
         name = "BOOL";
