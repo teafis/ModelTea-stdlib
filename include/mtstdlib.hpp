@@ -264,9 +264,8 @@ struct clock_block MT_COMPAT_SUBCLASS {
         data_t value;
     };
 
-    explicit clock_block(data_t dt) : time_step{dt} {
+    explicit clock_block(data_t dt) : s_out{}, time_step{dt} {
         static_assert(type_info<DT>::is_numeric, "data type must be numeric");
-        reset();
     }
 
     clock_block(const clock_block&) = delete;
