@@ -126,6 +126,7 @@ const static std::vector<mt::stdlib::BlockInformation> BLK_LIST = []() {
     std::vector<BlockInformation> blks = {
         BlockInformation(BLK_NAME_CLOCK, BlockInformation::ConstructorOptions::TIMESTEP, create_block_types<clock_block_types>()).with_uses_input_as_type(false),
         BlockInformation(BLK_NAME_CONST, BlockInformation::ConstructorOptions::VALUE, create_block_types<const_block_types>()).with_uses_input_as_type(false),
+        BlockInformation(BLK_NAME_GAIN_PTR, BlockInformation::ConstructorOptions::VALUE_PTR, create_block_types<gain_ptr_block_types>()).with_uses_input_as_type(false),
         BlockInformation(BLK_NAME_DELAY, BlockInformation::ConstructorOptions::NONE, create_block_types<delay_block_types>()),
         BlockInformation(BLK_NAME_DERIV, BlockInformation::ConstructorOptions::TIMESTEP, create_block_types<derivative_block_types>()),
         BlockInformation(BLK_NAME_INTEG, BlockInformation::ConstructorOptions::TIMESTEP, create_block_types<integrator_block_types>()),
@@ -578,7 +579,7 @@ std::unique_ptr<mt::stdlib::block_interface> mt::stdlib::create_block(
     if (info.required_type_count == 1) {
         const auto data_type = data_types[0];
 
-        if (info.constructor_dynamic == BlockInformation::ConstructorOptions::VALUE || info.constructor_dynamic == BlockInformation::ConstructorOptions::TIMESTEP) {
+        if (info.constructor_dynamic == BlockInformation::ConstructorOptions::VALUE || info.constructor_dynamic == BlockInformation::ConstructorOptions::TIMESTEP || info.constructor_dynamic == BlockInformation::ConstructorOptions::VALUE_PTR) {
             return SingleArgConstructor()(name, argument);
         } else if (info.constructor_dynamic == BlockInformation::ConstructorOptions::SIZE) {
             if (argument == nullptr) {

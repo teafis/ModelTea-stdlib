@@ -11,6 +11,7 @@ constinit std::string mt::stdlib::BASE_NAMESPACE = "mt::stdlib";
 
 constinit std::string mt::stdlib::BLK_NAME_CLOCK = "clock";
 constinit std::string mt::stdlib::BLK_NAME_CONST = "constant";
+constinit std::string mt::stdlib::BLK_NAME_GAIN_PTR = "gain";
 constinit std::string mt::stdlib::BLK_NAME_CONVERSION = "conversion";
 constinit std::string mt::stdlib::BLK_NAME_DELAY = "delay";
 constinit std::string mt::stdlib::BLK_NAME_DERIV = "derivative";

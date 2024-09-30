@@ -455,6 +455,109 @@ public:
 };
 
 #ifdef MT_STDLIB_USE_FULL_LIB
+struct gain_ptr_block_types {
+    static constexpr bool uses_integral = true;
+    static constexpr bool uses_float = true;
+    static constexpr bool uses_logical = true;
+};
+#endif // MT_STDLIB_USE_FULL_LIB
+
+template <DataType DT>
+struct gain_ptr_block MT_COMPAT_SUBCLASS {
+    using data_t = typename type_info<DT>::type_t;
+
+    struct output_t {
+        data_t* value;
+    };
+
+    gain_ptr_block(data_t* val) : s_out{.value = val} {
+        // Empty Constructor
+    }
+
+    gain_ptr_block(const gain_ptr_block&) = delete;
+    gain_ptr_block& operator=(const gain_ptr_block&) = delete;
+
+    const output_t s_out;
+
+#ifdef MT_STDLIB_USE_FULL_LIB
+    explicit gain_ptr_block(const Argument* value) : gain_ptr_block(get_model_value_ptr<DT>(value)) {}
+
+    using type_info_t = gain_ptr_block_types;
+    block_types get_supported_types() const noexcept override {
+        return block_types{
+            .uses_integral = type_info_t::uses_integral,
+            .uses_float = type_info_t::uses_float,
+            .uses_logical = type_info_t::uses_logical,
+        };
+    }
+
+    DataType get_current_type() const noexcept override {
+        return DT;
+    }
+
+    void set_input(size_t port_num, const Argument* value) override {
+        throw block_error("input port too high");
+    }
+
+    void get_output(size_t port_num, Argument* value) const override {
+        if (port_num == 0) {
+            return get_output_value<DT>(*s_out.value, value);
+        } else {
+            throw block_error("output port too high");
+        }
+    }
+
+    size_t get_input_num() const noexcept override {
+        return 0;
+    }
+
+    bool get_input_type_settable(size_t port_num) const noexcept override {
+        return false;
+    }
+
+    size_t get_output_num() const noexcept override {
+        return 1;
+    }
+
+    DataType get_input_type(size_t port_num) const override {
+        throw block_error("input port too high");
+    }
+
+    DataType get_output_type(size_t port_num) const override {
+        if (port_num == 0) {
+            return DT;
+        } else {
+            throw block_error("output port too high");
+        }
+    }
+
+    std::string get_input_name(size_t port_num) const override {
+            throw block_error("input port too high");
+    }
+
+    std::string get_output_name(size_t port_num) const override {
+        if (port_num == 0) {
+            return "value";
+        } else {
+            throw block_error("output port too high");
+        }
+    }
+
+protected:
+    std::string get_class_name() const override {
+        std::ostringstream oss;
+        oss << "gain_ptr_block<" << datatype_to_string(DT) << '>';
+        return oss.str();
+    }
+
+public:
+    std::string get_block_name() const override {
+        return BLK_NAME_GAIN_PTR;
+    }
+#endif
+};
+
+#ifdef MT_STDLIB_USE_FULL_LIB
 struct delay_block_types {
     static constexpr bool uses_integral = true;
     static constexpr bool uses_float = true;

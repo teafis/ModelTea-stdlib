@@ -327,11 +327,29 @@ struct ArgumentBox final : public Argument {
     data_t value;
 };
 
+template <DataType DT>
+struct ArgumentPtr final : public Argument {
+    using data_t = typename type_info<DT>::type_t;
+
+    ArgumentPtr() : value{nullptr} {}
+    ArgumentPtr(data_t* val) : value{val} {}
+
+    DataType get_type() const override {
+        return DT;
+    }
+
+    size_t as_size() const override {
+        throw block_error("unable to convert data type to size");
+    }
+
+    data_t* value;
+};
+
 struct block_interface {
     struct block_types {
-        bool uses_integral;
-        bool uses_float;
-        bool uses_logical;
+        bool uses_integral{false};
+        bool uses_float{false};
+        bool uses_logical{false};
     };
 
     virtual ~block_interface() = default;
@@ -369,6 +387,18 @@ protected:
     static typename type_info<DT>::type_t get_model_value(const Argument* value) {
         using data_t = typename type_info<DT>::type_t;
         const auto cast_val = dynamic_cast<const ArgumentBox<DT>*>(value);
+
+        if (cast_val == nullptr) {
+            throw block_error("value cannot be nullptr");
+        } else {
+            return cast_val->value;
+        }
+    }
+
+    template <DataType DT>
+    static typename type_info<DT>::type_t* get_model_value_ptr(const Argument* value) {
+        using data_t = typename type_info<DT>::type_t;
+        const auto cast_val = dynamic_cast<const ArgumentPtr<DT>*>(value);
 
         if (cast_val == nullptr) {
             throw block_error("value cannot be nullptr");

@@ -21,6 +21,7 @@ struct BlockInformation {
         NONE = 0,
         SIZE,
         VALUE,
+        VALUE_PTR,
         TIMESTEP,
     };
 

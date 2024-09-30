@@ -15,6 +15,7 @@ namespace stdlib {
 
 extern constinit std::string BLK_NAME_CLOCK;
 extern constinit std::string BLK_NAME_CONST;
+extern constinit std::string BLK_NAME_GAIN_PTR;
 extern constinit std::string BLK_NAME_CONVERSION;
 extern constinit std::string BLK_NAME_DELAY;
 extern constinit std::string BLK_NAME_DERIV;
