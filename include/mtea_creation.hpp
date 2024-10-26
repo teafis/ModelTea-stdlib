@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 
-#ifdef MT_STDLIB_USE_FULL_LIB
-#ifndef MT_STDLIB_CREATION_H
-#define MT_STDLIB_CREATION_H
+#ifndef MTEA_CREATION_H
+#define MTEA_CREATION_H
+
+#ifdef MTEA_USE_FULL_LIB
 
 #include <cstdint>
 #include <memory>
@@ -11,10 +12,9 @@
 #include <string>
 #include <vector>
 
-#include "mtstdlib_types.hpp"
+#include "mtea_types.hpp"
 
-namespace mt {
-namespace stdlib {
+namespace mtea {
 
 struct BlockInformation {
     enum class ConstructorOptions : int32_t {
@@ -35,7 +35,7 @@ struct BlockInformation {
 
     BlockInformation with_required_type_count(size_t count) const;
 
-    mt::stdlib::DataType get_default_data_type() const;
+    DataType get_default_data_type() const;
 
     bool type_supported(DataType dt) const;
 
@@ -62,7 +62,7 @@ std::unique_ptr<block_interface> create_block(
     const Argument* argument = nullptr);
 
 }
-}
 
-#endif // MT_STDLIB_CREATION_H
-#endif // MT_STDLIB_USE_FULL_LIB
+#endif // MTEA_USE_FULL_LIB
+
+#endif // MTEA_CREATION_H

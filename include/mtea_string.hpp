@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MIT
 
-#ifndef MT_STDLIB_STRING_H
-#define MT_STDLIB_STRING_H
+#ifndef MTEA_STRING_H
+#define MTEA_STRING_H
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 
-#include "mtstdlib_string_common.hpp"
-#include "mtstdlib_types.hpp"
+#include "mtea_types.hpp"
 
 #include <string>
 
-namespace mt {
-namespace stdlib {
+namespace mtea {
+
+extern constinit std::string BASE_NAMESPACE;
 
 extern constinit std::string BLK_NAME_CLOCK;
 extern constinit std::string BLK_NAME_CONST;
-extern constinit std::string BLK_NAME_GAIN_PTR;
+extern constinit std::string BLK_NAME_CONST_PTR;
 extern constinit std::string BLK_NAME_CONVERSION;
 extern constinit std::string BLK_NAME_DELAY;
 extern constinit std::string BLK_NAME_DERIV;
@@ -66,8 +66,7 @@ std::string trig_func_to_string(
 std::string with_namespace(const std::string& name);
 
 }
-}
 
-#endif // MT_STDLIB_USE_FULL_LIB
+#endif // MTEA_USE_FULL_LIB
 
-#endif // MT_STDLIB_STRING_H
+#endif // MTEA_STRING_H

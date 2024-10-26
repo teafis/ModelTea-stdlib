@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 
-#ifndef MT_STDLIB_TYPES_H
-#define MT_STDLIB_TYPES_H
+#ifndef MTEA_TYPES_H
+#define MTEA_TYPES_H
 
 #include <cstdint>
 
-#ifdef MT_STDLIB_USE_FULL_LIB
-#include "mtstdlib_except.hpp"
-#include "mtstdlib_string_common.hpp"
+#ifdef MTEA_USE_FULL_LIB
+#include "mtea_except.hpp"
 
 #include <cstring>
 #include <string>
@@ -15,8 +14,7 @@
 #include <vector>
 #endif
 
-namespace mt {
-namespace stdlib {
+namespace mtea {
 
 enum class DataType : uint32_t {
     NONE = 0,
@@ -36,7 +34,7 @@ enum class DataType : uint32_t {
 template <DataType>
 struct type_info {};
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 struct type_info_meta {
     virtual ~type_info_meta() = default;
     virtual bool get_is_numeric() const = 0;
@@ -47,22 +45,22 @@ struct type_info_meta {
     virtual DataType get_data_type() const = 0;
 };
 
-#define MT_STDLIB_TYPE_BASE : type_info_meta
+#define MTEA_TYPE_BASE : type_info_meta
 const type_info_meta* get_meta_type(DataType dt);
 const type_info_meta* get_meta_type(std::string_view s);
 std::vector<const type_info_meta*> get_meta_types();
 #else
-#define MT_STDLIB_TYPE_BASE
+#define MTEA_TYPE_BASE
 #endif
 
 template <>
-struct type_info<DataType::U8> MT_STDLIB_TYPE_BASE {
+struct type_info<DataType::U8> MTEA_TYPE_BASE {
     using type_t = uint8_t;
     static const bool is_numeric = true;
     static const bool is_integral = true;
     static const bool is_float = false;
     static const bool is_signed = false;
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     static constexpr const char* name = "uint8_t";
 
     bool get_is_numeric() const override { return is_numeric; }
@@ -75,13 +73,13 @@ struct type_info<DataType::U8> MT_STDLIB_TYPE_BASE {
 };
 
 template <>
-struct type_info<DataType::I8> MT_STDLIB_TYPE_BASE {
+struct type_info<DataType::I8> MTEA_TYPE_BASE {
     using type_t = int8_t;
     static const bool is_numeric = true;
     static const bool is_integral = true;
     static const bool is_float = false;
     static const bool is_signed = true;
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     static constexpr const char* name = "int8_t";
 
     bool get_is_numeric() const override { return is_numeric; }
@@ -94,13 +92,13 @@ struct type_info<DataType::I8> MT_STDLIB_TYPE_BASE {
 };
 
 template <>
-struct type_info<DataType::U16> MT_STDLIB_TYPE_BASE {
+struct type_info<DataType::U16> MTEA_TYPE_BASE {
     using type_t = uint16_t;
     static const bool is_numeric = true;
     static const bool is_integral = true;
     static const bool is_float = false;
     static const bool is_signed = false;
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     static constexpr const char* name = "uint16_t";
 
     bool get_is_numeric() const override { return is_numeric; }
@@ -113,13 +111,13 @@ struct type_info<DataType::U16> MT_STDLIB_TYPE_BASE {
 };
 
 template <>
-struct type_info<DataType::I16> MT_STDLIB_TYPE_BASE {
+struct type_info<DataType::I16> MTEA_TYPE_BASE {
     using type_t = int16_t;
     static const bool is_numeric = true;
     static const bool is_integral = true;
     static const bool is_float = false;
     static const bool is_signed = true;
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     static constexpr const char* name = "int16_t";
 
     bool get_is_numeric() const override { return is_numeric; }
@@ -132,13 +130,13 @@ struct type_info<DataType::I16> MT_STDLIB_TYPE_BASE {
 };
 
 template <>
-struct type_info<DataType::U32> MT_STDLIB_TYPE_BASE {
+struct type_info<DataType::U32> MTEA_TYPE_BASE {
     using type_t = uint32_t;
     static const bool is_numeric = true;
     static const bool is_integral = true;
     static const bool is_float = false;
     static const bool is_signed = false;
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     static constexpr const char* name = "uint32_t";
 
     bool get_is_numeric() const override { return is_numeric; }
@@ -151,13 +149,13 @@ struct type_info<DataType::U32> MT_STDLIB_TYPE_BASE {
 };
 
 template <>
-struct type_info<DataType::I32> MT_STDLIB_TYPE_BASE {
+struct type_info<DataType::I32> MTEA_TYPE_BASE {
     using type_t = int32_t;
     static const bool is_numeric = true;
     static const bool is_integral = true;
     static const bool is_float = false;
     static const bool is_signed = true;
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     static constexpr const char* name = "int32_t";
 
     bool get_is_numeric() const override { return is_numeric; }
@@ -170,13 +168,13 @@ struct type_info<DataType::I32> MT_STDLIB_TYPE_BASE {
 };
 
 template <>
-struct type_info<DataType::U64> MT_STDLIB_TYPE_BASE {
+struct type_info<DataType::U64> MTEA_TYPE_BASE {
     using type_t = uint32_t;
     static const bool is_numeric = true;
     static const bool is_integral = true;
     static const bool is_float = false;
     static const bool is_signed = false;
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     static constexpr const char* name = "uint64_t";
 
     bool get_is_numeric() const override { return is_numeric; }
@@ -189,13 +187,13 @@ struct type_info<DataType::U64> MT_STDLIB_TYPE_BASE {
 };
 
 template <>
-struct type_info<DataType::I64> MT_STDLIB_TYPE_BASE {
+struct type_info<DataType::I64> MTEA_TYPE_BASE {
     using type_t = int32_t;
     static const bool is_numeric = true;
     static const bool is_integral = true;
     static const bool is_float = false;
     static const bool is_signed = true;
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     static constexpr const char* name = "int64_t";
 
     bool get_is_numeric() const override { return is_numeric; }
@@ -208,13 +206,13 @@ struct type_info<DataType::I64> MT_STDLIB_TYPE_BASE {
 };
 
 template <>
-struct type_info<DataType::F32> MT_STDLIB_TYPE_BASE {
+struct type_info<DataType::F32> MTEA_TYPE_BASE {
     using type_t = float;
     static const bool is_numeric = true;
     static const bool is_integral = false;
     static const bool is_float = true;
     static const bool is_signed = true;
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     static constexpr const char* name = "float";
 
     bool get_is_numeric() const override { return is_numeric; }
@@ -227,13 +225,13 @@ struct type_info<DataType::F32> MT_STDLIB_TYPE_BASE {
 };
 
 template <>
-struct type_info<DataType::F64> MT_STDLIB_TYPE_BASE {
+struct type_info<DataType::F64> MTEA_TYPE_BASE {
     using type_t = double;
     static const bool is_numeric = true;
     static const bool is_integral = false;
     static const bool is_float = true;
     static const bool is_signed = true;
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     static constexpr const char* name = "double";
 
     bool get_is_numeric() const override { return is_numeric; }
@@ -246,13 +244,13 @@ struct type_info<DataType::F64> MT_STDLIB_TYPE_BASE {
 };
 
 template <>
-struct type_info<DataType::BOOL> MT_STDLIB_TYPE_BASE {
+struct type_info<DataType::BOOL> MTEA_TYPE_BASE {
     using type_t = bool;
     static const bool is_numeric = false;
     static const bool is_integral = true;
     static const bool is_float = false;
     static const bool is_signed = false;
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     static constexpr const char* name = "bool";
 
     bool get_is_numeric() const override { return is_numeric; }
@@ -291,7 +289,7 @@ enum class TrigFunction {
     ATAN2,
 };
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 
 struct Argument {
     virtual ~Argument() = default;
@@ -332,7 +330,7 @@ struct ArgumentPtr final : public Argument {
     using data_t = typename type_info<DT>::type_t;
 
     ArgumentPtr() : value{nullptr} {}
-    ArgumentPtr(data_t* val) : value{val} {}
+    ArgumentPtr(const data_t* val) : value{val} {}
 
     DataType get_type() const override {
         return DT;
@@ -342,7 +340,7 @@ struct ArgumentPtr final : public Argument {
         throw block_error("unable to convert data type to size");
     }
 
-    data_t* value;
+    const data_t* value;
 };
 
 struct block_interface {
@@ -440,9 +438,8 @@ protected:
     virtual std::string get_class_name_codegen() const;
 };
 
-#endif // MT_STDLIB_USE_FULL_LIB
+#endif // MTEA_USE_FULL_LIB
 
 }
-}
 
-#endif // MT_STDLIB_TYPES_H
+#endif // MTEA_TYPES_H

@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
 
-#ifndef MT_STDLIB_EXT_H
-#define MT_STDLIB_EXT_H
+#ifndef MTEA_MATH_H
+#define MTEA_MATH_H
 
 #include <cstdint>
 
-namespace mt {
-namespace stdlib {
+namespace mtea {
 
 float t_sin(float x);
 double t_sin(double x);
@@ -35,6 +34,5 @@ float t_mod(float x, float y);
 double t_mod(double x, double y);
 
 }
-}
 
-#endif // MT_STDLIB_EXT_H
+#endif // MTEA_MATH_H

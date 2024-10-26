@@ -1,25 +1,24 @@
 // SPDX-License-Identifier: MIT
 
-#ifndef MT_STDLIB_H
-#define MT_STDLIB_H
+#ifndef MTEA_H
+#define MTEA_H
 
 #include <array>
 #include <cstddef>
 #include <sstream>
 
-#include "mtstdlib_except.hpp"
-#include "mtstdlib_ext.hpp"
-#include "mtstdlib_types.hpp"
+#include "mtea_except.hpp"
+#include "mtea_math.hpp"
+#include "mtea_types.hpp"
 
-#ifdef MT_STDLIB_USE_FULL_LIB
-#include "mtstdlib_string.hpp"
+#ifdef MTEA_USE_FULL_LIB
+#include "mtea_string.hpp"
 #include <sstream>
 #endif
 
-namespace mt {
-namespace stdlib {
+namespace mtea {
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 #define MT_COMPAT_SUBCLASS : public block_interface
 #define MT_COMPAT_OVERRIDE override
 #else
@@ -72,13 +71,13 @@ struct ArithOperation<DT, ArithType::MOD> {
     }
 };
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 struct arith_block_types {
     static constexpr bool uses_integral = true;
     static constexpr bool uses_float = true;
     static constexpr bool uses_logical = false;
 };
-#endif // MT_STDLIB_USE_FULL_LIB
+#endif // MTEA_USE_FULL_LIB
 
 template <DataType DT, ArithType AT>
 struct arith_block_dynamic MT_COMPAT_SUBCLASS {
@@ -113,7 +112,7 @@ struct arith_block_dynamic MT_COMPAT_SUBCLASS {
         }
     }
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     using type_info_t = arith_block_types;
     block_types get_supported_types() const noexcept override {
         return block_types{
@@ -235,7 +234,7 @@ struct arith_block : public arith_block_dynamic<DT, AT> {
     arith_block(const arith_block&) = delete;
     arith_block& operator=(const arith_block&) = delete;
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
@@ -248,13 +247,13 @@ private:
     std::array<data_t, SIZE> _input_array;
 };
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 struct clock_block_types {
     static constexpr bool uses_integral = false;
     static constexpr bool uses_float = true;
     static constexpr bool uses_logical = false;
 };
-#endif // MT_STDLIB_USE_FULL_LIB
+#endif // MTEA_USE_FULL_LIB
 
 template <DataType DT>
 struct clock_block MT_COMPAT_SUBCLASS {
@@ -275,7 +274,7 @@ struct clock_block MT_COMPAT_SUBCLASS {
 
     void step() noexcept MT_COMPAT_OVERRIDE { s_out.value += time_step; }
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     explicit clock_block(const Argument* input) : clock_block(get_model_value<DT>(input)) {}
 
     using type_info_t = clock_block_types;
@@ -351,13 +350,13 @@ public:
     const data_t time_step;
 };
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 struct const_block_types {
     static constexpr bool uses_integral = true;
     static constexpr bool uses_float = true;
     static constexpr bool uses_logical = true;
 };
-#endif // MT_STDLIB_USE_FULL_LIB
+#endif // MTEA_USE_FULL_LIB
 
 template <DataType DT>
 struct const_block MT_COMPAT_SUBCLASS {
@@ -376,7 +375,7 @@ struct const_block MT_COMPAT_SUBCLASS {
 
     const output_t s_out;
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     explicit const_block(const Argument* value) : const_block(get_model_value<DT>(value)) {}
 
     using type_info_t = const_block_types;
@@ -454,35 +453,35 @@ public:
 #endif
 };
 
-#ifdef MT_STDLIB_USE_FULL_LIB
-struct gain_ptr_block_types {
+#ifdef MTEA_USE_FULL_LIB
+struct const_ptr_block_types {
     static constexpr bool uses_integral = true;
     static constexpr bool uses_float = true;
     static constexpr bool uses_logical = true;
 };
-#endif // MT_STDLIB_USE_FULL_LIB
+#endif // MTEA_USE_FULL_LIB
 
 template <DataType DT>
-struct gain_ptr_block MT_COMPAT_SUBCLASS {
+struct const_ptr_block MT_COMPAT_SUBCLASS {
     using data_t = typename type_info<DT>::type_t;
 
     struct output_t {
         data_t* value;
     };
 
-    gain_ptr_block(data_t* val) : s_out{.value = val} {
+    const_ptr_block(data_t* val) : s_out{.value = val} {
         // Empty Constructor
     }
 
-    gain_ptr_block(const gain_ptr_block&) = delete;
-    gain_ptr_block& operator=(const gain_ptr_block&) = delete;
+    const_ptr_block(const const_ptr_block&) = delete;
+    const_ptr_block& operator=(const const_ptr_block&) = delete;
 
     const output_t s_out;
 
-#ifdef MT_STDLIB_USE_FULL_LIB
-    explicit gain_ptr_block(const Argument* value) : gain_ptr_block(get_model_value_ptr<DT>(value)) {}
+#ifdef MTEA_USE_FULL_LIB
+    explicit const_ptr_block(const Argument* value) : const_ptr_block(get_model_value_ptr<DT>(value)) {}
 
-    using type_info_t = gain_ptr_block_types;
+    using type_info_t = const_ptr_block_types;
     block_types get_supported_types() const noexcept override {
         return block_types{
             .uses_integral = type_info_t::uses_integral,
@@ -546,24 +545,24 @@ struct gain_ptr_block MT_COMPAT_SUBCLASS {
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
-        oss << "gain_ptr_block<" << datatype_to_string(DT) << '>';
+        oss << "const_ptr_block<" << datatype_to_string(DT) << '>';
         return oss.str();
     }
 
 public:
     std::string get_block_name() const override {
-        return BLK_NAME_GAIN_PTR;
+        return BLK_NAME_CONST_PTR;
     }
 #endif
 };
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 struct delay_block_types {
     static constexpr bool uses_integral = true;
     static constexpr bool uses_float = true;
     static constexpr bool uses_logical = true;
 };
-#endif // MT_STDLIB_USE_FULL_LIB
+#endif // MTEA_USE_FULL_LIB
 
 template <DataType DT>
 struct delay_block MT_COMPAT_SUBCLASS {
@@ -597,7 +596,7 @@ struct delay_block MT_COMPAT_SUBCLASS {
         next_value = s_in.value;
     }
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     static const size_t PORT_VALUE_NUM = 0;
     static const size_t PORT_RESET_NUM = 1;
     static const size_t PORT_FLAG_NUM = 2;
@@ -706,13 +705,13 @@ public:
     data_t next_value;
 };
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 struct derivative_block_types {
     static constexpr bool uses_integral = false;
     static constexpr bool uses_float = true;
     static constexpr bool uses_logical = false;
 };
-#endif // MT_STDLIB_USE_FULL_LIB
+#endif // MTEA_USE_FULL_LIB
 
 template <DataType DT>
 struct derivative_block MT_COMPAT_SUBCLASS {
@@ -748,7 +747,7 @@ struct derivative_block MT_COMPAT_SUBCLASS {
         last_value = s_in.value;
     }
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     explicit derivative_block(const Argument* dt) : derivative_block(get_model_value<DT>(dt)) {}
 
     using type_info_t = derivative_block_types;
@@ -852,13 +851,13 @@ public:
     const time_step_t time_step;
 };
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 struct integrator_block_types {
     static constexpr bool uses_integral = false;
     static constexpr bool uses_float = true;
     static constexpr bool uses_logical = false;
 };
-#endif // MT_STDLIB_USE_FULL_LIB
+#endif // MTEA_USE_FULL_LIB
 
 template <DataType DT>
 struct integrator_block MT_COMPAT_SUBCLASS {
@@ -891,7 +890,7 @@ struct integrator_block MT_COMPAT_SUBCLASS {
         }
     }
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     explicit integrator_block(const Argument* dt) : integrator_block(get_model_value<DT>(dt)) {}
 
     static const size_t PORT_VALUE_NUM = 0;
@@ -1002,13 +1001,13 @@ public:
     const time_step_t time_step;
 };
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 struct switch_block_types {
     static constexpr bool uses_integral = true;
     static constexpr bool uses_float = true;
     static constexpr bool uses_logical = true;
 };
-#endif // MT_STDLIB_USE_FULL_LIB
+#endif // MTEA_USE_FULL_LIB
 
 template <DataType DT>
 struct switch_block MT_COMPAT_SUBCLASS {
@@ -1038,7 +1037,7 @@ struct switch_block MT_COMPAT_SUBCLASS {
         }
     }
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
@@ -1143,13 +1142,13 @@ public:
     output_t s_out;
 };
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 struct limiter_block_types {
     static constexpr bool uses_integral = true;
     static constexpr bool uses_float = true;
     static constexpr bool uses_logical = false;
 };
-#endif // MT_STDLIB_USE_FULL_LIB
+#endif // MTEA_USE_FULL_LIB
 
 template <DataType DT>
 struct limiter_block MT_COMPAT_SUBCLASS {
@@ -1183,7 +1182,7 @@ struct limiter_block MT_COMPAT_SUBCLASS {
         s_out.value = x;
     }
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 protected:
     static const size_t PORT_VALUE = 0;
     static const size_t PORT_LIMIT_UPPER = 1;
@@ -1320,7 +1319,7 @@ struct limiter_block_const MT_COMPAT_SUBCLASS {
         s_out.value = x;
     }
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     explicit limiter_block_const(const Argument* upper, const Argument* lower) : limiter_block_const(get_model_value<DT>(upper), get_model_value<DT>(lower)) {}
 
     using type_info_t = limiter_block_types;
@@ -1467,7 +1466,7 @@ struct RelationalOperation<DT, RelationalOperator::LESS_THAN_EQUAL> {
     }
 };
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 template <RelationalOperator OP>
 struct relational_block_types {
     static constexpr bool uses_integral = true;
@@ -1488,7 +1487,7 @@ struct relational_block_types<RelationalOperator::NOT_EQUAL> {
     static constexpr bool uses_float = true;
     static constexpr bool uses_logical = true;
 };
-#endif // MT_STDLIB_USE_FULL_LIB
+#endif // MTEA_USE_FULL_LIB
 
 template <DataType DT, RelationalOperator OP>
 struct relational_block MT_COMPAT_SUBCLASS {
@@ -1513,7 +1512,7 @@ struct relational_block MT_COMPAT_SUBCLASS {
         s_out.value = RelationalOperation<DT, OP>::operation(s_in.value_a, s_in.value_b);
     }
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 protected:
     std::string get_class_name() const override {
         std::ostringstream oss;
@@ -1705,13 +1704,13 @@ struct TrigOperation<DT, N, TrigFunction::ATAN2> {
     }
 };
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 struct trig_block_types {
     static constexpr bool uses_integral = false;
     static constexpr bool uses_float = true;
     static constexpr bool uses_logical = false;
 };
-#endif // MT_STDLIB_USE_FULL_LIB
+#endif // MTEA_USE_FULL_LIB
 
 template <DataType DT, TrigFunction FCN>
 struct trig_block MT_COMPAT_SUBCLASS {
@@ -1735,7 +1734,7 @@ struct trig_block MT_COMPAT_SUBCLASS {
         s_out.value = TrigOperation<DT, TrigInfo<FCN>::input_count, FCN>::operation(s_in.values);
     }
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     using type_info_t = trig_block_types;
     block_types get_supported_types() const noexcept override {
         return block_types{
@@ -1843,13 +1842,13 @@ public:
     output_t s_out;
 };
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 struct conversion_block_types {
     static constexpr bool uses_integral = true;
     static constexpr bool uses_float = true;
     static constexpr bool uses_logical = true;
 };
-#endif // MT_STDLIB_USE_FULL_LIB
+#endif // MTEA_USE_FULL_LIB
 
 template <DataType DT_IN, DataType DT_OUT>
 struct conversion_block MT_COMPAT_SUBCLASS {
@@ -1874,7 +1873,7 @@ struct conversion_block MT_COMPAT_SUBCLASS {
         s_out.value = static_cast<data_t_out>(s_in.value);
     }
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
     using type_info_t = conversion_block_types;
     block_types get_supported_types() const noexcept override {
         return block_types{
@@ -1967,6 +1966,5 @@ public:
 };
 
 }
-}
 
-#endif // MT_STDLIB_H
+#endif // MTEA_H

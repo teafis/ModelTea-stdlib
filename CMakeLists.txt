@@ -6,55 +6,54 @@ set(VCPKG_FEATURE_FLAGS "versions")
 
 # Define the project information
 project (
-    mtstdlib
+    mtea
     VERSION 0.1
     LANGUAGES CXX
 )
 
 set(
     MODELTEA_STD_MODEL_SOURCES
-    include/mtstdlib.hpp
-    include/mtstdlib_ext.hpp
-    src/mtstdlib_ext.cpp
-    include/mtstdlib_types.hpp
-    src/mtstdlib_types.cpp
+    include/mtea.hpp
+    include/mtea_math.hpp
+    src/mtea_math.cpp
+    include/mtea_types.hpp
+    src/mtea_types.cpp
 )
 
 set(
     MODELTEA_STD_FULL_SOURCES
     ${MODELTEA_STD_MODEL_SOURCES}
-    include/mtstdlib_except.hpp
-    include/mtstdlib_string.hpp
-    include/mtstdlib_string_common.hpp
-    src/mtstdlib_string.cpp
-    include/mtstdlib_creation.hpp
-    src/mtstdlib_creation.cpp
+    include/mtea_except.hpp
+    include/mtea_string.hpp
+    src/mtea_string.cpp
+    include/mtea_creation.hpp
+    src/mtea_creation.cpp
 )
 
 # Define the library
 add_library(
-    mtstdlib
+    mtea
     ${MODELTEA_STD_FULL_SOURCES}
 )
 
 add_library(
-    mtstdlib_rt
+    mtea_rt
     ${MODELTEA_STD_MODEL_SOURCES}
 )
 
 # Define the C++ Standard Required
-set_property(TARGET mtstdlib PROPERTY CXX_STANDARD 20)
-set_property(TARGET mtstdlib PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET mtea PROPERTY CXX_STANDARD 20)
+set_property(TARGET mtea PROPERTY CXX_STANDARD_REQUIRED ON)
 
-set_property(TARGET mtstdlib_rt PROPERTY CXX_STANDARD 11)
-set_property(TARGET mtstdlib_rt PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET mtea_rt PROPERTY CXX_STANDARD 11)
+set_property(TARGET mtea_rt PROPERTY CXX_STANDARD_REQUIRED ON)
 
 # Include Directories
-target_include_directories(mtstdlib PUBLIC include)
-target_include_directories(mtstdlib_rt PUBLIC include)
+target_include_directories(mtea PUBLIC include)
+target_include_directories(mtea_rt PUBLIC include)
 
 # Add include parameter if needed
-target_compile_definitions(mtstdlib PUBLIC MT_STDLIB_USE_FULL_LIB)
+target_compile_definitions(mtea PUBLIC MTEA_USE_FULL_LIB)
 
 # Set appropriate catch libraries
 
@@ -76,7 +75,7 @@ if(CMAKE_TESTING_ENABLED)
     set_property(TARGET mtstd_test PROPERTY CXX_STANDARD 20)
     set_property(TARGET mtstd_test PROPERTY CXX_STANDARD_REQUIRED ON)
 
-    target_link_libraries(mtstd_test PRIVATE mtstdlib)
+    target_link_libraries(mtstd_test PRIVATE mtea)
     target_link_libraries(mtstd_test PRIVATE Catch2::Catch2 Catch2::Catch2WithMain)
 
     add_test(NAME mtstd_test COMMAND mtstd_test)
@@ -89,7 +88,7 @@ if(CMAKE_TESTING_ENABLED)
     set_property(TARGET mtstd_test_rt PROPERTY CXX_STANDARD 20)
     set_property(TARGET mtstd_test_rt PROPERTY CXX_STANDARD_REQUIRED ON)
 
-    target_link_libraries(mtstd_test_rt PRIVATE mtstdlib_rt)
+    target_link_libraries(mtstd_test_rt PRIVATE mtea_rt)
 
     target_link_libraries(mtstd_test_rt PRIVATE Catch2::Catch2 Catch2::Catch2WithMain)
 

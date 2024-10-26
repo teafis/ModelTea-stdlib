@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: MIT
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 
-#include "mtstdlib_creation.hpp"
+#include "mtea_creation.hpp"
 
-#include "mtstdlib_except.hpp"
-#include "mtstdlib_string.hpp"
+#include "mtea_except.hpp"
+#include "mtea_string.hpp"
 
-#include "mtstdlib.hpp"
+#include "mtea.hpp"
 
 #include <algorithm>
 #include <array>
 #include <sstream>
 #include <unordered_map>
 
-mt::stdlib::BlockInformation::BlockInformation(
+mtea::BlockInformation::BlockInformation(
     std::string_view name,
     ConstructorOptions constructor,
     const block_interface::block_types& types)
@@ -26,31 +26,31 @@ mt::stdlib::BlockInformation::BlockInformation(
       required_type_count(1),
       uses_input_as_type(true) {}
 
-mt::stdlib::BlockInformation mt::stdlib::BlockInformation::with_uses_input_as_type(bool val) const {
+mtea::BlockInformation mtea::BlockInformation::with_uses_input_as_type(bool val) const {
     auto tmp = *this;
     tmp.uses_input_as_type = val;
     return tmp;
 }
 
-mt::stdlib::BlockInformation mt::stdlib::BlockInformation::with_constructor_codegen(ConstructorOptions options) const {
+mtea::BlockInformation mtea::BlockInformation::with_constructor_codegen(ConstructorOptions options) const {
     auto tmp = *this;
     tmp.constructor_codegen = options;
     return tmp;
 }
 
-mt::stdlib::BlockInformation mt::stdlib::BlockInformation::with_symbolic_name(std::optional<std::string> name) const {
+mtea::BlockInformation mtea::BlockInformation::with_symbolic_name(std::optional<std::string> name) const {
     auto tmp = *this;
     tmp.symbolic_name = name;
     return tmp;
 }
 
-mt::stdlib::BlockInformation mt::stdlib::BlockInformation::with_required_type_count(size_t count) const {
+mtea::BlockInformation mtea::BlockInformation::with_required_type_count(size_t count) const {
     auto tmp = *this;
     tmp.required_type_count = count;
     return tmp;
 }
 
-mt::stdlib::DataType mt::stdlib::BlockInformation::get_default_data_type() const {
+mtea::DataType mtea::BlockInformation::get_default_data_type() const {
     if (types.uses_float) {
         return DataType::F64;
     } else if (types.uses_integral) {
@@ -62,7 +62,7 @@ mt::stdlib::DataType mt::stdlib::BlockInformation::get_default_data_type() const
     }
 }
 
-bool mt::stdlib::BlockInformation::type_supported(DataType dt) const {
+bool mtea::BlockInformation::type_supported(DataType dt) const {
     const auto mt = get_meta_type(dt);
 
     if (mt == nullptr) {
@@ -81,52 +81,52 @@ bool mt::stdlib::BlockInformation::type_supported(DataType dt) const {
 }
 
 template <typename T>
-static mt::stdlib::block_interface::block_types create_block_types() {
-    return mt::stdlib::block_interface::block_types{
+static mtea::block_interface::block_types create_block_types() {
+    return mtea::block_interface::block_types{
         .uses_integral = T::uses_integral,
         .uses_float = T::uses_float,
         .uses_logical = T::uses_logical};
 }
 
 static const auto ARITH_BLOCK_NAMES = std::to_array<std::pair<std::string, std::string>>({
-    {mt::stdlib::BLK_NAME_ARITH_ADD, "+"},
-    {mt::stdlib::BLK_NAME_ARITH_SUB, "-"},
-    {mt::stdlib::BLK_NAME_ARITH_MUL, "*"},
-    {mt::stdlib::BLK_NAME_ARITH_DIV, "/"},
-    {mt::stdlib::BLK_NAME_ARITH_MOD, "%"},
+    {mtea::BLK_NAME_ARITH_ADD, "+"},
+    {mtea::BLK_NAME_ARITH_SUB, "-"},
+    {mtea::BLK_NAME_ARITH_MUL, "*"},
+    {mtea::BLK_NAME_ARITH_DIV, "/"},
+    {mtea::BLK_NAME_ARITH_MOD, "%"},
 });
 
 static const auto RELATIONAL_BLOCK_NAMES = std::to_array<std::pair<std::string, std::string>>({
-    {mt::stdlib::BLK_NAME_REL_GT, ">"},
-    {mt::stdlib::BLK_NAME_REL_GEQ, ">="},
-    {mt::stdlib::BLK_NAME_REL_LT, "<"},
-    {mt::stdlib::BLK_NAME_REL_LEQ, "<="},
-    {mt::stdlib::BLK_NAME_REL_EQ, "=="},
-    {mt::stdlib::BLK_NAME_REL_NEQ, "!="},
+    {mtea::BLK_NAME_REL_GT, ">"},
+    {mtea::BLK_NAME_REL_GEQ, ">="},
+    {mtea::BLK_NAME_REL_LT, "<"},
+    {mtea::BLK_NAME_REL_LEQ, "<="},
+    {mtea::BLK_NAME_REL_EQ, "=="},
+    {mtea::BLK_NAME_REL_NEQ, "!="},
 });
 
 static const auto TRIG_BLOCK_NAMES = std::to_array({
-    mt::stdlib::BLK_NAME_TRIG_SIN,
-    mt::stdlib::BLK_NAME_TRIG_COS,
-    mt::stdlib::BLK_NAME_TRIG_TAN,
-    mt::stdlib::BLK_NAME_TRIG_ASIN,
-    mt::stdlib::BLK_NAME_TRIG_ACOS,
-    mt::stdlib::BLK_NAME_TRIG_ATAN,
-    mt::stdlib::BLK_NAME_TRIG_ATAN2,
+    mtea::BLK_NAME_TRIG_SIN,
+    mtea::BLK_NAME_TRIG_COS,
+    mtea::BLK_NAME_TRIG_TAN,
+    mtea::BLK_NAME_TRIG_ASIN,
+    mtea::BLK_NAME_TRIG_ACOS,
+    mtea::BLK_NAME_TRIG_ATAN,
+    mtea::BLK_NAME_TRIG_ATAN2,
 });
 
 static bool is_block_type(std::string_view s, std::span<const std::string> list) {
     return std::find(list.begin(), list.end(), s) != list.end();
 }
 
-const static std::vector<mt::stdlib::BlockInformation> BLK_LIST = []() {
-    using namespace mt::stdlib;
+const static std::vector<mtea::BlockInformation> BLK_LIST = []() {
+    using namespace mtea;
 
     // Standard Blocks
     std::vector<BlockInformation> blks = {
         BlockInformation(BLK_NAME_CLOCK, BlockInformation::ConstructorOptions::TIMESTEP, create_block_types<clock_block_types>()).with_uses_input_as_type(false),
         BlockInformation(BLK_NAME_CONST, BlockInformation::ConstructorOptions::VALUE, create_block_types<const_block_types>()).with_uses_input_as_type(false),
-        BlockInformation(BLK_NAME_GAIN_PTR, BlockInformation::ConstructorOptions::VALUE_PTR, create_block_types<gain_ptr_block_types>()).with_uses_input_as_type(false),
+        BlockInformation(BLK_NAME_CONST_PTR, BlockInformation::ConstructorOptions::VALUE_PTR, create_block_types<const_ptr_block_types>()).with_uses_input_as_type(false),
         BlockInformation(BLK_NAME_DELAY, BlockInformation::ConstructorOptions::NONE, create_block_types<delay_block_types>()),
         BlockInformation(BLK_NAME_DERIV, BlockInformation::ConstructorOptions::TIMESTEP, create_block_types<derivative_block_types>()),
         BlockInformation(BLK_NAME_INTEG, BlockInformation::ConstructorOptions::TIMESTEP, create_block_types<integrator_block_types>()),
@@ -176,8 +176,8 @@ const static std::vector<mt::stdlib::BlockInformation> BLK_LIST = []() {
     return blks;
 }();
 
-const static std::unordered_map<std::string, mt::stdlib::BlockInformation> BLK_INFOS = []() {
-    std::unordered_map<std::string, mt::stdlib::BlockInformation> blk_map;
+const static std::unordered_map<std::string, mtea::BlockInformation> BLK_INFOS = []() {
+    std::unordered_map<std::string, mtea::BlockInformation> blk_map;
 
     for (const auto& b : BLK_LIST) {
         blk_map.emplace(b.name, b);
@@ -190,39 +190,39 @@ const static std::unordered_map<std::string, mt::stdlib::BlockInformation> BLK_I
     return blk_map;
 }();
 
-const std::span<const mt::stdlib::BlockInformation> mt::stdlib::get_available_blocks() {
+const std::span<const mtea::BlockInformation> mtea::get_available_blocks() {
     return BLK_LIST;
 }
 
-template <template <mt::stdlib::DataType> class BLK, class TYPES, typename... Args>
-static std::unique_ptr<mt::stdlib::block_interface> create_block_of_type(const mt::stdlib::DataType data_type, Args&&... args) {
-    std::unique_ptr<mt::stdlib::block_interface> ptr = nullptr;
+template <template <mtea::DataType> class BLK, class TYPES, typename... Args>
+static std::unique_ptr<mtea::block_interface> create_block_of_type(const mtea::DataType data_type, Args&&... args) {
+    std::unique_ptr<mtea::block_interface> ptr = nullptr;
 
     if constexpr (TYPES::uses_integral) {
         switch (data_type) {
-        case mt::stdlib::DataType::U8:
-            ptr = std::make_unique<BLK<mt::stdlib::DataType::U8>>(std::forward<Args>(args)...);
+        case mtea::DataType::U8:
+            ptr = std::make_unique<BLK<mtea::DataType::U8>>(std::forward<Args>(args)...);
             break;
-        case mt::stdlib::DataType::I8:
-            ptr = std::make_unique<BLK<mt::stdlib::DataType::I8>>(std::forward<Args>(args)...);
+        case mtea::DataType::I8:
+            ptr = std::make_unique<BLK<mtea::DataType::I8>>(std::forward<Args>(args)...);
             break;
-        case mt::stdlib::DataType::U16:
-            ptr = std::make_unique<BLK<mt::stdlib::DataType::U16>>(std::forward<Args>(args)...);
+        case mtea::DataType::U16:
+            ptr = std::make_unique<BLK<mtea::DataType::U16>>(std::forward<Args>(args)...);
             break;
-        case mt::stdlib::DataType::I16:
-            ptr = std::make_unique<BLK<mt::stdlib::DataType::I16>>(std::forward<Args>(args)...);
+        case mtea::DataType::I16:
+            ptr = std::make_unique<BLK<mtea::DataType::I16>>(std::forward<Args>(args)...);
             break;
-        case mt::stdlib::DataType::U32:
-            ptr = std::make_unique<BLK<mt::stdlib::DataType::U32>>(std::forward<Args>(args)...);
+        case mtea::DataType::U32:
+            ptr = std::make_unique<BLK<mtea::DataType::U32>>(std::forward<Args>(args)...);
             break;
-        case mt::stdlib::DataType::I32:
-            ptr = std::make_unique<BLK<mt::stdlib::DataType::I32>>(std::forward<Args>(args)...);
+        case mtea::DataType::I32:
+            ptr = std::make_unique<BLK<mtea::DataType::I32>>(std::forward<Args>(args)...);
             break;
-        case mt::stdlib::DataType::U64:
-            ptr = std::make_unique<BLK<mt::stdlib::DataType::U64>>(std::forward<Args>(args)...);
+        case mtea::DataType::U64:
+            ptr = std::make_unique<BLK<mtea::DataType::U64>>(std::forward<Args>(args)...);
             break;
-        case mt::stdlib::DataType::I64:
-            ptr = std::make_unique<BLK<mt::stdlib::DataType::I64>>(std::forward<Args>(args)...);
+        case mtea::DataType::I64:
+            ptr = std::make_unique<BLK<mtea::DataType::I64>>(std::forward<Args>(args)...);
             break;
         default:
             break;
@@ -231,11 +231,11 @@ static std::unique_ptr<mt::stdlib::block_interface> create_block_of_type(const m
 
     if constexpr (TYPES::uses_float) {
         switch (data_type) {
-        case mt::stdlib::DataType::F32:
-            ptr = std::make_unique<BLK<mt::stdlib::DataType::F32>>(std::forward<Args>(args)...);
+        case mtea::DataType::F32:
+            ptr = std::make_unique<BLK<mtea::DataType::F32>>(std::forward<Args>(args)...);
             break;
-        case mt::stdlib::DataType::F64:
-            ptr = std::make_unique<BLK<mt::stdlib::DataType::F64>>(std::forward<Args>(args)...);
+        case mtea::DataType::F64:
+            ptr = std::make_unique<BLK<mtea::DataType::F64>>(std::forward<Args>(args)...);
             break;
         default:
             break;
@@ -244,8 +244,8 @@ static std::unique_ptr<mt::stdlib::block_interface> create_block_of_type(const m
 
     if constexpr (TYPES::uses_logical) {
         switch (data_type) {
-        case mt::stdlib::DataType::BOOL:
-            ptr = std::make_unique<BLK<mt::stdlib::DataType::BOOL>>(std::forward<Args>(args)...);
+        case mtea::DataType::BOOL:
+            ptr = std::make_unique<BLK<mtea::DataType::BOOL>>(std::forward<Args>(args)...);
             break;
         default:
             break;
@@ -253,89 +253,89 @@ static std::unique_ptr<mt::stdlib::block_interface> create_block_of_type(const m
     }
 
     if (ptr == nullptr) {
-        throw mt::stdlib::block_error("unknown data type provided");
+        throw mtea::block_error("unknown data type provided");
     } else {
         return ptr;
     }
 }
 
 struct StandardBlockFunctor {
-    template <mt::stdlib::DataType DT>
-    using blk_rel_eq = mt::stdlib::relational_block<DT, mt::stdlib::RelationalOperator::EQUAL>;
+    template <mtea::DataType DT>
+    using blk_rel_eq = mtea::relational_block<DT, mtea::RelationalOperator::EQUAL>;
 
-    template <mt::stdlib::DataType DT>
-    using blk_rel_neq = mt::stdlib::relational_block<DT, mt::stdlib::RelationalOperator::NOT_EQUAL>;
+    template <mtea::DataType DT>
+    using blk_rel_neq = mtea::relational_block<DT, mtea::RelationalOperator::NOT_EQUAL>;
 
-    template <mt::stdlib::DataType DT>
-    using blk_rel_gt = mt::stdlib::relational_block<DT, mt::stdlib::RelationalOperator::GREATER_THAN>;
+    template <mtea::DataType DT>
+    using blk_rel_gt = mtea::relational_block<DT, mtea::RelationalOperator::GREATER_THAN>;
 
-    template <mt::stdlib::DataType DT>
-    using blk_rel_geq = mt::stdlib::relational_block<DT, mt::stdlib::RelationalOperator::GREATER_THAN_EQUAL>;
+    template <mtea::DataType DT>
+    using blk_rel_geq = mtea::relational_block<DT, mtea::RelationalOperator::GREATER_THAN_EQUAL>;
 
-    template <mt::stdlib::DataType DT>
-    using blk_rel_lt = mt::stdlib::relational_block<DT, mt::stdlib::RelationalOperator::LESS_THAN>;
+    template <mtea::DataType DT>
+    using blk_rel_lt = mtea::relational_block<DT, mtea::RelationalOperator::LESS_THAN>;
 
-    template <mt::stdlib::DataType DT>
-    using blk_rel_leq = mt::stdlib::relational_block<DT, mt::stdlib::RelationalOperator::LESS_THAN_EQUAL>;
+    template <mtea::DataType DT>
+    using blk_rel_leq = mtea::relational_block<DT, mtea::RelationalOperator::LESS_THAN_EQUAL>;
 
-    template <mt::stdlib::DataType DT>
-    using blk_trig_sin = mt::stdlib::trig_block<DT, mt::stdlib::TrigFunction::SIN>;
+    template <mtea::DataType DT>
+    using blk_trig_sin = mtea::trig_block<DT, mtea::TrigFunction::SIN>;
 
-    template <mt::stdlib::DataType DT>
-    using blk_trig_cos = mt::stdlib::trig_block<DT, mt::stdlib::TrigFunction::COS>;
+    template <mtea::DataType DT>
+    using blk_trig_cos = mtea::trig_block<DT, mtea::TrigFunction::COS>;
 
-    template <mt::stdlib::DataType DT>
-    using blk_trig_tan = mt::stdlib::trig_block<DT, mt::stdlib::TrigFunction::TAN>;
+    template <mtea::DataType DT>
+    using blk_trig_tan = mtea::trig_block<DT, mtea::TrigFunction::TAN>;
 
-    template <mt::stdlib::DataType DT>
-    using blk_trig_asin = mt::stdlib::trig_block<DT, mt::stdlib::TrigFunction::ASIN>;
+    template <mtea::DataType DT>
+    using blk_trig_asin = mtea::trig_block<DT, mtea::TrigFunction::ASIN>;
 
-    template <mt::stdlib::DataType DT>
-    using blk_trig_acos = mt::stdlib::trig_block<DT, mt::stdlib::TrigFunction::ACOS>;
+    template <mtea::DataType DT>
+    using blk_trig_acos = mtea::trig_block<DT, mtea::TrigFunction::ACOS>;
 
-    template <mt::stdlib::DataType DT>
-    using blk_trig_atan = mt::stdlib::trig_block<DT, mt::stdlib::TrigFunction::ATAN>;
+    template <mtea::DataType DT>
+    using blk_trig_atan = mtea::trig_block<DT, mtea::TrigFunction::ATAN>;
 
-    template <mt::stdlib::DataType DT>
-    using blk_trig_atan2 = mt::stdlib::trig_block<DT, mt::stdlib::TrigFunction::ATAN2>;
+    template <mtea::DataType DT>
+    using blk_trig_atan2 = mtea::trig_block<DT, mtea::TrigFunction::ATAN2>;
 
-    std::unique_ptr<mt::stdlib::block_interface> operator()(const mt::stdlib::DataType data_type, const std::string& name) {
-        mt::stdlib::block_interface* inter = nullptr;
+    std::unique_ptr<mtea::block_interface> operator()(const mtea::DataType data_type, const std::string& name) {
+        mtea::block_interface* inter = nullptr;
 
-        using namespace mt::stdlib;
+        using namespace mtea;
 
-        if (name == mt::stdlib::BLK_NAME_DELAY) {
+        if (name == mtea::BLK_NAME_DELAY) {
             return create_block_of_type<delay_block, delay_block_types>(data_type);
         } else if (name == BLK_NAME_SWITCH) {
             return create_block_of_type<switch_block, switch_block_types>(data_type);
         } else if (name == BLK_NAME_LIMITER) {
             return create_block_of_type<limiter_block, limiter_block_types>(data_type);
         } else if (name == BLK_NAME_REL_EQ) {
-            return create_block_of_type<blk_rel_eq, mt::stdlib::relational_block_types<mt::stdlib::RelationalOperator::EQUAL>>(data_type);
+            return create_block_of_type<blk_rel_eq, mtea::relational_block_types<mtea::RelationalOperator::EQUAL>>(data_type);
         } else if (name == BLK_NAME_REL_NEQ) {
-            return create_block_of_type<blk_rel_neq, mt::stdlib::relational_block_types<mt::stdlib::RelationalOperator::NOT_EQUAL>>(data_type);
+            return create_block_of_type<blk_rel_neq, mtea::relational_block_types<mtea::RelationalOperator::NOT_EQUAL>>(data_type);
         } else if (name == BLK_NAME_REL_GT) {
-            return create_block_of_type<blk_rel_gt, mt::stdlib::relational_block_types<mt::stdlib::RelationalOperator::GREATER_THAN>>(data_type);
+            return create_block_of_type<blk_rel_gt, mtea::relational_block_types<mtea::RelationalOperator::GREATER_THAN>>(data_type);
         } else if (name == BLK_NAME_REL_GEQ) {
-            return create_block_of_type<blk_rel_geq, mt::stdlib::relational_block_types<mt::stdlib::RelationalOperator::GREATER_THAN_EQUAL>>(data_type);
+            return create_block_of_type<blk_rel_geq, mtea::relational_block_types<mtea::RelationalOperator::GREATER_THAN_EQUAL>>(data_type);
         } else if (name == BLK_NAME_REL_LT) {
-            return create_block_of_type<blk_rel_lt, mt::stdlib::relational_block_types<mt::stdlib::RelationalOperator::LESS_THAN>>(data_type);
+            return create_block_of_type<blk_rel_lt, mtea::relational_block_types<mtea::RelationalOperator::LESS_THAN>>(data_type);
         } else if (name == BLK_NAME_REL_LEQ) {
-            return create_block_of_type<blk_rel_leq, mt::stdlib::relational_block_types<mt::stdlib::RelationalOperator::LESS_THAN_EQUAL>>(data_type);
+            return create_block_of_type<blk_rel_leq, mtea::relational_block_types<mtea::RelationalOperator::LESS_THAN_EQUAL>>(data_type);
         } else if (name == BLK_NAME_TRIG_SIN) {
-            return create_block_of_type<blk_trig_sin, mt::stdlib::trig_block_types>(data_type);
+            return create_block_of_type<blk_trig_sin, mtea::trig_block_types>(data_type);
         } else if (name == BLK_NAME_TRIG_COS) {
-            return create_block_of_type<blk_trig_cos, mt::stdlib::trig_block_types>(data_type);
+            return create_block_of_type<blk_trig_cos, mtea::trig_block_types>(data_type);
         } else if (name == BLK_NAME_TRIG_TAN) {
-            return create_block_of_type<blk_trig_tan, mt::stdlib::trig_block_types>(data_type);
+            return create_block_of_type<blk_trig_tan, mtea::trig_block_types>(data_type);
         } else if (name == BLK_NAME_TRIG_ASIN) {
-            return create_block_of_type<blk_trig_asin, mt::stdlib::trig_block_types>(data_type);
+            return create_block_of_type<blk_trig_asin, mtea::trig_block_types>(data_type);
         } else if (name == BLK_NAME_TRIG_ACOS) {
-            return create_block_of_type<blk_trig_acos, mt::stdlib::trig_block_types>(data_type);
+            return create_block_of_type<blk_trig_acos, mtea::trig_block_types>(data_type);
         } else if (name == BLK_NAME_TRIG_ATAN) {
-            return create_block_of_type<blk_trig_atan, mt::stdlib::trig_block_types>(data_type);
+            return create_block_of_type<blk_trig_atan, mtea::trig_block_types>(data_type);
         } else if (name == BLK_NAME_TRIG_ATAN2) {
-            return create_block_of_type<blk_trig_atan2, mt::stdlib::trig_block_types>(data_type);
+            return create_block_of_type<blk_trig_atan2, mtea::trig_block_types>(data_type);
         } else {
             std::ostringstream oss;
             oss << "Unknown block provided with \"" << name << "\"";
@@ -345,34 +345,34 @@ struct StandardBlockFunctor {
 };
 
 struct SingleArgConstructor {
-    std::unique_ptr<mt::stdlib::block_interface> operator()(const std::string& name, const mt::stdlib::Argument* val) {
-        using namespace mt::stdlib;
+    std::unique_ptr<mtea::block_interface> operator()(const std::string& name, const mtea::Argument* val) {
+        using namespace mtea;
 
         if (val == nullptr) {
             throw block_error("null argument provided");
         }
 
         if (name == BLK_NAME_DERIV) {
-            return create_block_of_type<mt::stdlib::derivative_block, mt::stdlib::derivative_block_types>(val->get_type(), val);
+            return create_block_of_type<mtea::derivative_block, mtea::derivative_block_types>(val->get_type(), val);
         } else if (name == BLK_NAME_INTEG) {
-            return create_block_of_type<mt::stdlib::integrator_block, mt::stdlib::integrator_block_types>(val->get_type(), val);
+            return create_block_of_type<mtea::integrator_block, mtea::integrator_block_types>(val->get_type(), val);
         } else if (name == BLK_NAME_CONST) {
-            return create_block_of_type<mt::stdlib::const_block, mt::stdlib::const_block_types>(val->get_type(), val);
+            return create_block_of_type<mtea::const_block, mtea::const_block_types>(val->get_type(), val);
         } else if (name == BLK_NAME_CLOCK) {
-            return create_block_of_type<mt::stdlib::clock_block, mt::stdlib::clock_block_types>(val->get_type(), val);
+            return create_block_of_type<mtea::clock_block, mtea::clock_block_types>(val->get_type(), val);
         } else {
             std::ostringstream oss;
             oss << "unknown block name \"" << name << "\" provided";
-            throw mt::stdlib::block_error(oss.str());
+            throw mtea::block_error(oss.str());
         }
     }
 };
 
-template <mt::stdlib::DataType DT>
+template <mtea::DataType DT>
 struct ArithmeticBlockFunctor {
-    template <mt::stdlib::ArithType AT>
-    class arith_wrapper final : public mt::stdlib::arith_block_dynamic<DT, AT> {
-        using data_t = typename mt::stdlib::type_info<DT>::type_t;
+    template <mtea::ArithType AT>
+    class arith_wrapper final : public mtea::arith_block_dynamic<DT, AT> {
+        using data_t = typename mtea::type_info<DT>::type_t;
 
     public:
         arith_wrapper(const size_t size) : data(std::unique_ptr<data_t[]>(new data_t[size])) {
@@ -384,28 +384,28 @@ struct ArithmeticBlockFunctor {
         std::unique_ptr<data_t[]> data;
     };
 
-    template <mt::stdlib::ArithType AT>
+    template <mtea::ArithType AT>
     static std::unique_ptr<arith_wrapper<AT>> create_arith_block(const size_t size) {
-        if constexpr (mt::stdlib::type_info<DT>::is_numeric) {
+        if constexpr (mtea::type_info<DT>::is_numeric) {
             return std::make_unique<arith_wrapper<AT>>(size);
         } else {
-            throw mt::stdlib::block_error("data type provided is not arithmetic type");
+            throw mtea::block_error("data type provided is not arithmetic type");
         }
     }
 
-    std::unique_ptr<mt::stdlib::block_interface> operator()(const std::string& name, const size_t size) {
-        using namespace mt::stdlib;
+    std::unique_ptr<mtea::block_interface> operator()(const std::string& name, const size_t size) {
+        using namespace mtea;
 
         if (name == BLK_NAME_ARITH_ADD) {
-            return create_arith_block<mt::stdlib::ArithType::ADD>(size);
+            return create_arith_block<mtea::ArithType::ADD>(size);
         } else if (name == BLK_NAME_ARITH_SUB) {
-            return create_arith_block<mt::stdlib::ArithType::SUB>(size);
+            return create_arith_block<mtea::ArithType::SUB>(size);
         } else if (name == BLK_NAME_ARITH_MUL) {
-            return create_arith_block<mt::stdlib::ArithType::MUL>(size);
+            return create_arith_block<mtea::ArithType::MUL>(size);
         } else if (name == BLK_NAME_ARITH_DIV) {
-            return create_arith_block<mt::stdlib::ArithType::DIV>(size);
+            return create_arith_block<mtea::ArithType::DIV>(size);
         } else if (name == BLK_NAME_ARITH_MOD) {
-            return create_arith_block<mt::stdlib::ArithType::MOD>(size);
+            return create_arith_block<mtea::ArithType::MOD>(size);
         } else {
             std::ostringstream oss;
             oss << "unknown arith name \"" << name << "\" provided";
@@ -414,9 +414,9 @@ struct ArithmeticBlockFunctor {
     }
 };
 
-template <template <mt::stdlib::DataType> class FCN, bool USE_INTEG, bool USE_FLOAT, bool USE_OTHER, typename... Args>
-static std::unique_ptr<mt::stdlib::block_interface> create_block_with_type_inner(const mt::stdlib::DataType data_type, Args&&... args) {
-    using namespace mt::stdlib;
+template <template <mtea::DataType> class FCN, bool USE_INTEG, bool USE_FLOAT, bool USE_OTHER, typename... Args>
+static std::unique_ptr<mtea::block_interface> create_block_with_type_inner(const mtea::DataType data_type, Args&&... args) {
+    using namespace mtea;
 
     std::unique_ptr<block_interface> ptr = nullptr;
 
@@ -484,21 +484,21 @@ static std::unique_ptr<mt::stdlib::block_interface> create_block_with_type_inner
     }
 }
 
-template <mt::stdlib::DataType DT1, mt::stdlib::DataType DT2>
+template <mtea::DataType DT1, mtea::DataType DT2>
 struct DoubleTypeConstructor {
-    std::unique_ptr<mt::stdlib::block_interface> operator()(std::string_view name) {
-        if (name == mt::stdlib::BLK_NAME_CONVERSION) {
-            return std::make_unique<mt::stdlib::conversion_block<DT1, DT2>>();
+    std::unique_ptr<mtea::block_interface> operator()(std::string_view name) {
+        if (name == mtea::BLK_NAME_CONVERSION) {
+            return std::make_unique<mtea::conversion_block<DT1, DT2>>();
         } else {
-            throw mt::stdlib::block_error((std::ostringstream{} << "unknown block name with multiple types with name '" << name << "' provided").str());
+            throw mtea::block_error((std::ostringstream{} << "unknown block name with multiple types with name '" << name << "' provided").str());
         }
     }
 };
 
-template <template <mt::stdlib::DataType, mt::stdlib::DataType> class FCN, mt::stdlib::DataType DT1, typename... Args>
-static std::unique_ptr<mt::stdlib::block_interface> create_double_dt_block_inner(mt::stdlib::DataType dt2, Args&&... args) {
+template <template <mtea::DataType, mtea::DataType> class FCN, mtea::DataType DT1, typename... Args>
+static std::unique_ptr<mtea::block_interface> create_double_dt_block_inner(mtea::DataType dt2, Args&&... args) {
     switch (dt2) {
-        using enum mt::stdlib::DataType;
+        using enum mtea::DataType;
     case F32:
         return FCN<DT1, F32>()(std::forward<Args>(args)...);
     case F64:
@@ -522,14 +522,14 @@ static std::unique_ptr<mt::stdlib::block_interface> create_double_dt_block_inner
     case BOOL:
         return FCN<DT1, BOOL>()(std::forward<Args>(args)...);
     default:
-        throw mt::stdlib::block_error("unknown data type provided");
+        throw mtea::block_error("unknown data type provided");
     }
 }
 
-template <template <mt::stdlib::DataType, mt::stdlib::DataType> class FCN, typename... Args>
-static std::unique_ptr<mt::stdlib::block_interface> create_double_dt_block(mt::stdlib::DataType dt1, mt::stdlib::DataType dt2, Args&&... args) {
+template <template <mtea::DataType, mtea::DataType> class FCN, typename... Args>
+static std::unique_ptr<mtea::block_interface> create_double_dt_block(mtea::DataType dt1, mtea::DataType dt2, Args&&... args) {
     switch (dt1) {
-        using enum mt::stdlib::DataType;
+        using enum mtea::DataType;
     case F32:
         return create_double_dt_block_inner<FCN, F32>(dt2, std::forward<Args>(args)...);
     case F64:
@@ -553,15 +553,15 @@ static std::unique_ptr<mt::stdlib::block_interface> create_double_dt_block(mt::s
     case BOOL:
         return create_double_dt_block_inner<FCN, BOOL>(dt2, std::forward<Args>(args)...);
     default:
-        throw mt::stdlib::block_error("unknown data type provided");
+        throw mtea::block_error("unknown data type provided");
     }
 }
 
-std::unique_ptr<mt::stdlib::block_interface> mt::stdlib::create_block(
+std::unique_ptr<mtea::block_interface> mtea::create_block(
     const std::string& name,
     std::span<const DataType> data_types,
     const Argument* argument) {
-    using namespace mt::stdlib;
+    using namespace mtea;
 
     const auto it = BLK_INFOS.find(name);
     if (it == BLK_INFOS.end()) {
@@ -605,11 +605,11 @@ std::unique_ptr<mt::stdlib::block_interface> mt::stdlib::create_block(
     }
 }
 
-std::unique_ptr<mt::stdlib::block_interface> mt::stdlib::create_block(
+std::unique_ptr<mtea::block_interface> mtea::create_block(
     const BlockInformation& info,
     std::span<const DataType> data_types,
     const Argument* argument) {
     return create_block(info.name, data_types, argument);
 }
 
-#endif // MT_STDLIB_USE_FULL_LIB
+#endif // MTEA_USE_FULL_LIB

@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: MIT
 
-#ifndef MT_STDLIB_EXCEPT_H
-#define MT_STDLIB_EXCEPT_H
+#ifndef MTEA_EXCEPT_H
+#define MTEA_EXCEPT_H
 
-#ifdef MT_STDLIB_USE_FULL_LIB
+#ifdef MTEA_USE_FULL_LIB
 
 #include <stdexcept>
 #include <string>
 
-namespace mt {
-namespace stdlib {
+namespace mtea {
 
 class block_error : public std::runtime_error {
 public:
@@ -18,8 +17,7 @@ public:
 };
 
 }
-}
 
-#endif // MT_STDLIB_USE_FULL_LIB
+#endif // MTEA_USE_FULL_LIB
 
-#endif // MT_STDLIB_EXCEPT_H
+#endif // MTEA_EXCEPT_H

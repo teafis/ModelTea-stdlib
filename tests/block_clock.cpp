@@ -4,13 +4,13 @@
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include "mtstdlib.hpp"
-#include "mtstdlib_types.hpp"
+#include "mtea.hpp"
+#include "mtea_types.hpp"
 
 static void test_with_timestamp(const double dt) {
     double check_val = 0.0;
 
-    mt::stdlib::clock_block<mt::stdlib::DataType::F64> clock(dt);
+    mtea::clock_block<mtea::DataType::F64> clock(dt);
     clock.reset();
 
     REQUIRE_THAT(clock.time_step, Catch::Matchers::WithinRel(dt));
