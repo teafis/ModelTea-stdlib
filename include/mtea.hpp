@@ -1555,7 +1555,7 @@ public:
     void set_input(size_t port_num, const Argument* value) override {
         if (port_num == 0) {
             set_input_value<DT>(s_in.value_a, value);
-        } else if (port_num == 0) {
+        } else if (port_num == 1) {
             set_input_value<DT>(s_in.value_b, value);
         } else {
             throw block_error("input port too high");
@@ -1564,7 +1564,7 @@ public:
 
     void get_output(size_t port_num, Argument* value) const override {
         if (port_num == 0) {
-            get_output_value<DT>(s_out.value, value);
+            get_output_value<DataType::BOOL>(s_out.value, value);
         } else {
             throw block_error("output port too high");
         }
